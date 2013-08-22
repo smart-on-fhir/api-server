@@ -18,25 +18,18 @@ public class StringSearchParamHandler extends SearchParamHandler {
 
 	@Override
 	protected String paramXpath() {
-		return "//"+this.xpath+"//@value";
+		return "//$xpath//@value";
 	}
 
 	@Override
-	public void processXpathNodes(
-			java.util.List<Node> nodes,
-			java.util.List<SearchParamValue> index) {
-
+	public void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {
 		setMissing(nodes.size() == 0, index);
-
-		Collection<String> parts = new ArrayList<String>();
-		for (Node n : nodes) {
-			parts.add(n.getNodeValue());
-		}
-		index.add(value(parts.join(" ")))
+		String parts = nodes.collect {it.nodeValue}.join(" ")
+		index.add(value(parts))
 	}
 
 	@Override
-	BasicDBObject searchClause(def searchedFor){
+	BasicDBObject searchClause(Map searchedFor){
 		
 		def val = stripQuotes(searchedFor)
 		

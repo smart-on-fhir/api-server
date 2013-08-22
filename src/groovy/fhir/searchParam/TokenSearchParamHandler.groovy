@@ -23,64 +23,55 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 		return "//"+this.xpath;
 	}
 
-	public void processXpathNodes(
-			java.util.List<Node> tokens,
-			java.util.List<SearchParamValue> index) throws Exception {
-
+	
+	void processMatchingXpaths(List<Node> tokens, List<SearchParamValue> index){
+		
 		if (!fieldName.equals("_id")) {
 			setMissing(tokens.size() == 0, index);
 		}
 
 		for (Node n : tokens) {
 
-			def List<String> textParts = [];
 			// :text (the match does a partial searches on
 			//          * the text portion of a CodeableConcept or
 			//            the display portion of a Coding)
 
-			query(".//@value", n).each { textPart->
-				textParts.add(textPart.getNodeValue());
-				if (textPart.getNodeValue() == null){
-					//Logger.info("Hmm, null @value for " + fieldName + fieldType + xpath);
-				}
-			}
+			String textParts = query(".//@value", n).collect {
+				it.nodeValue
+			}.join(" ")
 
-			index.add(value(":text", textParts.join(" ")))
-
+			index.add(value(":text", textParts))
 
 			// For CodeableConcept and Coding, list the code as "system/code"
 			query(".//f:code", n).each { codePart ->
 				String code = queryString("./@value", codePart);
 				String system = queryString("../f:system/@value", codePart);
-
-				index.add(value(":code", system+"/"+code));
+				index.add(value(":code", "$system/$code" as String));
 			}
 
 			// For Identifier, list the code as "system/key"
 			for (Node codePart : query(".//f:key", n)) {
-
 				String code = queryString("./@value", codePart);
 				String system = queryString("../f:system/@value", codePart);
-
-				index.add(value(":code", system+"/"+code));
+				index.add(value(":code", "$system/$code" as String));
 			}
 
 			// For plain 'ol Code elements, we'll at least pull out the value
 			// (We won't try to determine the implicit system for now, since
 			//  it's not available in instance data or profile.xml)
 			query("./@value", n).each { codePart->
-				index.add(value(":code", codePart.getNodeValue()));
+				index.add(value(":code", codePart.nodeValue));
 			}
-
 		}
-	}
-			
 
+	}
+
+
+	
 	@Override
-	BasicDBObject searchClause(def searchedFor){
-		
+	BasicDBObject searchClause(Map searchedFor){
 		// FHIR spec describes a slight difference between
-		// no modifier and ":text" on a code -- 
+		// no modifier and ":text" on a code --
 		// but we're treating them the same here
 		if (searchedFor.modifier in [null, "text"]){
 			return match(
@@ -105,5 +96,6 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 
 		throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
+
 
 }

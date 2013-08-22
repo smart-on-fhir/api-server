@@ -1,5 +1,9 @@
 package fhir.searchParam
 
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
 import groovy.util.logging.Log4j
 
 import javax.xml.parsers.DocumentBuilder
@@ -19,11 +23,50 @@ import com.mongodb.BasicDBObject
 import com.mongodb.DBObject
 
 // TODO implement generic logic for extracting References
-public class ReferenceSearchParamHandler extends SearchParamHandler { }
+public class ReferenceSearchParamHandler extends SearchParamHandler {
+
+	@Override
+	protected void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {	
+			setMissing(nodes.size() == 0, index);
+			nodes.each {
+				index.add(value(queryString('./f:reference/@value', it)));
+			}
+	} 
+			
+	@Override
+	protected String paramXpath() {
+		return "//"+this.xpath;
+	}
+	
+	@Override
+	BasicDBObject searchClause(Map searchedFor){
+		// FHIR spec describes a slight difference between
+		// no modifier and ":text" on a code --
+		// but we're treating them the same here
+		if (searchedFor.modifier == null){
+			return match(
+					k: fieldName,
+					v: searchedFor.value
+				)
+		}
+		
+		if (searchedFor.modifier == "any"){
+			return match(
+				k: fieldName,
+				v: [$regex: '/'+searchedFor.value+'$']
+			)
+		}
+
+		throw new RuntimeException("Unknown modifier: " + searchedFor)
+	}
+
+}
 
 // TODO extract Integer into its own class. Need clarification on
 // how this is different from other numerical types (double, say).
-public class IntegerSearchParamHandler extends StringSearchParamHandler { }
+public class IntegerSearchParamHandler extends StringSearchParamHandler {
+	
+}
 
 
 /**
@@ -90,13 +133,9 @@ public abstract class SearchParamHandler {
 		return d;
 	}
 
-	protected void processXpathNodes(List<Node> nodes, List<SearchParamValue> index) throws Exception{
+	protected abstract void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index);
 
-	}
-
-	protected String paramXpath() {
-		return "//" + xpath + "/@value";
-	}
+	protected abstract String paramXpath()
 
 	protected void setMissing(boolean missing, List<SearchParamValue> index){
 		index.add(value(
@@ -143,7 +182,7 @@ public abstract class SearchParamHandler {
 	public List<SearchParamValue> execute(Resource r) throws Exception {
 		List<SearchParamValue> index = []
 		List<Node> nodes = query(paramXpath(), fromResource(r))
-		processXpathNodes(nodes, index);
+		processMatchingXpaths(nodes, index);
 		return index;
 	}
 	
@@ -163,23 +202,21 @@ public abstract class SearchParamHandler {
 			]]]
 	}
 	
-	static BasicDBObject and(List<DBObject> clauses){
+	static BasicDBObject andList (List<DBObject> clauses){
 		return [$and: clauses]
 	}
 
 	static BasicDBObject and(DBObject... clauses){
-		return and(clauses)
+		return [$and: clauses]
 	}
 	
 	static BasicDBObject or(DBObject... clauses){
-		return or(clauses)
+		return [$or: clauses]
 	}
 	
-	static BasicDBObject or(List<DBObject> clauses){
+	static BasicDBObject orList(List<DBObject> clauses){
 		return [$or: clauses]
 	}
 
-	BasicDBObject searchClause(def searchedFor){
-		return [searchTerms:['$elemMatch': [k: fieldName,v: searchedFor.value]]]
-	}
+	abstract BasicDBObject searchClause(Map searchedFor)
 }

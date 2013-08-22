@@ -19,7 +19,12 @@ import com.sun.org.apache.xerces.internal.impl.dv.xs.PrecisionDecimalDV;
 public class DateSearchParamHandler extends SearchParamHandler {
 
 	@Override
-	public void processXpathNodes(List<Node> nodes, List<SearchParamValue> index) {
+	protected String paramXpath() {
+		return "//"+this.xpath+"/@value";
+	}
+	
+	@Override
+	public void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {
 
 		setMissing(nodes.size() == 0, index);
 		
@@ -75,7 +80,7 @@ public class DateSearchParamHandler extends SearchParamHandler {
 	}
 	
 	@Override
-	BasicDBObject searchClause(def searchedFor){
+	BasicDBObject searchClause(Map searchedFor){
 		
 		Interval precision = precisionInterval(searchedFor.value)
 		

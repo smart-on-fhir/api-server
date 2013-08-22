@@ -13,12 +13,16 @@ import org.hl7.fhir.instance.model.Conformance
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceComponent
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceSearchParamComponent
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
 import com.google.common.collect.ImmutableMap
+import com.mongodb.BasicDBObject
 
 class SearchIndexService{
 
 	static def transactional = false
+	static def lazyInit = false
+	
 	static XmlParser parser = new XmlParser()
 	static XmlComposer composer = new XmlComposer()
 	static GrailsApplication grailsApplication
@@ -29,7 +33,7 @@ class SearchIndexService{
 
 	@PostConstruct
 	void init() {
-
+		
 		SearchParamHandler.injectGrailsApplication(grailsApplication);
 
 		def xpathFixes = ImmutableMap.<String, String> builder();
@@ -103,5 +107,52 @@ class SearchIndexService{
 		}.join("\n")
 
 		return ret;
+	}
+	
+	protected List<Map> orClausesFor(Map param){
+		List<String> alternatives = param.value.split(',')
+		
+		return alternatives.collect {
+			[
+				key: param.key,
+				modifier: param.modifier,
+				value: it	
+			]
+		}
+	}
+	
+	public BasicDBObject queryParamsToMongo(Map params){
+		
+		def rc = classForModel(params.resource)
+		def indexers = indexersByResource[rc]
+		
+		def byParam = indexers.collectEntries {
+			[(it.fieldName): it]
+		}
+				
+		def searchParams = params.collect {
+			k,v ->
+			def c = k.split(":") as List
+			[
+			  key: c[0],
+			  modifier: c[1],
+			  value: v
+			]
+		  }.findAll {
+			   it.key in byParam
+		  }
+		  
+		List<BasicDBObject> clauses = searchParams.collect { param ->
+			List disjunction = param.value.split(',')
+
+			List orClauses = orClausesFor(param).collect {
+				byParam[it.key].searchClause(it)
+			}
+			
+			if (orClauses.size() == 1) return orClauses[0];
+			else return SearchParamHandler.orList(orClauses);
+		}
+		log.debug("Clauess: " + clauses.join("\n"))
+		return SearchParamHandler.andList(clauses)
 	}
 }

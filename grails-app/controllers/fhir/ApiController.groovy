@@ -41,12 +41,13 @@ class ApiController {
 			action: 'POST',
 			content: rjson)
 			.save()
-		
+
 		def rIndex = new ResourceIndex(
 			fhirId: fhirId,
 			type: type,
 			searchTerms: indexTerms.collect { it.toMap() })
 			.save()
+			
 			
 		String versionUrl = g.createLink(
 			mapping: 'resourceVersion',
@@ -84,34 +85,11 @@ class ApiController {
 	}
 
 	def search() {
-		
-		def rc = searchIndexService.classForModel(params.resource)
-		def indexers = searchIndexService.indexersByResource[rc]
-		
-		def byParam = indexers.collectEntries { 
-			[(it.fieldName): it]
-		}
-				
-		def searchParams = params.collect {k,v ->
-			def c = k.split(":") as List
-			[
-			  key: c[0],
-			  modifier: c[1],
-			  value: v
-			]
-		  }.findAll {
-		  	 it.key in byParam
-		  }
-		  
-		List<BasicDBObject> clauses = []
-		  
-		searchParams.each { p->
-			log.debug("Indexing $p with " + byParam[p.key])
-			clauses.add(byParam[p.key].searchClause(p))
-		}
-		log.debug(SearchParamHandler.and(clauses).toString())
+		def clauses = searchIndexService.queryParamsToMongo(params)
+
+				log.debug(clauses.toString())
 		response.setHeader('Content-type', "text/json")
-		def query = SearchParamHandler.and(clauses)
+		def query = clauses
 		def matches = ResourceIndex.collection.find(query).toList()		
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		def responseJson = '[' + matches.collect {
