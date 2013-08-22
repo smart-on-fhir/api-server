@@ -1,0 +1,5 @@
+grails {
+	mongo {
+		databaseName="fhir"
+	}
+}
