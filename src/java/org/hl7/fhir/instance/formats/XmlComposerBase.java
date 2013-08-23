@@ -87,16 +87,13 @@ public abstract class XmlComposerBase extends XmlBase {
 	public void compose(IXMLWriter writer, AtomFeed feed, boolean htmlPretty) throws Exception {
 		this.htmlPretty = htmlPretty;
 		xml = writer;
-		xml.setDefaultNamespace(FHIR_NS);
+		xml.setDefaultNamespace(ATOM_NS);
 		
 	  xml.open("feed");
 	  xml.element("title", feed.getTitle());
 	  xml.element("id", feed.getId());
-//	  if (feed.isSearch) {
-//	    xml.setDefaultNamespace("http://purl.org/atompub/tombstones/1.0");
-//	    xml.element("totalResults", inttostr(feed.SearchTotal));
-//	    xml.Namespace := ATOM_NS;
-//	  }
+      xml.setDefaultNamespace("http://purl.org/atompub/tombstones/1.0");
+      xml.element("totalResults", ""+feed.getTotalResults());
 
 	  for (String name : feed.getLinks().keySet()) {
 	    xml.attribute("href", feed.getLinks().get(name));
@@ -104,7 +101,7 @@ public abstract class XmlComposerBase extends XmlBase {
 	    xml.element("link", null);
 	  }
 	  
-	  xml.element(FHIR_NS, "updated", dateToXml(feed.getUpdated()));
+	  xml.element("updated", dateToXml(feed.getUpdated()));
 	  if (feed.getAuthorUri() != null || feed.getAuthorName() != null) {
 	    xml.open("author");
 	    if (feed.getAuthorName() != null) 

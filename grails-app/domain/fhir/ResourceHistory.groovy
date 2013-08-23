@@ -1,6 +1,7 @@
 package fhir
 
 import org.bson.types.ObjectId
+import org.hl7.fhir.instance.model.DiagnosticOrder;
 import org.hl7.fhir.instance.model.Resource
 
 import com.mongodb.DBObject
@@ -19,11 +20,11 @@ class ResourceHistory {
 	static Resource getLatestByFhirId(String id){
 		if (!ObjectId.isValid(id)) return null
 
-		def h= ResourceHistory.findAllByFhirId(id, [fhirId:id]).asList()
+		def h= ResourceHistory.findAllByFhirId(id, [fhirId:id,limit:1]).asList()
 		if (h.size()==0){
 			return null
 		}
-
+		
 		h[0].content.toString().decodeFhirJson()
 	}
 

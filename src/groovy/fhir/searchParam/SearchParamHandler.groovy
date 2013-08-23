@@ -202,6 +202,23 @@ public abstract class SearchParamHandler {
 			]]]
 	}
 	
+
+	/**
+	 * @param param is a single search param (map with keys: key, modifier, value)
+	 * @return a list of derived search params, in vase the value has a comma 
+	 * 		   or other notion of disjunction built-in.
+	 */
+	protected List<Map> orClausesFor(Map param){
+		List<String> alternatives = param.value.split(',')
+		return alternatives.collect {
+			[
+				key: param.key,
+				modifier: param.modifier,
+				value: it
+			]
+		}
+	}
+	
 	static BasicDBObject andList (List<DBObject> clauses){
 		return [$and: clauses]
 	}

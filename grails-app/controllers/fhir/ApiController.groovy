@@ -1,19 +1,13 @@
 package fhir
 import org.bson.types.ObjectId
-import org.hl7.fhir.instance.formats.JsonComposer
-import org.hl7.fhir.instance.formats.XmlParser
 import org.hl7.fhir.instance.model.Resource
+import org.hl7.fhir.instance.model.AtomFeed
+import org.hl7.fhir.instance.model.AtomEntry
+import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.mongodb.BasicDBObject
 import com.mongodb.DBObject
-import com.mongodb.util.JSON
-
-import fhir.searchParam.SearchParamHandler
-import fhir.searchParam.SearchParamValue
-
-import java.io.InputStream
 
 class ApiController {
 	
@@ -31,10 +25,13 @@ class ApiController {
 		
 		DBObject rjson = r.encodeAsFhirJson().encodeAsDbObject()
 		String type = rjson.keySet().iterator().next()
+		String versionUrl;
 		
 		def indexTerms = searchIndexService.indexResource(r);
+		for (int i = 0; i < 500; i++) {
 		def fhirId = new ObjectId()
 		
+	
 		def h = new ResourceHistory(
 			fhirId: fhirId, 
 			type: type,
@@ -44,12 +41,13 @@ class ApiController {
 
 		def rIndex = new ResourceIndex(
 			fhirId: fhirId,
+			latest: h.id,
 			type: type,
 			searchTerms: indexTerms.collect { it.toMap() })
 			.save()
 			
 			
-		String versionUrl = g.createLink(
+		versionUrl = g.createLink(
 			mapping: 'resourceVersion',
 			absolute: true,
 			params: [
@@ -58,7 +56,7 @@ class ApiController {
 				vid: h.id	
 			]).replace("%40","@")
 		
-		
+		}
 		log.debug("Created version: " + versionUrl)
 		response.setHeader('Location', versionUrl)
 		response.setStatus(201)
@@ -86,19 +84,64 @@ class ApiController {
 
 	def search() {
 		def clauses = searchIndexService.queryParamsToMongo(params)
+		log.debug(clauses.toString())
+		
+		def t0 = new Date().getTime()
 
-				log.debug(clauses.toString())
-		response.setHeader('Content-type', "text/json")
 		def query = clauses
-		def matches = ResourceIndex.collection.find(query).toList()		
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		def responseJson = '[' + matches.collect {
-				ResourceHistory.getLatestByFhirId(it.fhirId.toString())
-				.encodeAsFhirJson()
-		}.join(', ') + ']'
-				
-		render(responseJson)
-		log.debug(gson.toJson(query))
+		def MAX_COUNT = 100
+
+		def incount = Integer.parseInt(params._count?:""+MAX_COUNT)
+		def limit = Math.min(incount, MAX_COUNT)
+		
+		def inskip = Integer.parseInt(params._skip?:""+0)
+		def skip = Math.max(inskip, 0)
+		
+		def cursor = ResourceIndex.collection.find([type: "DiagnosticOrder"]).skip(skip).limit(limit)
+		int count = cursor.count()
+		println("Count time: " + (new Date().getTime() - t0))
+		
+		def matches = []
+		List ids = cursor.collect {
+			it.latest
+		}
+		
+		matches = ResourceHistory.collection.find(
+			_id: [$in: ids]	
+		).collect {
+			it.content.toString().decodeFhirJson()
+		}
+		
+		//	matches.add ResourceHistory.getLatestByFhirId(it.fhirId.toString())	
+	
+		println("T: " + (new Date().getTime() - t0))	
+//		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+//		def responseJson = '[' + matches.collect {
+//				it.encodeAsFhirJson()
+//		}.join(', ') + ']'
+	
+		AtomFeed feed = new AtomFeed()
+		feed.authorName = "groovy.config.atom.author-name"
+		
+		feed.authorUri  = "groovy.config.atom.author-uri"
+		feed.id = request.forwardURI
+		feed.totalResults = matches.size()
+		if (skip + limit < count)
+			feed.links.put("next", feed.id + "?_count=$limit&_skip=${skip+limit}")
+		
+		Calendar now = Calendar.instance
+		feed.updated = now
+			
+		
+		feed.entryList.addAll matches.collect { resource ->
+			AtomEntry entry = new AtomEntry()
+			entry.resource = resource
+			entry.updated = now
+			entry
+		}
+		
+		request.resourceToRender = feed
 	}
 
 }

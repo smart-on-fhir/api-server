@@ -109,50 +109,41 @@ class SearchIndexService{
 		return ret;
 	}
 	
-	protected List<Map> orClausesFor(Map param){
-		List<String> alternatives = param.value.split(',')
-		
-		return alternatives.collect {
-			[
-				key: param.key,
-				modifier: param.modifier,
-				value: it	
-			]
-		}
-	}
 	
 	public BasicDBObject queryParamsToMongo(Map params){
 		
 		def rc = classForModel(params.resource)
 		def indexers = indexersByResource[rc]
 		
-		def byParam = indexers.collectEntries {
+		// Just the indexers for the current resource type
+		// keyed on the searchParam name (e.g. "date", "subject")
+		Map<String,SearchParamHandler> indexerFor = indexers.collectEntries {
 			[(it.fieldName): it]
 		}
 				
-		def searchParams = params.collect {
-			k,v ->
+		// Represent each term in the query a
+		// key, modifier, and value
+		// e.g. [key: "date", modifier: "after", value: "2010"]
+		def searchParams = params.collect { k,v ->
 			def c = k.split(":") as List
-			[
-			  key: c[0],
-			  modifier: c[1],
-			  value: v
-			]
+			return [key: c[0], modifier: c[1], value: v]
 		  }.findAll {
-			   it.key in byParam
+			   it.key in indexerFor
 		  }
 		  
-		List<BasicDBObject> clauses = searchParams.collect { param ->
-			List disjunction = param.value.split(',')
-
-			List orClauses = orClausesFor(param).collect {
-				byParam[it.key].searchClause(it)
+		// Run the assigned indexer on each term
+		// to generate an AND'able list of MongoDB
+		// query clauses.
+		List<BasicDBObject> clauses = searchParams.collect {
+			
+			def idx = indexerFor[it.key]
+			List orClauses = idx.orClausesFor(it).collect {
+				idx.searchClause(it)
 			}
 			
-			if (orClauses.size() == 1) return orClauses[0];
-			else return SearchParamHandler.orList(orClauses);
+			orClauses.size() == 1 ? orClauses[0] : 
+									SearchParamHandler.orList(orClauses)
 		}
-		log.debug("Clauess: " + clauses.join("\n"))
 		return SearchParamHandler.andList(clauses)
 	}
 }

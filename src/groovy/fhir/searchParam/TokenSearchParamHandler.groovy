@@ -7,17 +7,21 @@ import org.w3c.dom.NodeList
 
 import com.mongodb.BasicDBObject;
 
-// Per FHIR spec: May be used to search through the
-// * text, displayname, code and code/codesystem (for codes)
-// * and label, system and key (for identifier)
-public class TokenSearchParamHandler extends SearchParamHandler {
-	// :text (the match does a partial searches on
-	//          * the text portion of a CodeableConcept or
-	//            the display portion of a Coding)
-	// :code (a match on code and system of
-	//          * the coding/codeable concept)
-	// :anyns matches all codes irrespective of the namespace.
 
+/**
+ * @author jmandel
+ *  Per FHIR spec, token-type search params can search through
+ *    - text, displayname, code and code/codesystem (for codes)
+ *    - label, system and key (for identifier)
+ */
+public class TokenSearchParamHandler extends SearchParamHandler {
+/*	 :text (the match does a partial searches on
+ *	          - the text portion of a CodeableConcept or
+ *	          -  the display portion of a Coding)
+ *	 :code (a match on code and system of
+ *	          - the coding/codeable concept)
+ *	 :anyns matches all codes irrespective of the namespace.
+*/
 	@Override
 	protected String paramXpath() {
 		return "//"+this.xpath;
@@ -66,12 +70,11 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 
 	}
 
-
-	
 	@Override
 	BasicDBObject searchClause(Map searchedFor){
 		// FHIR spec describes a slight difference between
 		// no modifier and ":text" on a code --
+		// (only :text should include display fields)
 		// but we're treating them the same here
 		if (searchedFor.modifier in [null, "text"]){
 			return match(
