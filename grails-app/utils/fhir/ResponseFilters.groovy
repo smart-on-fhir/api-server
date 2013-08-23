@@ -1,6 +1,6 @@
 package fhir
 
-class ResponeFilters {
+class ResponseFilters {
 	def filters = {
 		renderContent(controller: '*', action: '*') {
 			after = {

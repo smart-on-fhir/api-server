@@ -1,9 +1,5 @@
 package fhir;
 
-import fhir.searchParam.SearchParamHandler
-import fhir.searchParam.SearchParamValue
-import groovy.util.logging.Log4j
-
 import javax.annotation.PostConstruct
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
@@ -13,10 +9,12 @@ import org.hl7.fhir.instance.model.Conformance
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceComponent
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceSearchParamComponent
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
 import com.google.common.collect.ImmutableMap
 import com.mongodb.BasicDBObject
+
+import fhir.searchParam.SearchParamHandler
+import fhir.searchParam.SearchParamValue
 
 class SearchIndexService{
 

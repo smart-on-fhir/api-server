@@ -87,8 +87,9 @@ public abstract class SearchParamHandler {
 	SearchParamType fieldType;
 	String xpath;
 
-	public static SearchParamHandler create(String fieldName, SearchParamType fieldType, String xpath) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		println("forfield $fieldType got $fieldName to $xpath")
+	public static SearchParamHandler create(String fieldName, 
+											SearchParamType fieldType, 
+											String xpath) {
 		
 		String ft = fieldType.toString().capitalize();
 		String className = SearchParamHandler.class.canonicalName.replace(
@@ -148,10 +149,7 @@ public abstract class SearchParamHandler {
 		def xpath = XPathFactory.newInstance().newXPath();
 		xpath.setNamespaceContext(nsContext);
 		
-		// collect to take NodeList --> List<Node>
-		log.debug path+this.fieldName+this.fieldType+this.class
-		
-		
+		// collect to take NodeList --> List<Node>		
 		xpath.evaluate(path, node, XPathConstants.NODESET).collect {
 			it
 		}

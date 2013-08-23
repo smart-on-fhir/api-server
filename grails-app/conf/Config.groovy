@@ -14,7 +14,12 @@ import java.util.Map;
 // }
 
 
-
+fhir.oauth = [
+	tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
+	introspectionUri: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
+	clientId: 'client',
+	clientSecret: 'secret'
+]
 fhir.namespaces = [
 	f: "http://hl7.org/fhir",
 	xhtml: "http://www.w3.org/1999/xhtml"
