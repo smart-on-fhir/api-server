@@ -4,6 +4,10 @@ import grails.plugins.rest.client.RestBuilder
 
 import javax.annotation.PostConstruct
 
+/**
+ * @author jmandel
+ *
+ */
 class AuthorizationService{
 
 	def transactional = false
@@ -21,13 +25,27 @@ class AuthorizationService{
 		log.debug("With auth header: " + authHeader)
 	}
 	
+	/**
+	 * @param toCheck
+	 * @return JSON structure with token introspection details, like
+		  {
+		    "active": true,
+		    "scope": "summary:",
+		    "exp": "2013-08-23T20:16:07-0400",
+		    "sub": "admin",
+		    "client_id": "3ed9d143-c7f6-40e5-b36f-4ad5665c31de",
+		    "token_type": "Bearer"
+		  }
+	 */
 	def lookup(String toCheck){
 		String url = oauth.introspectionUri.replace("{token}", toCheck)
 		log.debug("GET " + url)
 		def response = rest.get(url) {
 			auth(oauth.clientId, oauth.clientSecret)
 		}
-		response
+		if (response.status != 200)
+			return null
+		return response.json	
 	}
 
 	String tokenFor(request){
@@ -46,10 +64,6 @@ class AuthorizationService{
 			lookup(token)
 		})
 		log.debug("Found a token for blag: " + response)
-		response.properties.each{
-			log.debug(it)
-			
-		}
 	}
 
 }
