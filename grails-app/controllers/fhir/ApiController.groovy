@@ -28,7 +28,6 @@ class ApiController {
 		String versionUrl;
 		
 		def indexTerms = searchIndexService.indexResource(r);
-		for (int i = 0; i < 500; i++) {
 		def fhirId = new ObjectId()
 		
 	
@@ -56,7 +55,6 @@ class ApiController {
 				vid: h.id	
 			]).replace("%40","@")
 		
-		}
 		log.debug("Created version: " + versionUrl)
 		response.setHeader('Location', versionUrl)
 		response.setStatus(201)
