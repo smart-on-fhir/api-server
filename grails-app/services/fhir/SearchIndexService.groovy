@@ -96,7 +96,12 @@ class SearchIndexService{
 
 		log.info("\n\nINDEXING" + rx)
 
-		def ret = indexersByResource[rx.class].collectMany {
+		Collection indexers = indexersByResource[rx.class]
+		if (!indexers){
+			return []
+		}
+
+		def ret = indexers.collectMany {
 			SearchParamHandler h -> h.execute(rx)
 		}
 

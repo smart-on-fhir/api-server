@@ -1,5 +1,6 @@
 package fhir
 import org.bson.types.ObjectId
+import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.AtomFeed
 import org.hl7.fhir.instance.model.AtomEntry
@@ -30,7 +31,6 @@ class ApiController {
 		def indexTerms = searchIndexService.indexResource(r);
 		def fhirId = new ObjectId()
 		
-	
 		def h = new ResourceHistory(
 			fhirId: fhirId, 
 			type: type,

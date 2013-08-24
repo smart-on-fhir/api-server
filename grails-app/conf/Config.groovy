@@ -125,7 +125,7 @@ environments {
     development {
         grails.logging.jul.usebridge = true		
 	fhir.oauth = [
-		enabled: true ? "true".toBoolean() : true,
+		enabled: false,
 		tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
 		introspectionUri: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
 		clientId: 'client',
