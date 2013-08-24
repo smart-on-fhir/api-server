@@ -1,5 +1,3 @@
-import java.util.Map;
-
 // locations to search for config files that get merged into the main config;
 // config files can be ConfigSlurper scripts, Java properties files, or classes
 // in the classpath in ConfigSlurper format
@@ -14,12 +12,6 @@ import java.util.Map;
 // }
 
 
-fhir.oauth = [
-	tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
-	introspectionUri: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
-	clientId: 'client',
-	clientSecret: 'secret'
-]
 fhir.namespaces = [
 	f: "http://hl7.org/fhir",
 	xhtml: "http://www.w3.org/1999/xhtml"
@@ -132,13 +124,26 @@ grails.app.context = "/"
 environments {
     development {
         grails.logging.jul.usebridge = true		
+	fhir.oauth = [
+		enabled: true ? "true".toBoolean() : true,
+		tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
+		introspectionUri: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
+		clientId: 'client',
+		clientSecret: 'secret'
+	]
     }
     production {
         grails.logging.jul.usebridge = false
-        // TODO: grails.serverURL = "http://www.changeme.com"
+        grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8080/"
+	fhir.oauth = [
+		enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : true,
+		tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
+		introspectionUri: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
+		clientId: System.env.CLIENT_ID,
+		clientSecret: System.env.CLIENT_SECRET
+	]
     }
 }
-
 
 // log4j configuration
 log4j = {

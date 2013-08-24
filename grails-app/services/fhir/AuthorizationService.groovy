@@ -20,9 +20,6 @@ class AuthorizationService{
 	@PostConstruct
 	void init() {
 		oauth = grailsApplication.config.fhir.oauth
-		String h = "$oauth.clientId:$oauth.clientSecret"
-		authHeader = h.bytes.encodeBase64().toString()
-		log.debug("With auth header: " + authHeader)
 	}
 	
 	/**
@@ -45,6 +42,7 @@ class AuthorizationService{
 		}
 		if (response.status != 200)
 			return null
+
 		return response.json	
 	}
 
@@ -56,14 +54,15 @@ class AuthorizationService{
 		return false
 	}
 
-	boolean decide(request){
+	def decide(request){
 		def token = tokenFor(request)
 		log.debug("Issue a cache req for |$token|" )
 		def response = tokenCache.cache.get(token, {
-			log.debug("Cache miss; looking up")
-			lookup(token)
+			def r = lookup(token)
+			log.debug("Response from cache: " + r)
+			r
 		})
 		log.debug("Found a token for blag: " + response)
+		return response
 	}
-
 }
