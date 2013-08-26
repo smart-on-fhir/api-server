@@ -8,7 +8,7 @@ class ResponseFilters {
 				
 				// TODO figure out why response.format is pinned to "all"
 				// (and after unpinning it, clean up the logic below).
-				def acceptable = request.getHeaders('accept')*.toLowerCase() + request._format
+				def acceptable = request.getHeaders('accept')*.toLowerCase() + params._format
 				
 				def r = request?.resourceToRender
 				if (!r) {return true}
@@ -17,6 +17,7 @@ class ResponseFilters {
 
 					if (r.class != Binary) {
 						response.status = 406
+						log.debug("Got a request to render non-raw content: " + r)
 						render(text: "Can only request Raw for binary resources, not " + r.class.toString())
 						return false
 					}
@@ -26,10 +27,13 @@ class ResponseFilters {
 					return false
 				}
 	
-				if ("json" in acceptable || "text/json" in acceptable)
-					render(text: r.encodeAsFhirJson(), contentType:"text/json")
+				if (acceptable.any {it =~ /json/})
+					render(text: r.encodeAsFhirJson(), contentType:"application/json")
 				else
 					render(text: r.encodeAsFhirXml(), contentType:"text/xml")
+
+				if (request?.t0)	
+				log.debug("rendered after: " + (new Date().getTime() - request.t0))	
 				return false
 				
 			}			

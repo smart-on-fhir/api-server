@@ -17,24 +17,32 @@ class ApiController {
 	
 	def summary() {
 
-		String compartment = authorizationService.compartmentFor(request)
+		def compartments = authorizationService.compartmentsFor(request)
+		log.debug("Compartments: " + compartments)
 
 		def q = [
 			type:'DocumentReference',
-			compartments:compartment,
+			compartments:[$in:compartments],
 			searchTerms: [
 				$elemMatch: [
 					k:'type:code', 
 					v:'http://loinc.org/34133-9']]]
 
 		List ids = ResourceIndex.collection
-				.find(q, [latest:1])
+				.find(q, [latest:-1])
 				.collect {it.latest}
 
-		DocumentReference doc = ResourceHistory.collection
+		def cursor = ResourceHistory.collection
 				.find([_id: [$in:ids]])
-				.sort([created:-1])
-				.limit(1).first()
+				.sort([received:-1])
+				.limit(1)
+
+		if (cursor.count() == 0) {
+			return response.status = 404
+		}
+
+		DocumentReference doc = cursor
+				.first()
 				.content.toString()
 				.decodeFhirJson()
 
@@ -62,13 +70,27 @@ class ApiController {
 
 		log.debug("Gonna encode" + r)
 		DBObject rjson = r.encodeAsFhirJson().encodeAsDbObject()
+
 		String type = rjson.keySet().iterator().next()
+		String expectedType = searchIndexService.capitalizedModelName[params.resource]
+		if (type != expectedType){
+			response.status = 405
+			log.debug("Got a request whose type didn't match: $expectedType vs. $type")
+			return render("Can't post a $type to the $expectedType endpoint")
+		}
+
 		String versionUrl;
 		
 		def indexTerms = searchIndexService.indexResource(r);
 		def fhirId = params.id
 	
+		// TODO verify that any compartment passed in via URL params
+		// matches the authorizationService.compartmentFor this request
 		def compartments = params.list('compartments')
+		if (!authorizationService.compartmentsAllowed(compartments, request)){
+			response.status = 403
+			return render("Can't write to compartment: $compartments")
+		}
 		
 		def h = new ResourceHistory(
 			fhirId: fhirId, 
@@ -140,7 +162,7 @@ class ApiController {
 		log.debug("Type: " + type)
 		def cursor = ResourceIndex.collection.find([type: type]).skip(skip).limit(limit)
 		int count = cursor.count()
-		println("Count time: " + (new Date().getTime() - t0))
+		log.debug("Count time: " + (new Date().getTime() - t0))
 		
 		def matches = []
 		List ids = cursor.collect {
@@ -153,7 +175,7 @@ class ApiController {
 			it.content.toString().decodeFhirJson()
 		}
 		
-		println("T: " + (new Date().getTime() - t0))	
+		log.debug("T: " + (new Date().getTime() - t0))	
 	
 		AtomFeed feed = new AtomFeed()
 		feed.authorName = "groovy.config.atom.author-name"
@@ -174,6 +196,8 @@ class ApiController {
 			entry.updated = now
 			entry
 		}
+		request.t0 = t0
+		log.debug("Feed after: " + (new Date().getTime() - t0))	
 		
 		request.resourceToRender = feed
 	}

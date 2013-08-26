@@ -72,6 +72,7 @@ class SearchIndexService{
 	public void setConformance(Conformance c) throws Exception {
 		log.debug("Setting conformance profile")
 		def restResources = c.rest[0].resource
+		capitalizedModelName["binary"] = "Binary"
 		restResources.each { resource ->
 			capitalizedModelName[resource.typeSimple.toLowerCase()] = resource.typeSimple
 			Class model = classForModel resource.typeSimple

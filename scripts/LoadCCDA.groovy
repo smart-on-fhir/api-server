@@ -11,23 +11,27 @@ import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Identifier
 import org.hl7.fhir.instance.model.ResourceReference
 
-
-//def grailsApplication = ctx.getBean("grailsApplication")
+// TODO seriously clean this up, and/or replace it with
+// a standalone set of scripts that don't have a grails 
+// dependency.  This approach is very far from ideal.
 
 def rest = new RestBuilder(connectTimeout:5000, readTimeout:2000)
-def oauth = grailsApplication.config.fhir.oauth
-def fhirBase = (grailsApplication.config.grails.serverURL?: 'http://localhost:9090') +'/fhir/'
-println("Base: $fhirBase")
-println("OA: $oauth")
+def oauth = [clientId: System.env.CLIENT_ID, clientSecret: System.env.CLIENT_SECRET]
 
-println("intarget")
-String pid = "123"
+def fhirBase = System.env.BASE_URL +'/fhir/'
+String pid = System.env.PATIENT_ID ?: "123"
+String filePath = System.env.CCDA ?: 'grails-app/conf/examples/ccda.xml'
+byte[] bytes = Files.readAllBytes(Paths.get(filePath));
+
+println("Posting a new C-CDA to: $fhirBase")
+println("Patient ID: " + pid)
+println("Local file: " + filePath)
 
 def patient = rest.get(fhirBase+"patient/@$pid") {
 	auth(oauth.clientId, oauth.clientSecret)
 }
 
-println(""+ patient.status)
+//println(""+ patient.status)
 if (patient.status == 404) {
 
 	def patientWriter = new StringWriter()
@@ -49,9 +53,6 @@ if (patient.status == 404) {
 }
 
 
-
-String filePath = '/home/jmandel/smart/sample_ccdas/HL7 Samples/CCD.sample.xml'
-byte[] bytes = Files.readAllBytes(Paths.get(filePath));
 
 def x = new XmlParser().parse(filePath)
 def f = new groovy.xml.Namespace('http://hl7.org/fhir')
@@ -80,9 +81,13 @@ Map systems = [
 def type = new CodeableConcept()
 typeCoding = new Coding()
 type.coding = [typeCoding]
-typeCoding.systemSimple = systems[x.code[0].@codeSystem] ?: x.code[0].@codeSystem
-typeCoding.codeSimple = x.code[0].@code
-typeCoding.displaySimple = x.code[0].@displayName
+if (x.code[0]?.@codeSystem) {
+	typeCoding.systemSimple = systems[x.code[0].@codeSystem] ?: x.code[0].@codeSystem
+	typeCoding.codeSimple = x.code[0].@code
+	typeCoding.displaySimple = x.code[0].@displayName
+} else {
+	typeCoding.displaySimple = "Unknown"
+}
 doc.type = type
 
 def contained =  []
@@ -94,13 +99,14 @@ x.author.assignedAuthor.assignedPerson.each {
 	author.displaySimple = name
 	doc.author.add(author)
 
-	doc.contained.add("""<Practitioner xmlns="http://hl7.org/fhir" id="${author.referenceSimple[1..-1]}">    
+	def p = """<Practitioner xmlns="http://hl7.org/fhir" id="${author.referenceSimple[1..-1]}">
         <name>
-          <family value="${it.name.family.text()}"/> 
-          <given value="${it.name.given[0].text()}"/>
-        </name>
-    </Practitioner>""".decodeFhirXml())
-
+          <family value="${it.name.family.text()}"/>\n""" + 
+		  it.name.given.collect {"""<given value="${it.name.given[0].text()}"/>"""}.join("\n") +
+        """</name>
+	</Practitioner>"""
+    //println("prac: " + p)
+    doc.contained.add(p.decodeFhirXml())
 }
 
 doc.indexedSimple = Calendar.instance
@@ -113,14 +119,12 @@ doc.mimeTypeSimple = "application/hl7-v3+xml"
 Binary rawResource = new Binary()
 rawResource.setContent(bytes)
 rawResource.setContentType(doc.mimeTypeSimple)
-
 def binary  = rest.post(fhirBase+"binary?compartments=patient/@$pid") {
 	auth(oauth.clientId, oauth.clientSecret)
 	contentType "text/xml"
 	body rawResource.encodeAsFhirXml()
 }
-
-println binary.headers.location[0]
+//println binary.headers.location[0]
 doc.locationSimple = (binary.headers.location[0]+'/raw').split(fhirBase)[1]
 
 def docPost  = rest.post(fhirBase+"documentreference?compartments=patient/@$pid") {
@@ -128,4 +132,4 @@ def docPost  = rest.post(fhirBase+"documentreference?compartments=patient/@$pid"
 	contentType "text/xml"
 	body doc.encodeAsFhirXml()
 }
-println("Doc: " + docPost.status + docPost.headers.location[0])
+println("Created DocumentReference:\n" + docPost.headers.location[0])
