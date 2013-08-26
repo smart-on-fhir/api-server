@@ -49,7 +49,9 @@ grails.project.dependency.resolution = {
 		runtime "joda-time:joda-time:2.2"
 		runtime 'org.apache.commons:commons-io:1.3.2'
 		runtime "org.mongodb:mongo-java-driver:2.11.2"
-            
+		runtime 'xpp3:xpp3:1.1.3.4.O'
+		runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
+		runtime 'net.sf.saxon:Saxon-HE:9.4'
     }
 
     plugins {
