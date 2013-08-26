@@ -1,14 +1,11 @@
 package fhir
 import org.bson.types.ObjectId
+import org.hl7.fhir.instance.model.AtomEntry
+import org.hl7.fhir.instance.model.AtomFeed
 import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Resource
-import org.hl7.fhir.instance.model.AtomFeed
-import org.hl7.fhir.instance.model.AtomEntry
-import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.mongodb.DBObject
 
 class ApiController {
@@ -19,18 +16,25 @@ class ApiController {
 	
 	
 	def summary() {
+
 		String compartment = authorizationService.compartmentFor(request)
+
 		def q = [
 			type:'DocumentReference',
 			compartments:compartment,
-			searchTerms: [$elemMatch:[k:'type:code', v:'http://loinc.org/34133-9']]]
-		List ids = ResourceIndex.collection.find(q, [latest:1]).collect {it.latest}
+			searchTerms: [
+				$elemMatch: [
+					k:'type:code', 
+					v:'http://loinc.org/34133-9']]]
+
+		List ids = ResourceIndex.collection
+				.find(q, [latest:1])
+				.collect {it.latest}
 
 		DocumentReference doc = ResourceHistory.collection
 				.find([_id: [$in:ids]])
 				.sort([created:-1])
-				.limit(1)
-				.toList()[0]
+				.limit(1).first()
 				.content.toString()
 				.decodeFhirJson()
 
@@ -132,7 +136,9 @@ class ApiController {
 		def inskip = Integer.parseInt(params._skip?:""+0)
 		def skip = Math.max(inskip, 0)
 		
-		def cursor = ResourceIndex.collection.find([type: "DiagnosticOrder"]).skip(skip).limit(limit)
+		String type = searchIndexService.capitalizedModelName[params.resource]
+		log.debug("Type: " + type)
+		def cursor = ResourceIndex.collection.find([type: type]).skip(skip).limit(limit)
 		int count = cursor.count()
 		println("Count time: " + (new Date().getTime() - t0))
 		
@@ -147,14 +153,7 @@ class ApiController {
 			it.content.toString().decodeFhirJson()
 		}
 		
-		//	matches.add ResourceHistory.getLatestByFhirId(it.fhirId.toString())	
-	
 		println("T: " + (new Date().getTime() - t0))	
-//		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-//		def responseJson = '[' + matches.collect {
-//				it.encodeAsFhirJson()
-//		}.join(', ') + ']'
 	
 		AtomFeed feed = new AtomFeed()
 		feed.authorName = "groovy.config.atom.author-name"

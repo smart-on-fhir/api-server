@@ -18,6 +18,7 @@ def rest = new RestBuilder(connectTimeout:5000, readTimeout:2000)
 def oauth = grailsApplication.config.fhir.oauth
 def fhirBase = (grailsApplication.config.grails.serverURL?: 'http://localhost:9090') +'/fhir/'
 println("Base: $fhirBase")
+println("OA: $oauth")
 
 println("intarget")
 String pid = "123"
