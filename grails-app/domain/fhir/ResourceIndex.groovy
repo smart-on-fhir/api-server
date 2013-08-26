@@ -5,10 +5,10 @@ import org.bson.types.ObjectId
 
 class ResourceIndex {
 	ObjectId id
-	ObjectId fhirId
+	String fhirId
 	ObjectId latest
 	String type
 	Collection searchTerms
-	
+	Collection compartments
 }
 

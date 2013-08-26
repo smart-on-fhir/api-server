@@ -1,6 +1,7 @@
 package fhir
 import org.bson.types.ObjectId
 import org.hl7.fhir.instance.model.Binary
+import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.AtomFeed
 import org.hl7.fhir.instance.model.AtomEntry
@@ -13,9 +14,40 @@ import com.mongodb.DBObject
 class ApiController {
 	
 	static scope = "singleton"
-	def static searchIndexService
+	def searchIndexService
+	def authorizationService
 	
+	
+	def summary() {
+		String compartment = authorizationService.compartmentFor(request)
+		def q = [
+			type:'DocumentReference',
+			compartments:compartment,
+			searchTerms: [$elemMatch:[k:'type:code', v:'http://loinc.org/34133-9']]]
+		List ids = ResourceIndex.collection.find(q, [latest:1]).collect {it.latest}
+
+		DocumentReference doc = ResourceHistory.collection
+				.find([_id: [$in:ids]])
+				.sort([created:-1])
+				.limit(1)
+				.toList()[0]
+				.content.toString()
+				.decodeFhirJson()
+
+		def location = doc.locationSimple =~ /binary\/(.*)\/history\/(.*)\/raw/
+		Binary b = ResourceHistory.getFhirVersion(location[0][1][1..-1], location[0][2][1..-1])
+		params.raw = true
+		request.resourceToRender =  b
+	}
+
 	def create() {
+		params.id = new ObjectId().toString()
+		update()
+	}
+
+	// TODO handle creating new rather than posting-with-name
+	// extract logic to DRY from create()
+	def update() {
 
 		def body = request.getReader().text
 		
@@ -23,16 +55,20 @@ class ApiController {
 			xml {body.decodeFhirXml()}
 			json {body.decodeFhirJson()}
 		}
-		
+
+		log.debug("Gonna encode" + r)
 		DBObject rjson = r.encodeAsFhirJson().encodeAsDbObject()
 		String type = rjson.keySet().iterator().next()
 		String versionUrl;
 		
 		def indexTerms = searchIndexService.indexResource(r);
-		def fhirId = new ObjectId()
+		def fhirId = params.id
+	
+		def compartments = params.list('compartments')
 		
 		def h = new ResourceHistory(
 			fhirId: fhirId, 
+			compartments: compartments,
 			type: type,
 			action: 'POST',
 			content: rjson)
@@ -40,6 +76,7 @@ class ApiController {
 
 		def rIndex = new ResourceIndex(
 			fhirId: fhirId,
+			compartments: compartments,
 			latest: h.id,
 			type: type,
 			searchTerms: indexTerms.collect { it.toMap() })

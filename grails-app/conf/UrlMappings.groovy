@@ -2,14 +2,19 @@ class UrlMappings {
 
 	static mappings = {
 
+		name summary: "/fhir/summary" {
+			controller="Api"
+			action=[GET: "summary"]
+		}
+
 		name resourceInstance: "/fhir/$resource/@$id/$rawData?" {
-		    raw = {println("checking craw: " + params); params.rawData == "raw"}
+		    raw = {params.rawData == "raw"}
 			controller="Api"
 			action=[GET: "read", PUT: "update", DELETE: "delete"]
 		}
 
 		name resourceVersion: "/fhir/$resource/@$id/history/@$vid/$rawData?"(controller: "Api") {
-			raw = {println("checking hraw: " + params); params.rawData == "raw"}
+			raw = {params.rawData == "raw"}
 			action = [GET: "vread"]
 		}
 

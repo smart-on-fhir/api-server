@@ -18,5 +18,6 @@ stacktrace.log
 /lib/*.jar
 .classpath
 .project
-.groovy
+*.swo
 *.swp
+.groovy

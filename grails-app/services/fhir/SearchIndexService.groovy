@@ -52,7 +52,6 @@ class SearchIndexService{
 		if(modelName.equals("List")){
 			modelName += "_";
 		}
-		log.debug("L:ooking up clasS: " + modelName)
 		return lookupClass("org.hl7.fhir.instance.model."+modelName);
 	}
 	
@@ -71,7 +70,7 @@ class SearchIndexService{
 
 	 
 	public void setConformance(Conformance c) throws Exception {
-		log.debug("Resetting CONFORMANCE!")
+		log.debug("Setting conformance profile")
 		def restResources = c.rest[0].resource
 		restResources.each { resource ->
 			capitalizedModelName[resource.typeSimple.toLowerCase()] = resource.typeSimple
@@ -94,7 +93,7 @@ class SearchIndexService{
 	
 	public List<SearchParamValue> indexResource(Resource rx) {
 
-		log.info("\n\nINDEXING" + rx)
+		log.info("\n\nExtracting search index terms for a new " + rx.class)
 
 		Collection indexers = indexersByResource[rx.class]
 		if (!indexers){

@@ -16,8 +16,8 @@ class RequestFilters {
 					render("Authorization failed.")
 					return false
 				}
-				if(allowed) return true
-
+				request.authorization = allowed
+				return true
 
 			}			
 		}

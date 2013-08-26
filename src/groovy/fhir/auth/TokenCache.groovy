@@ -1,10 +1,13 @@
 package fhir.auth
 
 import com.google.common.cache.CacheBuilder
+import groovy.util.logging.Log4j
+
 import com.google.common.cache.Cache
 
 import org.springframework.beans.factory.InitializingBean
 
+@Log4j 
 class TokenCache implements InitializingBean {
 
 	String spec;
@@ -16,7 +19,7 @@ class TokenCache implements InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		println("Crazy initted token cache!")
+		log.debug("Initialized token cache")
 		cache = CacheBuilder
 				.from(spec)
 				.build();		

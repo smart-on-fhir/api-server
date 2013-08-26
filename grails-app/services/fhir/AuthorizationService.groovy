@@ -54,7 +54,29 @@ class AuthorizationService{
 		return false
 	}
 
+	boolean adminPassFor(request){
+		def header = request.getHeader("Authorization") =~ /^Basic (.*)$/
+			log.debug("exampine an admin access password" + header)
+		if(header){
+			String[] decoded = new String(header[0][1].decodeBase64()).split(':')
+			log.debug("try an admin access password" + decoded)
+			return (decoded[0] == oauth.clientId && decoded[1] == oauth.clientSecret)
+		}		
+		return false
+	}
+	
+	def compartmentFor(request){
+		"patient/@123"
+	}
+
+	
 	def decide(request){
+		boolean isAdmin = adminPassFor(request)
+		if (isAdmin) {
+			log.debug("Got an admin access password")
+			return [active: true, scope: "fhir-admin", token_type: "oob"]
+		}
+
 		def token = tokenFor(request)
 		log.debug("Issue a cache req for |$token|" )
 		def response = tokenCache.cache.get(token, {
