@@ -32,10 +32,10 @@ Key settings files are:
 
 ## Using
 Add new data to the server via HTTP POST.  For example, with default
-authentication settings and a server running at http://localhost:9090, you can add a new Diagnostic Order via:
+authentication settings and a server running at http://localhost:8080, you can add a new Diagnostic Order via:
 
 ```
-curl 'http://localhost:9090/fhir/diagnosticorder/@example' \
+curl 'http://localhost:8080/fhir/diagnosticorder/@example' \
      -X PUT \
      -H 'Authorization: Basic Y2xpZW50OnNlY3JldA=='\
      -H 'Content-Type: text/xml' \
@@ -45,14 +45,14 @@ curl 'http://localhost:9090/fhir/diagnosticorder/@example' \
 And then you can retrieve a feed of diagnostic orders via:
 
 ```
-curl 'http://localhost:9090/fhir/diagnosticorder/search' \
+curl 'http://localhost:8080/fhir/diagnosticorder/search' \
      -H 'Authorization: Basic Y2xpZW50OnNlY3JldA=='
 ```
 
 or fetch a single resource as JSON via:
 
 ```
-curl 'http://localhost:9090/fhir/diagnosticorder/@example' \
+curl 'http://localhost:8080/fhir/diagnosticorder/@example' \
      -H 'Authorization: Basic Y2xpZW50OnNlY3JldA==' \
      -H 'Accept: application/json'
 ```
@@ -64,15 +64,13 @@ with a client-side loader script. The loader will:
  * Create a FHIR DocumentReference for your C-CDA, with a `location` pointing to the raw content.
  * Create an empty patient if needed
 
- Here's how to invoke it (note the 
-awkward use of environment variables to pass arguments):
+Here's how to invoke it (note the awkward use of environment variables to pass arguments):
 
 ```
-BASE_URL="http://localhost:9090" \
+BASE_URL="http://localhost:8080" \
 CLIENT_ID=client \
 CLIENT_SECRET=secret \
 PATIENT_ID="1234" \
 CCDA="grails-app/conf/examples/ccda.xml"\
 grails run-script scripts/LoadCCDA.groovy
 ```
-
