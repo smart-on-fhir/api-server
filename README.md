@@ -49,7 +49,7 @@ curl 'http://localhost:9090/fhir/diagnosticorder/search' \
      -H 'Authorization: Basic Y2xpZW50OnNlY3JldA=='
 ```
 
-or fetch a singel resource as JSON via:
+or fetch a single resource as JSON via:
 
 ```
 curl 'http://localhost:9090/fhir/diagnosticorder/@example' \
