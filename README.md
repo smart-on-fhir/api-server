@@ -1,7 +1,7 @@
 smart-on-fhir
 =============
 
-Open-source FHIR Server to support patient- and clinician-facing apps.
+Open-source [FHIR](http://hl7.org/implement/standards/fhir/) Server to support patient- and clinician-facing apps.
 Still highly experimental and highly unstable, but has limited support for:
 
  * GET, POST, and PUT resources
@@ -31,7 +31,7 @@ Key settings files are:
 * Configure your MongoDB location with `grails.mongo`
 
 ## Using
-Add new data to the server via HTTP POST.  For example, with default
+Add new data to the server via HTTP PUT or POST.  For example, with default
 authentication settings and a server running at http://localhost:8080, you can add a new Diagnostic Order via:
 
 ```
