@@ -30,7 +30,7 @@ Key settings files are:
 #### grails-app/conf/DataSource.groovy
 * Configure your MongoDB location with `grails.mongo`
 
-### Using
+## Using
 Add new data to the server via HTTP POST.  For example, with default
 authentication settings and a server running at http://localhost:9090, you can add a new Diagnostic Order via:
 
