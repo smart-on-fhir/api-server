@@ -7,30 +7,30 @@ Still highly experimental and highly unstable, but has limited support for:
  * GET, POST, and PUT resources
  * Search for current resources based on FHIR's defined search params
 
-### Installing
+## Installing
 
-#### Prerequisites
+### Prerequisites
 * Download and install [Grails 2.2.4](http://grails.org/download)
 * Install MongoDB (locally or use a remote service)
 
-####  Running
+###  Running
 ```
 $ git clone https://github.com/jmandel/smart-on-fhir
 $ cd smart-on-fhir
 $ grails run-app
 ```
 
-#### Configuring
+### Configuring
 Key settings files are:
 
-##### grails-app/conf/Config.groovy
+#### grails-app/conf/Config.groovy
 * Turn authentication or off with `fhir.oauth.enabled`: `true | false`
 * Configure authentication with `fhir.oauth`
 
-##### grails-app/conf/DataSource.groovy
+#### grails-app/conf/DataSource.groovy
 * Configure your MongoDB location with `grails.mongo`
 
-#### Using
+### Using
 Add new data to the server via HTTP POST.  For example, with default
 authentication settings and a server running at http://localhost:9090, you can add a new Diagnostic Order via:
 
