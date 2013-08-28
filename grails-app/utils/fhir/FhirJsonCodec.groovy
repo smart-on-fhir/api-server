@@ -5,7 +5,8 @@ import org.hl7.fhir.instance.formats.JsonParser
 
 class FhirJsonCodec  {
 	static decode = { str ->
-		new JsonParser().parse(IOUtils.toInputStream(str));
+		def ret = new JsonParser().parseGeneral(IOUtils.toInputStream(str));
+		return ret.resource ?: ret.feed
 	}
 	static encode = { resource ->
 		ByteArrayOutputStream jsonStream = new ByteArrayOutputStream()

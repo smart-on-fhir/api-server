@@ -67,7 +67,12 @@ class AuthorizationService{
 	}
 
 	def compartmentsFor(request){
+
 		if (request.authorization){
+
+			if ("fhir-admin" in request.authorization.scope)
+				return ["patient/@example"]
+
 			def ret = request.authorization.scope.collect {
 				def m = (it =~ /(summary|search):(.*)/)
 				if (!m.matches()) return null

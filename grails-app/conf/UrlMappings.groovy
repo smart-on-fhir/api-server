@@ -2,6 +2,11 @@ class UrlMappings {
 
 	static mappings = {
 
+		name base: "/fhir" {
+			controller="Api"
+			action=[GET: "conformance", POST: "transaction"]
+		}
+
 		name summary: "/fhir/summary" {
 			controller="Api"
 			action=[GET: "summary"]

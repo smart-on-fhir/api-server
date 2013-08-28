@@ -5,7 +5,8 @@ import org.hl7.fhir.instance.formats.XmlParser
 
 class FhirXmlCodec  {
 	static decode = { str ->
-		new XmlParser().parse(IOUtils.toInputStream(str));
+		def ret = new XmlParser().parseGeneral(IOUtils.toInputStream(str));
+		return ret.resource ?: ret.feed
 	}
 	
 	static encode = { resource ->

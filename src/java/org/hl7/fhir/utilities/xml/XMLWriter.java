@@ -143,7 +143,7 @@ public class XMLWriter extends OutputStreamWriter implements IXMLWriter {
 		else {
 			String[][] newattr = new String[attributes.length+1][];
 			for (int i = 0; i < attributes.length; i++) {
-				condition(!attributes[i][0].equals(name), "attempt to define attribute with name "+name+" more than once for value '"+value+"'");
+				condition(!attributes[i][0].equals(name),attributes[i][0]+attributes[i][1]+ "attempt to define attribute with name "+name+" more than once for value '"+value+"'");
 				newattr[i] = attributes[i];
 			}
 			attributes = newattr;

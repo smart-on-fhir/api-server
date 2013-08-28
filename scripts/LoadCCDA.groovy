@@ -1,5 +1,6 @@
 import grails.plugins.rest.client.RestBuilder
 import groovy.xml.MarkupBuilder
+import groovy.transform.Field
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -15,8 +16,8 @@ import org.hl7.fhir.instance.model.ResourceReference
 // a standalone set of scripts that don't have a grails 
 // dependency.  This approach is very far from ideal.
 
-def rest = new RestBuilder(connectTimeout:5000, readTimeout:2000)
-def oauth = [clientId: System.env.CLIENT_ID, clientSecret: System.env.CLIENT_SECRET]
+def rest = new RestBuilder(connectTimeout:10000, readTimeout:10000)
+Map oauth = [clientId: System.env.CLIENT_ID, clientSecret: System.env.CLIENT_SECRET]
 
 def fhirBase = System.env.BASE_URL +'/fhir/'
 String pid = System.env.PATIENT_ID ?: "123"
@@ -27,9 +28,17 @@ println("Posting a new C-CDA to: $fhirBase")
 println("Patient ID: " + pid)
 println("Local file: " + filePath)
 
-def patient = rest.get(fhirBase+"patient/@$pid") {
-	auth(oauth.clientId, oauth.clientSecret)
+def withAuth =  { Closure toWrap ->
+	return {
+		auth(oauth.clientId, oauth.clientSecret)
+		contentType "text/xml"
+		toWrap.delegate = delegate
+		toWrap.call()
+	}
 }
+
+
+def patient = rest.get(fhirBase+"patient/@$pid", withAuth {})
 
 //println(""+ patient.status)
 if (patient.status == 404) {
@@ -44,11 +53,9 @@ if (patient.status == 404) {
 					'xhtml:div'("A BB+ FHIR Sample Patient -- see documentreference elements for data.")
 				}
 			}
-	def put = rest.put(fhirBase+"patient/@$pid?compartments=patient/@$pid") {
-		auth(oauth.clientId, oauth.clientSecret)
-		contentType "text/xml"
-		body patientWriter.toString()
-	}
+
+	def put = rest.put(fhirBase+"patient/@$pid?compartments=patient/@$pid",
+	withAuth {body patientWriter.toString() })
 	assert put.status == 201
 }
 
@@ -119,17 +126,18 @@ doc.mimeTypeSimple = "application/hl7-v3+xml"
 Binary rawResource = new Binary()
 rawResource.setContent(bytes)
 rawResource.setContentType(doc.mimeTypeSimple)
-def binary  = rest.post(fhirBase+"binary?compartments=patient/@$pid") {
-	auth(oauth.clientId, oauth.clientSecret)
-	contentType "text/xml"
+println "making closure"
+println("here oa" + oauth)
+
+def binary  = rest.post(fhirBase+"binary?compartments=patient/@$pid", withAuth {
 	body rawResource.encodeAsFhirXml()
-}
-//println binary.headers.location[0]
+})
+
+println binary.headers.location[0]
 doc.locationSimple = (binary.headers.location[0]+'/raw').split(fhirBase)[1]
 
-def docPost  = rest.post(fhirBase+"documentreference?compartments=patient/@$pid") {
-	auth(oauth.clientId, oauth.clientSecret)
-	contentType "text/xml"
+def docPost  = rest.post(fhirBase+"documentreference?compartments=patient/@$pid",
+	withAuth {
 	body doc.encodeAsFhirXml()
-}
+})
 println("Created DocumentReference:\n" + docPost.headers.location[0])

@@ -1,4 +1,6 @@
 package fhir
+import java.util.regex.Pattern;
+
 import org.bson.types.ObjectId
 import org.hl7.fhir.instance.model.AtomEntry
 import org.hl7.fhir.instance.model.AtomFeed
@@ -13,7 +15,61 @@ class ApiController {
 	static scope = "singleton"
 	def searchIndexService
 	def authorizationService
-	
+
+	// Note that we don't offer real transaction (all-or-none) semantics
+	// but we do allow clients to apply a group of changes in a single
+	// request.  So it's  more like "batch" than a transaction...
+	def transaction() {
+		//TODO refactor
+		def body = request.getReader().text
+
+		def fhirBase = new URL(g.createLink(uri:'/fhir', absolute:true))
+		AtomFeed f = request.withFormat {
+			xml {body.decodeFhirXml()}
+			json {body.decodeFhirJson()}
+		}
+
+		Map urlToFhirId = [:]
+		Map urlsToAssign = [:]
+		f.entryList.each { AtomEntry e -> 
+			boolean needed = false
+			Class c = e.resource.class
+			try {
+				def u = new URL(fhirBase, e.id)	
+				// TODO extract into a "isFhirUrl" helper function 
+				def asPath = u.path =~ /\/fhir\/([^\/]+)\/@([^\/]+)(?:\/history\/@([^\/]+))?/
+				if(asPath) {
+					urlToFhirId[e.id] = asPath[0][2] 
+				}
+				needed = !asPath
+			} catch(Exception ex) {
+				needed = true
+			} finally {
+				if (needed) urlsToAssign[e.id]=c
+			}
+		}
+
+		Map assignments = urlsToAssign.collectEntries {from,c ->
+			String r = c.toString().split('\\.')[-1].toLowerCase()
+			println("Need to reassign URLs: " + from)
+			String id = new ObjectId().toString()
+			String to =  g.createLink(mapping:'resourceInstance', params: [resource:r, id:id]).replace("%40","@")[6..-1]
+			urlToFhirId[to] = id
+			return [(from):to]
+		}
+
+		def xml = f.encodeAsFhirXml()
+		assignments.each {from,to ->
+			xml = xml.replaceAll(Pattern.quote(from), to)
+		}
+		f = xml.decodeFhirXml()
+
+		f.entryList.each { AtomEntry e ->
+			String r = e.resource.class.toString().split('\\.')[-1].toLowerCase()
+			updateService(e.resource, r, urlToFhirId[e.id])	
+		}
+		request.resourceToRender =  f
+	}	
 	
 	def summary() {
 
@@ -57,22 +113,12 @@ class ApiController {
 		update()
 	}
 
-	// TODO handle creating new rather than posting-with-name
-	// extract logic to DRY from create()
-	def update() {
-
-		def body = request.getReader().text
-		
-		Resource r = request.withFormat {
-			xml {body.decodeFhirXml()}
-			json {body.decodeFhirJson()}
-		}
-
+	def updateService(Resource r, String resourceName, String fhirId) {
 		log.debug("Gonna encode" + r)
 		DBObject rjson = r.encodeAsFhirJson().encodeAsDbObject()
 
 		String type = rjson.keySet().iterator().next()
-		String expectedType = searchIndexService.capitalizedModelName[params.resource]
+		String expectedType = searchIndexService.capitalizedModelName[resourceName]
 		if (type != expectedType){
 			response.status = 405
 			log.debug("Got a request whose type didn't match: $expectedType vs. $type")
@@ -82,7 +128,6 @@ class ApiController {
 		String versionUrl;
 		
 		def indexTerms = searchIndexService.indexResource(r);
-		def fhirId = params.id
 	
 		// TODO verify that any compartment passed in via URL params
 		// matches the authorizationService.compartmentFor this request
@@ -91,7 +136,7 @@ class ApiController {
 			response.status = 403
 			return render("Can't write to compartment: $compartments")
 		}
-		
+	
 		def h = new ResourceHistory(
 			fhirId: fhirId, 
 			compartments: compartments,
@@ -113,7 +158,7 @@ class ApiController {
 			mapping: 'resourceVersion',
 			absolute: true,
 			params: [
-				resource: params.resource,
+				resource: resourceName,
 				id: fhirId,
 				vid: h.id	
 			]).replace("%40","@")
@@ -122,6 +167,18 @@ class ApiController {
 		response.setHeader('Location', versionUrl)
 		response.setStatus(201)
 		request.resourceToRender = r
+	}
+
+	// TODO handle creating new rather than posting-with-name
+	// extract logic to DRY from create()
+	def update() {
+		def body = request.getReader().text
+		
+		Resource r = request.withFormat {
+			xml {body.decodeFhirXml()}
+			json {body.decodeFhirJson()}
+		}
+		updateService(r, params.resource, params.id)
 	}
 
 	def read() {

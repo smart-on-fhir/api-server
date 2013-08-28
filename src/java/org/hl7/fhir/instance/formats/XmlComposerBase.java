@@ -190,7 +190,6 @@ public abstract class XmlComposerBase extends XmlBase {
 	    if (entry.getSummary() != null) {
 	      xml.attribute("type", "xhtml");
 	      xml.open("summary");
-	      xml.setDefaultNamespace(XhtmlComposer.XHTML_NS);
 	      composeXhtml("summary", entry.getSummary());
 	      xml.setDefaultNamespace(ATOM_NS);
 	      xml.close("summary");
