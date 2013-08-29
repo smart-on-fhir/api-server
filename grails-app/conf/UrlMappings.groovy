@@ -1,3 +1,6 @@
+import fhir.AuthorizationException
+
+
 class UrlMappings {
 
 	static mappings = {
@@ -12,14 +15,12 @@ class UrlMappings {
 			action=[GET: "summary"]
 		}
 
-		name resourceInstance: "/fhir/$resource/@$id/$rawData?" {
-		    raw = {params.rawData == "raw"}
+		name resourceInstance: "/fhir/$resource/@$id" {
 			controller="Api"
 			action=[GET: "read", PUT: "update", DELETE: "delete"]
 		}
 
-		name resourceVersion: "/fhir/$resource/@$id/history/@$vid/$rawData?"(controller: "Api") {
-			raw = {params.rawData == "raw"}
+		name resourceVersion: "/fhir/$resource/@$id/history/@$vid"(controller: "Api") {
 			action = [GET: "vread"]
 		}
 
@@ -34,6 +35,10 @@ class UrlMappings {
 
 
 		"/"(view:"/index")
-		"500"(view:'/error')
+
+		"401"(controller: 'error', action: 'status401')
+		"500"(controller: 'error', action: 'status405', exception:BundleValidationException)
+		"500"(controller: 'error', action: 'status401', exception:AuthorizationException)
+        "500"(view:'/error')
 	}
 }

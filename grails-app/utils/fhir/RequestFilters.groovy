@@ -5,20 +5,14 @@ class RequestFilters {
 	def grailsApplication
 
 	def filters = {
-		if (grailsApplication.config.fhir.oauth.enabled)
 		renderContent(controller: 'api', action: '*') {
 			before = {
-
-				def allowed = authorizationService.decide(request)
-				log.debug("Allowed? : " + allowed)
-				if (!allowed || !allowed.active) {
-					response.status = 401
-					render("Authorization failed.")
+				if (!authorizationService.evaluate(request)) {
+					forward controller: 'error', action: 'status401'
 					return false
 				}
-				request.authorization = allowed
+				request.t0 = new Date().getTime()
 				return true
-
 			}			
 		}
 	}

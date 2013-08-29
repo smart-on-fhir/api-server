@@ -118,7 +118,6 @@ grails.web.disable.multipart=false
 grails.exceptionresolver.params.exclude = ['password']
 
 // configure auto-caching of queries by default (if false you can cache individual queries with 'cache: true')
-grails.hibernate.cache.queries = false
 grails.app.context = "/"
 
 environments {
@@ -162,10 +161,7 @@ log4j = {
            'org.codehaus.groovy.grails.web.mapping',        // URL mapping
            'org.codehaus.groovy.grails.commons',            // core / classloading
            'org.codehaus.groovy.grails.plugins',            // plugins
-           'org.codehaus.groovy.grails.orm.hibernate',      // hibernate integration
-           'org.springframework',
-           'org.hibernate',
-           'net.sf.ehcache.hibernate'
+           'org.springframework'
 }
 
 // For an example of dynamically loading server URLs from environment vars:

@@ -218,19 +218,31 @@ public abstract class SearchParamHandler {
 	}
 	
 	static BasicDBObject andList (List<DBObject> clauses){
-		return [$and: clauses]
+		def nonempty = clauses.findAll {it && it.size() > 0}
+		if (nonempty.size() == 0) return [:]
+		if (nonempty.size() == 1) return nonempty
+		return [$and: nonempty]
 	}
 
 	static BasicDBObject and(DBObject... clauses){
-		return [$and: clauses]
+		def nonempty = clauses.findAll {it && it.size() > 0}
+		if (nonempty.size() == 0) return [:]
+		if (nonempty.size() == 1) return nonempty
+		return [$and: nonempty]
 	}
 	
 	static BasicDBObject or(DBObject... clauses){
-		return [$or: clauses]
+		def nonempty = clauses.findAll {it && it.size() > 0}
+		if (nonempty.size() == 0) return [:]
+		if (nonempty.size() == 1) return nonempty
+		return [$or: nonempty]
 	}
 	
 	static BasicDBObject orList(List<DBObject> clauses){
-		return [$or: clauses]
+		def nonempty = clauses.findAll {it && it.size() > 0}
+		if (nonempty.size() == 0) return [:]
+		if (nonempty.size() == 1) return nonempty
+		return [$or: nonempty]
 	}
 
 	abstract BasicDBObject searchClause(Map searchedFor)

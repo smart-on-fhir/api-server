@@ -116,7 +116,7 @@ class SearchIndexService{
 	public BasicDBObject queryParamsToMongo(Map params){
 		
 		def rc = classForModel(params.resource)
-		def indexers = indexersByResource[rc]
+		def indexers = indexersByResource[rc] ?: []
 		
 		// Just the indexers for the current resource type
 		// keyed on the searchParam name (e.g. "date", "subject")
@@ -138,7 +138,6 @@ class SearchIndexService{
 		// to generate an AND'able list of MongoDB
 		// query clauses.
 		List<BasicDBObject> clauses = searchParams.collect {
-			
 			def idx = indexerFor[it.key]
 			List orClauses = idx.orClausesFor(it).collect {
 				idx.searchClause(it)
@@ -147,6 +146,8 @@ class SearchIndexService{
 			orClauses.size() == 1 ? orClauses[0] : 
 									SearchParamHandler.orList(orClauses)
 		}
+		clauses = clauses + [type:capitalizedModelName[params.resource]]
+		clauses.each {println("Anding: " + it)}
 		return SearchParamHandler.andList(clauses)
 	}
 }

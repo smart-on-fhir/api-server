@@ -1,9 +1,18 @@
 package fhir;
 
+import com.mongodb.BasicDBObject
 import grails.plugins.rest.client.RestBuilder
+import fhir.searchParam.SearchParamHandler
+
+import java.sql.Date
+import java.text.DateFormat
 
 import javax.annotation.PostConstruct
-import org.codehaus.groovy.grails.exceptions.GrailsException
+	class AuthorizationException extends Exception {
+		def AuthorizationException(String msg){
+			super(msg)
+		}
+	}
 
 /**
  * @author jmandel
@@ -17,6 +26,7 @@ class AuthorizationService{
 	def rest = new RestBuilder(connectTimeout:2000, readTimeout:2000)
 	String authHeader
 	Map oauth
+
 
 	@PostConstruct
 	void init() {
@@ -47,71 +57,103 @@ class AuthorizationService{
 		return response.json
 	}
 
-	String tokenFor(request){
-		def header = request.getHeader("Authorization") =~ /^Bearer (.*)$/
-		if(header){
-			return header[0][1]
-		}
-		return false
-	}
-
-	boolean adminPassFor(request){
+	Authorization asBasicAuth(request){
 		def header = request.getHeader("Authorization") =~ /^Basic (.*)$/
 		log.debug("exampine an admin access password" + header)
 		if(header){
 			String[] decoded = new String(header[0][1].decodeBase64()).split(':')
 			log.debug("try an admin access password" + decoded)
-			return (decoded[0] == oauth.clientId && decoded[1] == oauth.clientSecret)
+			if (decoded[0] == oauth.clientId && decoded[1] == oauth.clientSecret) {
+				def ret = new Authorization(isAdmin: true)
+				ret = new Authorization([isActive:true, username:'josh',app:'somapp',compartments:['patient/@456', 'patient/@123']])
+				return ret
+			}
 		}
-		return false
+		return null
 	}
 
-	def compartmentsFor(request){
+	Authorization asBearerAuth(request){
+		def header = request.getHeader("Authorization") =~ /^Bearer (.*)$/
+		if(header){
+			def token = header[0][1]
+			log.debug("Issue a cache req for |$token|" )
+			def status = tokenCache.cache.get(token, {
+				lookup(token)
+			})
+			
+			if (!status.active) return null;
 
-		if (request.authorization){
+			def ret = new Authorization(
+					isActive:status.active,
+					expiration: DateFormat.parse(status.exp),
+					username: status.sub,
+					app: status.client_id)
 
-			if ("fhir-admin" in request.authorization.scope)
-				return ["patient/@example"]
-
-			def ret = request.authorization.scope.collect {
+			if (status.scope.class == String) status.scope = [status.scope]
+			ret.compartments = status.scope.collect {
 				def m = (it =~ /(summary|search):(.*)/)
 				if (!m.matches()) return null
 				return "patient/@" +  (m[0][2] != "" ? m[0][2] : "example")
-			}//.findAll {it != null}
+			}
 			return ret
 		}
-		// TODO decide on appropriate behavior if authorization is disabled	
-		throw new RuntimeException("Can't determine compartments without auth enabled.")
+		return null
 	}
 
-	def compartmentsAllowed(Collection compartments, request){
 
-		if ("fhir-admin" in request.authorization.scope)
-			return true
+	public class Authorization {
+		private boolean isAdmin
+		boolean isActive
+		Date expiration
+		String username
+		String app
+		List<String> compartments
 
-		List<String> expected = compartmentsFor(request)
-		return (compartments.every{it in expected})
-	}
+		boolean allows(p) {
+			// String operation, Class resource, List<String> compartmentsToCheck
+			if (isAdmin) return true
+			if (!isActive) return false
 
-	def decide(request){
-		boolean isAdmin = adminPassFor(request)
-		def response
-
-		if (isAdmin) {
-			log.debug("Got an admin access password")
-			response =  [active: true, scope: "fhir-admin", token_type: "oob"]
-		} else {
-			def token = tokenFor(request)
-			log.debug("Issue a cache req for |$token|" )
-			response = tokenCache.cache.get(token, {
-				lookup(token)
-			})
-			log.debug("Found a token for blag: " + response)
+			p.compartments.every{ String c ->
+				c in compartments
+			}
 		}
-		log.debug("Response: " + response.scope.class)
-		if (response.scope instanceof String)
-			response.scope = [response.scope]
 
-		return response
+		void require(p) {
+			if (isAdmin) return
+			
+			if (!compartments.any {it in p.resource.compartments})
+				throw new AuthorizationException("Unauthorized:  you only have access to " + compartments)
+		}
+		
+		def restrictSearch(clauses) {
+			if (isAdmin) return clauses
+			def extra = new BasicDBObject([compartments: [$in: compartments]])
+			return SearchParamHandler.and(clauses, extra)
+		}
+
 	}
+	
+	def evaluate(request){
+		// If auth is disabled, treat everyone as an admin
+		if (!grailsApplication.config.fhir.oauth.enabled) {
+			request.authorization = new Authorization(isAdmin: true)
+			return true
+		}
+
+		def basicAuthAccess = asBasicAuth(request)
+		if (basicAuthAccess) {
+			request.authorization = basicAuthAccess
+			return true
+		}
+
+		def bearerAuthAccess = asBearerAuth(request)
+		if (bearerAuthAccess) {
+			request.authorization = bearerAuthAccess
+			return true
+		}
+
+		return false
+	}
+
 }

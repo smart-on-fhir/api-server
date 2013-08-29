@@ -19,17 +19,17 @@ class ResourceHistory {
 		sort received:'desc'
 	}
 
-	static Resource getLatestByFhirId(String id){
+	static ResourceHistory getLatestByFhirId(String id){
 
 		def h= ResourceHistory.findAllByFhirId(id, [limit:1]).asList()
 		if (h.size()==0){
 			return null
 		}
-		
-		h[0].content.toString().decodeFhirJson()
+		h[0]
+		//h[0].content.toString().decodeFhirJson()
 	}
 
-	static Resource getFhirVersion(String id, String vid){
+	static ResourceHistory getFhirVersion(String id, String vid){
 		
 		if (!ObjectId.isValid(vid)) return null
 		
@@ -42,8 +42,9 @@ class ResourceHistory {
 		if (vs.size()==0){
 			return null
 		}
+		vs[0]
 
-		vs[0].content.toString().decodeFhirJson()
+		//vs[0].content.toString().decodeFhirJson()
 	}
 
 	

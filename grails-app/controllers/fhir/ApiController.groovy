@@ -1,5 +1,4 @@
 package fhir
-import java.util.regex.Pattern;
 
 import org.bson.types.ObjectId
 import org.hl7.fhir.instance.model.AtomEntry
@@ -10,77 +9,79 @@ import org.hl7.fhir.instance.model.Resource
 
 import com.mongodb.DBObject
 
+
+class PagingCommand {
+    Integer total
+    Integer _count
+	Integer _skip
+	
+	def bind(params) {
+		_count = params._count ? Integer.parseInt(params._count) : 50
+		_skip = params._skip ? Integer.parseInt(params._skip) : 0
+    }
+}
+
+class SearchCommand {
+
+	def params
+	def request
+	def searchIndexService
+	
+	def getClauses() {
+		def clauses = searchIndexService.queryParamsToMongo(params)
+		return request.authorization.restrictSearch(clauses)
+	}
+
+	def bind(params, request) {
+		this.params = params
+		this.request = request
+	}
+}
+
 class ApiController {
 	
 	static scope = "singleton"
 	def searchIndexService
 	def authorizationService
+	def bundleService
+
+	def getFullRequestURI(){
+		bundleService.baseURI + request.forwardURI + '?' + request.queryString
+	}
 
 	// Note that we don't offer real transaction (all-or-none) semantics
 	// but we do allow clients to apply a group of changes in a single
 	// request.  So it's  more like "batch" than a transaction...
 	def transaction() {
-		//TODO refactor
-		def body = request.getReader().text
 
-		def fhirBase = new URL(g.createLink(uri:'/fhir', absolute:true))
-		AtomFeed f = request.withFormat {
+		def body = request.getReader().text
+		AtomFeed feed = request.withFormat {
 			xml {body.decodeFhirXml()}
 			json {body.decodeFhirJson()}
 		}
+		
+		bundleService.validateFeed(feed)
 
-		Map urlToFhirId = [:]
-		Map urlsToAssign = [:]
-		f.entryList.each { AtomEntry e -> 
-			boolean needed = false
-			Class c = e.resource.class
-			try {
-				def u = new URL(fhirBase, e.id)	
-				// TODO extract into a "isFhirUrl" helper function 
-				def asPath = u.path =~ /\/fhir\/([^\/]+)\/@([^\/]+)(?:\/history\/@([^\/]+))?/
-				if(asPath) {
-					urlToFhirId[e.id] = asPath[0][2] 
-				}
-				needed = !asPath
-			} catch(Exception ex) {
-				needed = true
-			} finally {
-				if (needed) urlsToAssign[e.id]=c
-			}
-		}
 
-		Map assignments = urlsToAssign.collectEntries {from,c ->
-			String r = c.toString().split('\\.')[-1].toLowerCase()
-			println("Need to reassign URLs: " + from)
-			String id = new ObjectId().toString()
-			String to =  g.createLink(mapping:'resourceInstance', params: [resource:r, id:id]).replace("%40","@")[6..-1]
-			urlToFhirId[to] = id
-			return [(from):to]
-		}
+		feed = bundleService.assignURIs(feed)
 
-		def xml = f.encodeAsFhirXml()
-		assignments.each {from,to ->
-			xml = xml.replaceAll(Pattern.quote(from), to)
-		}
-		f = xml.decodeFhirXml()
-
-		f.entryList.each { AtomEntry e ->
+		feed.entryList.each { AtomEntry e ->
 			String r = e.resource.class.toString().split('\\.')[-1].toLowerCase()
-			updateService(e.resource, r, urlToFhirId[e.id])	
-		}
-		request.resourceToRender =  f
+			updateService(e.resource, r, e.id.split('@')[1])	
+		}	
+
+		request.resourceToRender =  feed
 	}	
 	
 	def summary() {
 
-		def compartments = authorizationService.compartmentsFor(request)
-		log.debug("Compartments: " + compartments)
+		log.debug("Compartments: " + request.authorization.compartments)
 
 		def q = [
 			type:'DocumentReference',
-			compartments:[$in:compartments],
+			compartments:[$in:requset.authorization.compartments],
+			$elemMatch: [
 			searchTerms: [
-				$elemMatch: [
 					k:'type:code', 
 					v:'http://loinc.org/34133-9']]]
 
@@ -102,9 +103,8 @@ class ApiController {
 				.content.toString()
 				.decodeFhirJson()
 
-		def location = doc.locationSimple =~ /binary\/(.*)\/history\/(.*)\/raw/
+		def location = doc.locationSimple =~ /binary\/(.*)\/history\/(.*)/
 		Binary b = ResourceHistory.getFhirVersion(location[0][1][1..-1], location[0][2][1..-1])
-		params.raw = true
 		request.resourceToRender =  b
 	}
 
@@ -113,7 +113,13 @@ class ApiController {
 		update()
 	}
 
-	def updateService(Resource r, String resourceName, String fhirId) {
+	private def updateService(Resource r, String resourceName, String fhirId) {
+
+		def compartments = params.list('compartments')
+		if (!request.authorization.allows(operation: "PUT", compartments: compartments)){
+			throw new AuthorizationException("Can't write to compartments: $compartments")
+		}
+
 		log.debug("Gonna encode" + r)
 		DBObject rjson = r.encodeAsFhirJson().encodeAsDbObject()
 
@@ -129,14 +135,7 @@ class ApiController {
 		
 		def indexTerms = searchIndexService.indexResource(r);
 	
-		// TODO verify that any compartment passed in via URL params
-		// matches the authorizationService.compartmentFor this request
-		def compartments = params.list('compartments')
-		if (!authorizationService.compartmentsAllowed(compartments, request)){
-			response.status = 403
-			return render("Can't write to compartment: $compartments")
-		}
-	
+
 		def h = new ResourceHistory(
 			fhirId: fhirId, 
 			compartments: compartments,
@@ -144,6 +143,11 @@ class ApiController {
 			action: 'POST',
 			content: rjson)
 			.save()
+			
+		ResourceIndex.collection.remove([
+				fhirId: fhirId,
+				type: type
+		])
 
 		def rIndex = new ResourceIndex(
 			fhirId: fhirId,
@@ -180,82 +184,56 @@ class ApiController {
 		}
 		updateService(r, params.resource, params.id)
 	}
+	
+	private void readService(ResourceHistory h) {
+		if (!h){
+			response.status = 404
+			return
+		} 
+		request.authorization.require(operation:'GET', resource:h)
+		log.debug("K, ,authorized"+ h.properties)
+		request.resourceToRender = h		
+	}
 
 	def read() {
-		Resource r = ResourceHistory.getLatestByFhirId(params.id)
-		
-		if (!r){
-			return response.status = 404
-		} 
+		ResourceHistory h = ResourceHistory.getLatestByFhirId(params.id)
+		readService(h)
 
-		request.resourceToRender = r
 	}	
 
 	def vread() {
-		Resource r = ResourceHistory.getFhirVersion(params.id, params.vid)
-		
-		if (!r){
-			return response.status = 404
-		}
-		request.resourceToRender = r
+		ResourceHistory h = ResourceHistory.getFhirVersion(params.id, params.vid)
+		readService(h)
+	}
+	
+	def time(label) {
+		log.debug("T $label: " + (new Date().getTime() - request.t0))
 	}
 
-	def search() {
-		def clauses = searchIndexService.queryParamsToMongo(params)
-		log.debug(clauses.toString())
-		
-		def t0 = new Date().getTime()
+	def search(PagingCommand paging, SearchCommand query) {
 
-		def query = clauses
-		def MAX_COUNT = 100
+		paging.bind(params)
+		query.bind(params, request)
+		log.debug(query.toString())
 
-		def incount = Integer.parseInt(params._count?:""+MAX_COUNT)
-		def limit = Math.min(incount, MAX_COUNT)
+		def cursor = ResourceIndex.collection
+						.find(query.clauses)
+						.skip(paging._skip)
+						.limit(paging._count)
+
+		paging.total = cursor.count()
+		time("Counted $paging.total")
 		
-		def inskip = Integer.parseInt(params._skip?:""+0)
-		def skip = Math.max(inskip, 0)
+		def entriesForFeed = ResourceIndex.entriesForFeed(cursor)
+		time("Fetched content")
 		
-		String type = searchIndexService.capitalizedModelName[params.resource]
-		log.debug("Type: " + type)
-		def cursor = ResourceIndex.collection.find([type: type]).skip(skip).limit(limit)
-		int count = cursor.count()
-		log.debug("Count time: " + (new Date().getTime() - t0))
-		
-		def matches = []
-		List ids = cursor.collect {
-			it.latest
-		}
-		
-		matches = ResourceHistory.collection.find(
-			_id: [$in: ids]	
-		).collect {
-			it.content.toString().decodeFhirJson()
-		}
-		
-		log.debug("T: " + (new Date().getTime() - t0))	
-	
-		AtomFeed feed = new AtomFeed()
-		feed.authorName = "groovy.config.atom.author-name"
-		
-		feed.authorUri  = "groovy.config.atom.author-uri"
-		feed.id = request.forwardURI
-		feed.totalResults = matches.size()
-		if (skip + limit < count)
-			feed.links.put("next", feed.id + "?_count=$limit&_skip=${skip+limit}")
-		
-		Calendar now = Calendar.instance
-		feed.updated = now
-			
-		
-		feed.entryList.addAll matches.collect { resource ->
-			AtomEntry entry = new AtomEntry()
-			entry.resource = resource
-			entry.updated = now
-			entry
-		}
-		request.t0 = t0
-		log.debug("Feed after: " + (new Date().getTime() - t0))	
-		
+		AtomFeed feed = ResourceIndex.atomFeed([
+			entries: entriesForFeed,
+			paging: paging,
+			feedId: fullRequestURI
+		])
+
+		time("Made feed")
 		request.resourceToRender = feed
 	}
 
