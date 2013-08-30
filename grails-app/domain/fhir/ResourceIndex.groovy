@@ -12,6 +12,7 @@ class ResourceIndex {
 	String type
 	Collection searchTerms
 	Collection compartments
+	def grailsLinkGenerator	
 
 	static Map entriesForFeed(cursor) {
 		List ids = cursor.collect {
@@ -31,6 +32,7 @@ class ResourceIndex {
 		def entries = p.entries
 		def paging = p.paging
 	
+		String base = grailsLinkGenerator.link(uri:'', absolute:true) + '/fhir/'
 		AtomFeed feed = new AtomFeed()	
 		feed.authorName = "groovy.config.atom.author-name"
 		
@@ -48,7 +50,7 @@ class ResourceIndex {
 		
 		feed.entryList.addAll entries.collect { id, resource ->
 			AtomEntry entry = new AtomEntry()
-			entry.id = id
+			entry.id = base + id
 			entry.resource = resource
 			entry.updated = now
 			return entry
