@@ -4,9 +4,6 @@ import com.mongodb.BasicDBObject
 import grails.plugins.rest.client.RestBuilder
 import fhir.searchParam.SearchParamHandler
 
-import java.sql.Date
-import java.text.DateFormat
-
 import javax.annotation.PostConstruct
 	class AuthorizationException extends Exception {
 		def AuthorizationException(String msg){
@@ -82,10 +79,11 @@ class AuthorizationService{
 			})
 			
 			if (!status.active) return null;
-
+			Date exp = org.joda.time.format.ISODateTimeFormat.dateTimeParser()
+				   .parseDateTime(status.exp).toDate()
 			def ret = new Authorization(
 					isActive:status.active,
-					expiration: DateFormat.parse(status.exp),
+					expiration: exp,
 					username: status.sub,
 					app: status.client_id)
 

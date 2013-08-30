@@ -17,9 +17,14 @@ class BundleService{
 	def grailsLinkGenerator	
 
 	private def fhirCombinedId(String p) {
-		def ret = p =~ /\/fhir\/([^\/]+)\/@([^\/]+)(?:\/history\/@([^\/]+))?/
-		if (ret.matches()) return ret[0][1] + '/@' + ret[0][2]
-		return null
+		String ret = null
+		def m = p =~ /\/fhir\/([^\/]+)\/@([^\/]+)(?:\/history\/@([^\/]+))?/
+
+		if (m.size()) {
+			ret =  m[0][1] + '/@' + m[0][2]
+		}
+
+		return ret
 	}
 
 	def getBaseURI() {
@@ -28,7 +33,7 @@ class BundleService{
 
 	def getFhirBaseAsURL() {
 		new URL(baseURI + '/fhir/')
-	}
+		}
 	
 	String relativeResourceLink(String resource, String id) {
 		grailsLinkGenerator.link(
@@ -68,6 +73,7 @@ class BundleService{
 				if(asFhirCombinedId) {
 					assignments[e.id] = asFhirCombinedId
 				} else {
+					log.debug("no match; ${e.id} needs reassignemnt")
 					needsAssignment = true
 				}
 			} catch(Exception ex) {

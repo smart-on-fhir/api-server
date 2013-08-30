@@ -79,9 +79,8 @@ class ApiController {
 
 		def q = [
 			type:'DocumentReference',
-			compartments:[$in:requset.authorization.compartments],
-			$elemMatch: [
-			searchTerms: [
+			compartments:[$in:request.authorization.compartments],
+			searchTerms: [ $elemMatch: [
 					k:'type:code', 
 					v:'http://loinc.org/34133-9']]]
 
@@ -103,9 +102,8 @@ class ApiController {
 				.content.toString()
 				.decodeFhirJson()
 
-		def location = doc.locationSimple =~ /binary\/(.*)\/history\/(.*)/
-		Binary b = ResourceHistory.getFhirVersion(location[0][1][1..-1], location[0][2][1..-1])
-		request.resourceToRender =  b
+		def location = doc.locationSimple =~ /binary\/@(.*)/
+		request.resourceToRender = ResourceHistory.getLatestByFhirId(location[0][1])
 	}
 
 	def create() {
@@ -120,7 +118,6 @@ class ApiController {
 			throw new AuthorizationException("Can't write to compartments: $compartments")
 		}
 
-		log.debug("Gonna encode" + r)
 		DBObject rjson = r.encodeAsFhirJson().encodeAsDbObject()
 
 		String type = rjson.keySet().iterator().next()
