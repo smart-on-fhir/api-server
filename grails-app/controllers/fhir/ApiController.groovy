@@ -221,10 +221,13 @@ class ApiController {
 		paging.total = cursor.count()
 		time("Counted $paging.total")
 		
-		def entriesForFeed = ResourceIndex.entriesForFeed(cursor)
+		def entriesForFeed = ResourceIndex.getEntriesById(cursor.collect {
+			it.latest
+		})
+
 		time("Fetched content")
 		
-		AtomFeed feed = ResourceIndex.atomFeed([
+		AtomFeed feed = bundleService.atomFeed([
 			entries: entriesForFeed,
 			paging: paging,
 			feedId: fullRequestURI

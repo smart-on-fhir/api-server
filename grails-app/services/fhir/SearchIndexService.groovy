@@ -16,6 +16,10 @@ import com.mongodb.BasicDBObject
 import fhir.searchParam.SearchParamHandler
 import fhir.searchParam.SearchParamValue
 
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.xpath.XPathConstants
+import javax.xml.xpath.XPathFactory
 class SearchIndexService{
 
 	static def transactional = false
@@ -95,6 +99,8 @@ class SearchIndexService{
 	public List<SearchParamValue> indexResource(Resource rx) {
 
 		log.info("\n\nExtracting search index terms for a new " + rx.class)
+		
+	
 
 		Collection indexers = indexersByResource[rx.class]
 		if (!indexers){

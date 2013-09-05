@@ -62,7 +62,7 @@ class AuthorizationService{
 			log.debug("try an admin access password" + decoded)
 			if (decoded[0] == oauth.clientId && decoded[1] == oauth.clientSecret) {
 				def ret = new Authorization(isAdmin: true)
-				ret = new Authorization([isActive:true, username:'josh',app:'somapp',compartments:['patient/@456', 'patient/@123']])
+				//ret = new Authorization([isActive:true, username:'josh',app:'somapp',compartments:['patient/@456', 'patient/@123']])
 				return ret
 			}
 		}

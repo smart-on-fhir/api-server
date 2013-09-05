@@ -22,7 +22,7 @@ AtomFeed feed = new AtomFeed()
 def rest = new RestBuilder(connectTimeout:10000, readTimeout:10000)
 Map oauth = [clientId: System.env.CLIENT_ID, clientSecret: System.env.CLIENT_SECRET]
 
-def fhirBase = System.env.BASE_URL +'/fhir/'
+def fhirBase = System.env.BASE_URL +'/fhir'
 String pid = System.env.PATIENT_ID ?: "123"
 String filePath = System.env.CCDA ?: 'grails-app/conf/examples/ccda.xml'
 byte[] bytes = Files.readAllBytes(Paths.get(filePath));
@@ -40,7 +40,7 @@ def withAuth =  { Closure toWrap ->
 	}
 }
 
-//def patient = rest.get(fhirBase+"patient/@$pid", withAuth {})
+//def patient = rest.get(fhirBase+"/patient/@$pid", withAuth {})
 
 
 
@@ -60,7 +60,7 @@ def withAuth =  { Closure toWrap ->
 			
 	p = patientWriter.toString().decodeFhirXml()
 
-/*	def put = rest.put(fhirBase+"patient/@$pid?compartments=patient/@$pid",
+/*	def put = rest.put(fhirBase+"/patient/@$pid?compartments=patient/@$pid",
 	withAuth {body patientWriter.toString() })
 	assert put.status == 201
 }
@@ -136,7 +136,7 @@ rawResource.setContentType(doc.mimeTypeSimple)
 println "making closure"
 println("here oa" + oauth)
 /*
- def binary  = rest.post(fhirBase+"binary?compartments=patient/@$pid", withAuth {
+ def binary  = rest.post(fhirBase+"/binary?compartments=patient/@$pid", withAuth {
 	body rawResource.encodeAsFhirXml()
 })
 println binary.headers.location[0]
@@ -169,7 +169,7 @@ feed.authorUri  = "groovy.config.atom.author-uri"
 feed.id = "feed-id"
 feed.updated = now
 
-def docPost  = rest.post(fhirBase+"?compartments=patient/@$pid",
+def docPost  = rest.post(fhirBase+"/?compartments=patient/@$pid",
 	withAuth {
 		body feed.encodeAsFhirXml()
 })

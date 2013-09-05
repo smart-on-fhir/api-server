@@ -82,7 +82,9 @@ public abstract class SearchParamHandler {
 	static XmlParser parser = new XmlParser()
 	static XmlComposer composer = new XmlComposer()
 	static SimpleNamespaceContext nsContext
-	
+	static def xpathEvaluator = XPathFactory.newInstance().newXPath();
+		
+		
 	String fieldName;
 	SearchParamType fieldType;
 	String xpath;
@@ -116,17 +118,18 @@ public abstract class SearchParamHandler {
 		grailsApplication.config.fhir.namespaces.each {
 			prefix, uri -> nsContext.bindNamespaceUri(prefix, uri)
 		}
+		xpathEvaluator.setNamespaceContext(nsContext);
 	}
 
 	protected void init(){}
 
-	public String XmlForResource(Resource r) throws Exception {
+	public static String XmlForResource(Resource r) throws Exception {
 		OutputStream o = new ByteArrayOutputStream();
 		composer.compose(o, r, false);
 		return o.toString();
 	}
 
-	public org.w3c.dom.Document fromResource(Resource r) throws IOException, Exception {
+	public static org.w3c.dom.Document fromResource(Resource r) throws IOException, Exception {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
 		DocumentBuilder builder = factory.newDocumentBuilder();
@@ -146,11 +149,8 @@ public abstract class SearchParamHandler {
 
 	List<Node> selectNodes(String path, Node node) {
 		
-		def xpath = XPathFactory.newInstance().newXPath();
-		xpath.setNamespaceContext(nsContext);
-		
-		// collect to take NodeList --> List<Node>		
-		xpath.evaluate(path, node, XPathConstants.NODESET).collect {
+	// collect to take NodeList --> List<Node>		
+		xpathEvaluator.evaluate(path, node, XPathConstants.NODESET).collect {
 			it
 		}
 	}

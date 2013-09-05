@@ -5,6 +5,7 @@ import java.util.regex.Pattern
 import org.bson.types.ObjectId
 import org.hl7.fhir.instance.model.AtomEntry
 import org.hl7.fhir.instance.model.AtomFeed
+import groovyx.net.http.URIBuilder
 
 class BundleValidationException extends Exception{
 	
@@ -27,18 +28,24 @@ class BundleService{
 		return ret
 	}
 
-	def getBaseURI() {
+	String getBaseURI() {
 		grailsLinkGenerator.link(uri:'', absolute:true)
 	}
 
-	def getFhirBaseAsURL() {
-		new URL(baseURI + '/fhir/')
-		}
+	String getFhirBase() {
+		baseURI + '/fhir'
+	}
+
+	URL getFhirBaseAbsolute() {
+		new URL(fhirBase + '/')
+	}
 	
 	String relativeResourceLink(String resource, String id) {
 		grailsLinkGenerator.link(
 			mapping:'resourceInstance',
-			params: [resource:resource, id:id
+			params: [
+				resource:resource,
+				id:id
 		]).replace("%40","@")[6..-1]
 	}
 	
@@ -52,6 +59,53 @@ class BundleService{
 			throw new BundleValidationException('Did not find any resources in the posted bundle.')
 			return
 		}
+	}
+
+	AtomFeed atomFeed(p) {
+		def feedId = p.feedId
+		def entries = p.entries
+		def paging = p.paging
+	
+		AtomFeed feed = new AtomFeed()	
+		feed.authorName = "groovy.config.atom.author-name"
+		feed.authorUri  = "groovy.config.atom.author-uri"
+		feed.id = feedId
+		feed.totalResults = entries.size()
+
+		if (paging._skip + paging._count < paging.total) {
+			def nextPageUrl = nextPageFor(feed.id, paging)
+			feed.links.put("next", nextPageUrl)
+		}
+		
+		Calendar now = Calendar.instance
+		feed.updated = now
+			
+		
+		feed.entryList.addAll entries.collect { id, resource ->
+			AtomEntry entry = new AtomEntry()
+			entry.id = fhirBase + '/'+ id
+			entry.resource = resource
+			entry.updated = now
+			return entry
+		}
+
+		feed
+	}
+	
+	String nextPageFor(String url, PagingCommand paging) {
+		URIBuilder u = new URIBuilder(url)
+
+		if ('_count' in u.query) {
+			u.removeQueryParam("_count")
+		}
+		u.addQueryParam("_count", paging._count)
+
+		if ('_skip' in u.query) {
+			u.removeQueryParam("_skip")
+		}
+		u.addQueryParam("_skip", paging._skip + paging._count)
+
+		return u.toString()
 	}
 
 	AtomFeed assignURIs(AtomFeed f) {
@@ -69,7 +123,7 @@ class BundleService{
 			boolean needsAssignment = false
 			Class c = e.resource.class
 			try {
-				def asFhirCombinedId = fhirCombinedId(new URL(fhirBaseAsURL, e.id).path)
+				def asFhirCombinedId = fhirCombinedId(new URL(fhirBaseAbsolute, e.id).path)
 				if(asFhirCombinedId) {
 					assignments[e.id] = asFhirCombinedId
 				} else {

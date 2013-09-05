@@ -42,7 +42,6 @@ grails.project.dependency.resolution = {
 
     dependencies {
         // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes e.g.
-		runtime "org.json:json:20090211"
 		runtime 'com.google.guava:guava:14.0.1'
 		runtime "org.json:json:20090211"
 		runtime "com.google.code.gson:gson:2.2.4"
@@ -52,6 +51,11 @@ grails.project.dependency.resolution = {
 		runtime 'xpp3:xpp3:1.1.3.4.O'
 		runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
 		runtime 'net.sf.saxon:Saxon-HE:9.4'
+		runtime('org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
+			excludes 'groovy'
+			excludes 'xml-apis'
+			excludes 'xalan'
+		}
     }
 
     plugins {
