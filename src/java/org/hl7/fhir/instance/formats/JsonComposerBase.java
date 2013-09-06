@@ -86,7 +86,7 @@ public abstract class JsonComposerBase extends XmlBase {
 	  prop("title", feed.getTitle());
     prop("id", feed.getId());
     if (feed.getLinks().size() > 0) {
-      openArray("links");
+      openArray("link");
       for (String n : feed.getLinks().keySet()) {
         json.beginObject();
         prop("rel", n);

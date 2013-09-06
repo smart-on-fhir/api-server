@@ -50,7 +50,6 @@ class BundleService{
 	}
 	
 	void validateFeed(AtomFeed feed) {
-
 		if (feed == null) {
 			throw new BundleValidationException('Could not parse a bundle. Ensure you have set an appropriate content-type.')
 		}
