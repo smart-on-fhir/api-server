@@ -110,7 +110,7 @@ public abstract class JsonComposerBase extends XmlBase {
 		}
 
 		if (feed.getEntryList().size() > 0) {
-			openArray("entries");
+			openArray("entry");
 			for (AtomEntry e : feed.getEntryList())
 				composeEntry(e);
 			closeArray();

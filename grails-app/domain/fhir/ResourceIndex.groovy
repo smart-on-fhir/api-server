@@ -13,15 +13,6 @@ class ResourceIndex {
 	Collection searchTerms
 	Collection compartments
 
-	static Map getEntriesById(Collection ids) {
-
-		ResourceHistory.collection
-				.find( _id: [$in: ids])
-				.collectEntries {
-					[(it.type.toLowerCase() + '/@' +it.fhirId):
-						it.content.toString().decodeFhirJson()]
-				}
-	}
 
 
 }

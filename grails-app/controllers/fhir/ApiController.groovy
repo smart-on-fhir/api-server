@@ -15,7 +15,7 @@ class PagingCommand {
     Integer _count
 	Integer _skip
 	
-	def bind(params) {
+	def bind(params, request) {
 		_count = params._count ? Integer.parseInt(params._count) : 50
 		_skip = params._skip ? Integer.parseInt(params._skip) : 0
     }
@@ -46,7 +46,8 @@ class ApiController {
 	def bundleService
 
 	def getFullRequestURI(){
-		bundleService.baseURI + request.forwardURI + '?' + request.queryString
+		log.debug("from ${bundleService.domain} [/] ${request.forwardURI}")
+		bundleService.domain + request.forwardURI + '?' + request.queryString
 	}
 
 	// Note that we don't offer real transaction (all-or-none) semantics
@@ -209,8 +210,8 @@ class ApiController {
 
 	def search(PagingCommand paging, SearchCommand query) {
 
-		paging.bind(params)
 		query.bind(params, request)
+		paging.bind(params, request)
 		log.debug(query.toString())
 
 		def cursor = ResourceIndex.collection
@@ -221,7 +222,7 @@ class ApiController {
 		paging.total = cursor.count()
 		time("Counted $paging.total")
 		
-		def entriesForFeed = ResourceIndex.getEntriesById(cursor.collect {
+		def entriesForFeed = ResourceHistory.getEntriesById(cursor.collect {
 			it.latest
 		})
 

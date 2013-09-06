@@ -32,6 +32,11 @@ class BundleService{
 		grailsLinkGenerator.link(uri:'', absolute:true)
 	}
 
+	String getDomain() {
+		def m = baseURI =~ /(https?:\/\/[^\/]+)/
+		return m[0][1]
+	}
+
 	String getFhirBase() {
 		baseURI + '/fhir'
 	}
@@ -41,12 +46,7 @@ class BundleService{
 	}
 	
 	String relativeResourceLink(String resource, String id) {
-		grailsLinkGenerator.link(
-			mapping:'resourceInstance',
-			params: [
-				resource:resource,
-				id:id
-		]).replace("%40","@")[6..-1]
+		"$resource/@$id"
 	}
 	
 	void validateFeed(AtomFeed feed) {
