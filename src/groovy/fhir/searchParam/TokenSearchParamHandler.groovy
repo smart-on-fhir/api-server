@@ -30,10 +30,6 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 	
 	void processMatchingXpaths(List<Node> tokens, List<SearchParamValue> index){
 		
-		if (!fieldName.equals("_id")) {
-			setMissing(tokens.size() == 0, index);
-		}
-
 		for (Node n : tokens) {
 
 			// :text (the match does a partial searches on
@@ -76,29 +72,18 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 		// no modifier and ":text" on a code --
 		// (only :text should include display fields)
 		// but we're treating them the same here
-		if (searchedFor.modifier in [null, "text"]){
-			return match(
-					k: fieldName+':text',
-					v: searchedFor.value
-				)
-		}
-		
-		if (searchedFor.modifier == "code"){
-			return match(
-				k: fieldName+':code',
-				v: searchedFor.value
-			)
+		if (searchedFor.modifier in [null, "code"]){
+			return [(fieldName+':code'): searchedFor.value]
 		}
 
+		if (searchedFor.modifier == "text"){
+			return [(fieldName+':text'): [$regex: searchedFor.value, $options: 'i']]
+		}
+			
 		if (searchedFor.modifier == "anyns"){
-			return match(
-				k: fieldName+':code',
-				v: [$regex: '/'+searchedFor.value+'$']
-			)
+			return [(fieldName+':code'): [$regex: '/'+searchedFor.value+'$']]
 		}
 
 		throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
-
-
 }

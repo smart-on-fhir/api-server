@@ -26,8 +26,6 @@ public class DateSearchParamHandler extends SearchParamHandler {
 	@Override
 	public void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {
 
-		setMissing(nodes.size() == 0, index);
-		
 		nodes.each { 
 			String val = it.nodeValue
 			Interval precision = precisionInterval(val)
@@ -85,30 +83,18 @@ public class DateSearchParamHandler extends SearchParamHandler {
 		Interval precision = precisionInterval(searchedFor.value)
 		
 		if (searchedFor.modifier == null){
-			return and(match(
-					k: fieldName+':before',
-					v: [
-						$gte: precision.start.toDate() 
-					]),match(
-					k: fieldName+':after',
-					v: [
-						$lte: precision.end.toDate()
-					]
-			))
+			return and( 
+				[(fieldName+':before'): [ $gte: precision.start.toDate() ]],
+				[(fieldName+':after'): [ $lte: precision.end.toDate() ]]
+			)
 		}
 		
 		if (searchedFor.modifier == "before"){
-			return match(
-				k: fieldName+':before',
-				v: [$lte: precision.end.toDate()]
-			)
+			return [(fieldName+':before'): [ $lte: precision.end.toDate() ]]
 		}
 		
 		if (searchedFor.modifier == "after"){
-			return match(
-				k: fieldName+':after',
-				v: [$gte: precision.start.toDate()]
-			)
+			return [(fieldName+':after'): [ $gte: precision.start.toDate() ]]
 		}
 		
 		throw new RuntimeException("Unknown modifier: " + searchedFor)

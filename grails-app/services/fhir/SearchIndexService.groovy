@@ -100,8 +100,6 @@ class SearchIndexService{
 
 		log.info("\n\nExtracting search index terms for a new " + rx.class)
 		
-	
-
 		Collection indexers = indexersByResource[rx.class]
 		if (!indexers){
 			return []
@@ -109,12 +107,11 @@ class SearchIndexService{
 
 		def ret = indexers.collectMany {
 			SearchParamHandler h -> h.execute(rx)
+		} findAll { SearchParamValue v ->
+			v.paramValue != ""
 		}
 
-		log.info "\n" + ret.collect {
-			"indexed: "+it.paramName+"="+it.paramValue
-		}.join("\n")
-
+		log.info("# index fields: " + ret.size())
 		return ret;
 	}
 	

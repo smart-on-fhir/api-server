@@ -53,14 +53,10 @@ public class CompositeSearchParamHandler extends SearchParamHandler {
 			}
 
 		}
-		setMissing(index.size() == 0, index);
 	}
 
 	@Override
 	public BasicDBObject searchClause(Map searchedFor) {
-		return match(
-			k: fieldName,
-			v: searchedFor.value	
-		)
+		return [(fieldName): searchedFor.value]
 	}
 }

@@ -23,7 +23,6 @@ public class StringSearchParamHandler extends SearchParamHandler {
 
 	@Override
 	public void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {
-		setMissing(nodes.size() == 0, index);
 		String parts = nodes.collect {it.nodeValue}.join(" ")
 		index.add(value(parts))
 	}
@@ -34,22 +33,11 @@ public class StringSearchParamHandler extends SearchParamHandler {
 		def val = stripQuotes(searchedFor)
 		
 		if (searchedFor.modifier == null ||searchedFor.modifier == "partial"){
-			return match(
-				k: fieldName,
-				v: [
-					$regex: val,
-					$options: 'i'
-				]
-			)
+				return [(fieldName): [ $regex: val, $options: 'i' ]]
 		}
 		
 		if (searchedFor.modifier == "exact"){
-			return match(
-				k: fieldName,
-				v: [
-					$regex: '^'+val+'$'
-				]
-			)
+				return [(fieldName): [ $regex:'^'+val+'$', $options: 'i' ]]
 		}
 		
 		throw new RuntimeException("Unknown modifier: " + searchedFor)

@@ -7,8 +7,10 @@ import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Resource
 
+import com.mongodb.BasicDBObject
 import com.mongodb.DBApiLayer
 import com.mongodb.DBObject
+import fhir.searchParam.SearchParamValue
 
 
 class PagingCommand {
@@ -86,7 +88,7 @@ class ApiController {
 					k:'type:code', 
 					v:'http://loinc.org/34133-9']]]
 
-		List ids = ResourceIndex.collection
+		List ids = ResourceIndex.forResource('DocumentReference')
 				.find(q, [latest:-1])
 				.collect {it.latest}
 
@@ -143,19 +145,31 @@ class ApiController {
 			content: rjson)
 			.save()
 			
-		ResourceIndex.collection.remove([
-				fhirId: fhirId,
-				type: type
-		])
 
-		def rIndex = new ResourceIndex(
+		def rIndex = [
 			fhirId: fhirId,
 			compartments: compartments,
 			latest: h.id,
 			type: type,
-			searchTerms: indexTerms.collect { it.toMap() })
-			.save()
-			
+		]
+
+		indexTerms.groupBy { it.paramName }.each {k, vlist -> 
+			def values = vlist.collect {it.paramValue}
+			if (values.size())
+				rIndex[k] = values
+		}
+		
+		log.debug("Writing rindex:  $rIndex")
+		
+		def collection = ResourceIndex.forResource(type)
+		collection.remove(new BasicDBObject([
+			fhirId: fhirId,
+			type: type
+		]))
+		
+		collection.insert(new BasicDBObject(rIndex))
+		
+		log.debug("Got $collection to insert $rIndex")
 			
 		versionUrl = g.createLink(
 			mapping: 'resourceVersion',
@@ -216,42 +230,19 @@ class ApiController {
 		log.debug(query.clauses.toString())
 		time("precount $paging.total")
 
-		def cursor = ResourceIndex.collection.find(query.clauses)
+		String resource = searchIndexService.capitalizedModelName[params.resource]
+		def cursor = ResourceIndex.forResource(resource).find(query.clauses)
+		if (params.sort) {
+			cursor = cursor.sort(new BasicDBObject([(params.sort):1]))
+		}
 
 		paging.total = cursor.count()
 		time("Counted $paging.total tosort ${params.sort}")
 
-		/*
 		cursor = cursor.limit(paging._count)
                        .skip(paging._skip)
-        */
-		
-		List<DBObject> summaries = cursor.collect {return it}	
 
-		// TODO: replace this super-slow approach with in-db sorting.
-		// Will require reorganizing resourceIndex collection into 
-		// separately indexed per-resource collections...
-		time("got indexes")
-		if(params.sort) {
-			summaries.sort {a, b ->
-				List avals = a.searchTerms.findAll {it.k == params.sort}
-				List bvals = b.searchTerms.findAll {it.k == params.sort}
-				if (avals.size() == 0) return 1;
-				if (bvals.size() == 0) return -1;
-				return (avals[0].v <=> bvals[0].v)
-			}
-		}
-		time("sorted")
-		
-		if (paging._skip) {
-			if (summaries.size() < paging._skip) summaries = []
-			summaries = summaries[paging._skip..summaries.size()-1]
-		}
-		if (summaries.size() > paging._count) {
-			summaries = summaries[0..paging._count-1]
-		}
-
-		def entriesForFeed = ResourceHistory.getEntriesById(summaries.collect {
+		def entriesForFeed = ResourceHistory.getEntriesById(cursor.collect {
 			it.latest
 		})
 

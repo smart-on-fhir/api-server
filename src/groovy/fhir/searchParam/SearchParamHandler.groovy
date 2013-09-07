@@ -27,7 +27,6 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 
 	@Override
 	protected void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {	
-			setMissing(nodes.size() == 0, index);
 			nodes.each {
 				index.add(value(queryString('./f:reference/@value', it)));
 			}
@@ -44,17 +43,11 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 		// no modifier and ":text" on a code --
 		// but we're treating them the same here
 		if (searchedFor.modifier == null){
-			return match(
-					k: fieldName,
-					v: searchedFor.value
-				)
+			return [(fieldName):searchedFor.value]
 		}
 		
 		if (searchedFor.modifier == "any"){
-			return match(
-				k: fieldName,
-				v: [$regex: '/'+searchedFor.value+'$']
-			)
+			return [(fieldName):[$regex: '/'+searchedFor.value+'$']]
 		}
 
 		throw new RuntimeException("Unknown modifier: " + searchedFor)
@@ -141,12 +134,6 @@ public abstract class SearchParamHandler {
 
 	protected abstract String paramXpath()
 
-	protected void setMissing(boolean missing, List<SearchParamValue> index){
-		index.add(value(
-				":missing",
-				missing ? true : false));
-	}
-
 	List<Node> selectNodes(String path, Node node) {
 		
 	// collect to take NodeList --> List<Node>		
@@ -192,15 +179,6 @@ public abstract class SearchParamHandler {
 		val[0][1]
 	}
 	
-	static BasicDBObject match(def params){
-		return [ searchTerms:[
-			$elemMatch: [
-				k: params.k,
-				v: params.v
-			]]]
-	}
-	
-
 	/**
 	 * @param param is a single search param (map with keys: key, modifier, value)
 	 * @return a list of derived search params, in vase the value has a comma 

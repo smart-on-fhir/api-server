@@ -12,5 +12,4 @@ class SearchParamValue{
 	public String paramName;
 	public Object paramValue;
 	public SearchParamType paramType;
-	public Map<String,Object> toMap(){ [k:paramName, v:paramValue] }
 }
