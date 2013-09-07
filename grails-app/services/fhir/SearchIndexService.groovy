@@ -133,12 +133,18 @@ class SearchIndexService{
 		// Represent each term in the query a
 		// key, modifier, and value
 		// e.g. [key: "date", modifier: "after", value: "2010"]
-		def searchParams = params.collect { k,v ->
+		def searchParams = params.collectMany { k,v ->
 			def c = k.split(":") as List
-			return [key: c[0], modifier: c[1], value: v]
-		  }.findAll {
+			log.debug("k $k v is a ${v.class} " + (v instanceof Object[]))
+			if (v instanceof String[]) v = v as List
+			else v = [v]
+			return v.collect {oneVal -> 
+				log.debug("adding ${c[0]}, ${c[1]}, $oneVal")
+				[key: c[0], modifier: c[1], value: oneVal]
+			}
+		}.findAll {
 			   it.key in indexerFor
-		  }
+		}
 		  
 		// Run the assigned indexer on each term
 		// to generate an AND'able list of MongoDB

@@ -19,14 +19,16 @@ class ResourceHistory {
 		sort received:'desc'
 	}
 
-	static Map getEntriesById(Collection ids) {
-
-		ResourceHistory.collection
+	static List getEntriesById(List ids) {
+		Map byId = ResourceHistory.collection
 				.find( _id: [$in: ids])
 				.collectEntries {
-					[(it.type.toLowerCase() + '/@' +it.fhirId):
-						it.content.toString().decodeFhirJson()]
-				}
+					[(it._id): [
+						it.type.toLowerCase() + '/@' +it.fhirId,
+						it.content.toString().decodeFhirJson()]]}
+		return ids.collect {
+			byId[it]
+		}
 	}
 
 	static ResourceHistory getLatestByFhirId(String id){

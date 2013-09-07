@@ -13,6 +13,8 @@ class ResourceIndex {
 	Collection searchTerms
 	Collection compartments
 
-
+	static def forResource(String collectionName) {
+		ResourceIndex.collection.DB.getCollection(collectionName+'Index')
+	}
 
 }

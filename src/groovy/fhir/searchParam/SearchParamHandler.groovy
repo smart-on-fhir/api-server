@@ -207,6 +207,7 @@ public abstract class SearchParamHandler {
 	 * 		   or other notion of disjunction built-in.
 	 */
 	protected List<Map> orClausesFor(Map param){
+		println("oring: " + param + param.value + param.class)
 		List<String> alternatives = param.value.split(',')
 		return alternatives.collect {
 			[

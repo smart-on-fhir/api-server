@@ -33,11 +33,11 @@ public class StringSearchParamHandler extends SearchParamHandler {
 		
 		def val = stripQuotes(searchedFor)
 		
-		if (searchedFor.modifier == null){
+		if (searchedFor.modifier == null ||searchedFor.modifier == "partial"){
 			return match(
 				k: fieldName,
 				v: [
-					$regex: '^'+val,
+					$regex: val,
 					$options: 'i'
 				]
 			)
@@ -52,15 +52,6 @@ public class StringSearchParamHandler extends SearchParamHandler {
 			)
 		}
 		
-		if (searchedFor.modifier == "partial"){
-			return match(
-				k: fieldName,
-				v: [
-					$regex: val+'$',
-					$options: 'i'
-				]
-			)
-		}
 		throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
 }

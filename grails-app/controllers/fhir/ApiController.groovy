@@ -7,6 +7,7 @@ import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Resource
 
+import com.mongodb.DBApiLayer
 import com.mongodb.DBObject
 
 
@@ -16,7 +17,7 @@ class PagingCommand {
 	Integer _skip
 	
 	def bind(params, request) {
-		_count = params._count ? Integer.parseInt(params._count) : 50
+		_count = params._count ? Math.min(Integer.parseInt(params._count), 50) : 50
 		_skip = params._skip ? Integer.parseInt(params._skip) : 0
     }
 }
@@ -43,7 +44,7 @@ class ApiController {
 	static scope = "singleton"
 	def searchIndexService
 	def authorizationService
-	def bundleService
+	BundleService bundleService
 
 	def getFullRequestURI(){
 		log.debug("from ${bundleService.domain} [/] ${request.forwardURI}")
@@ -212,17 +213,45 @@ class ApiController {
 
 		query.bind(params, request)
 		paging.bind(params, request)
-		log.debug(query.toString())
+		log.debug(query.clauses.toString())
+		time("precount $paging.total")
 
-		def cursor = ResourceIndex.collection
-						.find(query.clauses)
-						.skip(paging._skip)
-						.limit(paging._count)
+		def cursor = ResourceIndex.collection.find(query.clauses)
 
 		paging.total = cursor.count()
-		time("Counted $paging.total")
+		time("Counted $paging.total tosort ${params.sort}")
+
+		/*
+		cursor = cursor.limit(paging._count)
+                       .skip(paging._skip)
+        */
 		
-		def entriesForFeed = ResourceHistory.getEntriesById(cursor.collect {
+		List<DBObject> summaries = cursor.collect {return it}	
+
+		// TODO: replace this super-slow approach with in-db sorting.
+		// Will require reorganizing resourceIndex collection into 
+		// separately indexed per-resource collections...
+		time("got indexes")
+		if(params.sort) {
+			summaries.sort {a, b ->
+				List avals = a.searchTerms.findAll {it.k == params.sort}
+				List bvals = b.searchTerms.findAll {it.k == params.sort}
+				if (avals.size() == 0) return 1;
+				if (bvals.size() == 0) return -1;
+				return (avals[0].v <=> bvals[0].v)
+			}
+		}
+		time("sorted")
+		
+		if (paging._skip) {
+			if (summaries.size() < paging._skip) summaries = []
+			summaries = summaries[paging._skip..summaries.size()-1]
+		}
+		if (summaries.size() > paging._count) {
+			summaries = summaries[0..paging._count-1]
+		}
+
+		def entriesForFeed = ResourceHistory.getEntriesById(summaries.collect {
 			it.latest
 		})
 

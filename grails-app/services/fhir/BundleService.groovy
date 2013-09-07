@@ -69,7 +69,7 @@ class BundleService{
 		feed.authorName = "groovy.config.atom.author-name"
 		feed.authorUri  = "groovy.config.atom.author-uri"
 		feed.id = feedId
-		feed.totalResults = entries.size()
+		feed.totalResults = paging.total
 
 		if (paging._skip + paging._count < paging.total) {
 			def nextPageUrl = nextPageFor(feed.id, paging)

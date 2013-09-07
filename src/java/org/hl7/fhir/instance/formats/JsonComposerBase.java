@@ -99,7 +99,7 @@ public abstract class JsonComposerBase extends XmlBase {
 			prop("updated", dateToXml(feed.getUpdated()));
 
 		if (feed.getAuthorName() != null || feed.getAuthorUri() != null) {
-		  openArray("authors");
+		  openArray("author");
 		  json.beginObject();
 		  if (feed.getAuthorName() != null)
 		    prop("name", feed.getAuthorName());
@@ -109,12 +109,10 @@ public abstract class JsonComposerBase extends XmlBase {
 		  closeArray();
 		}
 
-		if (feed.getEntryList().size() > 0) {
-			openArray("entry");
-			for (AtomEntry e : feed.getEntryList())
-				composeEntry(e);
-			closeArray();
-		}
+		openArray("entry");
+		for (AtomEntry e : feed.getEntryList())
+			composeEntry(e);
+		closeArray();
 	}
 
   // standard order for round-tripping examples succesfully:
