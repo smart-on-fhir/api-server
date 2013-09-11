@@ -1,23 +1,15 @@
 package fhir.searchParam
 
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-
 import groovy.util.logging.Log4j
 
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathConstants
-import javax.xml.xpath.XPathFactory
 
 import org.hl7.fhir.instance.formats.XmlComposer
 import org.hl7.fhir.instance.formats.XmlParser
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
-import org.springframework.util.xml.SimpleNamespaceContext
 import org.w3c.dom.Node
-import org.xml.sax.InputSource
 
 import com.mongodb.BasicDBObject
 import com.mongodb.DBObject
@@ -26,17 +18,17 @@ import com.mongodb.DBObject
 public class ReferenceSearchParamHandler extends SearchParamHandler {
 
 	@Override
-	protected void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {	
-			nodes.each {
-				index.add(value(queryString('./f:reference/@value', it)));
-			}
-	} 
-			
+	protected void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {
+		nodes.each {
+			index.add(value(queryString('./f:reference/@value', it)));
+		}
+	}
+
 	@Override
 	protected String paramXpath() {
 		return "//"+this.xpath;
 	}
-	
+
 	@Override
 	BasicDBObject searchClause(Map searchedFor){
 		// FHIR spec describes a slight difference between
@@ -45,7 +37,7 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 		if (searchedFor.modifier == null){
 			return [(fieldName):searchedFor.value]
 		}
-		
+
 		if (searchedFor.modifier == "any"){
 			return [(fieldName):[$regex: '/'+searchedFor.value+'$']]
 		}
@@ -58,7 +50,7 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 // TODO extract Integer into its own class. Need clarification on
 // how this is different from other numerical types (double, say).
 public class IntegerSearchParamHandler extends StringSearchParamHandler {
-	
+
 }
 
 
@@ -74,72 +66,49 @@ public abstract class SearchParamHandler {
 
 	static XmlParser parser = new XmlParser()
 	static XmlComposer composer = new XmlComposer()
-	static SimpleNamespaceContext nsContext
-	static def xpathEvaluator = XPathFactory.newInstance().newXPath();
-		
-		
+	static XPath xpathEvaluator;
+
+
 	String fieldName;
 	SearchParamType fieldType;
 	String xpath;
 
-	public static SearchParamHandler create(String fieldName, 
-											SearchParamType fieldType, 
-											String xpath) {
-		
+	public static SearchParamHandler create(String fieldName,
+			SearchParamType fieldType,
+			String xpath) {
+
 		String ft = fieldType.toString().capitalize();
 		String className = SearchParamHandler.class.canonicalName.replace(
-			"SearchParamHandler", ft + "SearchParamHandler")
-		
-		SearchParamHandler.log.debug("$ft --> $className")
+				"SearchParamHandler", ft + "SearchParamHandler")
+
 		Class c = Class.forName(className,
-								true, 
-								Thread.currentThread().contextClassLoader);
-		
-							
+				true,
+				Thread.currentThread().contextClassLoader);
+
+
 		SearchParamHandler ret =  c.newInstance(
 				fieldName: fieldName,
 				fieldType: fieldType,
 				xpath: xpath
-		);
+				);
 		ret.init();
 		return ret;
 	}
 
-	// TODO: dependency injection here.
-	static void injectGrailsApplication(def grailsApplication){
-		nsContext = new SimpleNamespaceContext();		
-		grailsApplication.config.fhir.namespaces.each {
-			prefix, uri -> nsContext.bindNamespaceUri(prefix, uri)
-		}
-		xpathEvaluator.setNamespaceContext(nsContext);
+	static void injectGrailsApplication(injectedXpathEvaluator){
+		xpathEvaluator = injectedXpathEvaluator;
 	}
 
 	protected void init(){}
-
-	public static String XmlForResource(Resource r) throws Exception {
-		OutputStream o = new ByteArrayOutputStream();
-		composer.compose(o, r, false);
-		return o.toString();
-	}
-
-	public static org.w3c.dom.Document fromResource(Resource r) throws IOException, Exception {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setNamespaceAware(true);
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		org.w3c.dom.Document d = builder.parse(new InputSource(new StringReader(XmlForResource(r))));
-		return d;
-	}
 
 	protected abstract void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index);
 
 	protected abstract String paramXpath()
 
 	List<Node> selectNodes(String path, Node node) {
-		
-	// collect to take NodeList --> List<Node>		
-		xpathEvaluator.evaluate(path, node, XPathConstants.NODESET).collect {
-			it
-		}
+
+		// collect to take NodeList --> List<Node>
+		xpathEvaluator.evaluate(path, node, XPathConstants.NODESET).collect { it }
 	}
 
 	List<Node> query(String xpath, Node n){
@@ -148,10 +117,10 @@ public abstract class SearchParamHandler {
 
 	public SearchParamValue value(String modifier, Object v){
 		new SearchParamValue(
-			paramName: fieldName + (modifier ?:""),
-			paramType: fieldType,
-			paramValue: v
-		);
+				paramName: fieldName + (modifier ?:""),
+				paramType: fieldType,
+				paramValue: v
+				);
 	}
 
 	public SearchParamValue value(Object v){
@@ -159,26 +128,24 @@ public abstract class SearchParamHandler {
 	}
 
 	public String queryString(String xpath, Node n){
-		query(xpath, n).collect {
-			it.nodeValue
-		}.join " "
+		query(xpath, n).collect { it.nodeValue }.join " "
 	}
 
-	public List<SearchParamValue> execute(Resource r) throws Exception {
+	public List<SearchParamValue> execute(org.w3c.dom.Document r) throws Exception {
 		List<SearchParamValue> index = []
-		List<Node> nodes = query(paramXpath(), fromResource(r))
+		List<Node> nodes = query(paramXpath(), r)
 		processMatchingXpaths(nodes, index);
 		return index;
 	}
-	
-	String stripQuotes(def searchedFor){
+
+	String stripQuotes(Map searchedFor){
 		def val = searchedFor.value =~ /^"(.*)"$/
 		if (!val.matches()){
 			throw new RuntimeException("search strings must be in double quotes: " + searchedFor)
 		}
 		val[0][1]
 	}
-	
+
 	/**
 	 * @param param is a single search param (map with keys: key, modifier, value)
 	 * @return a list of derived search params, in vase the value has a comma 
@@ -195,33 +162,29 @@ public abstract class SearchParamHandler {
 			]
 		}
 	}
-	
-	static BasicDBObject andList (List<DBObject> clauses){
-		def nonempty = clauses.findAll {it && it.size() > 0}
-		if (nonempty.size() == 0) return [:]
-		if (nonempty.size() == 1) return nonempty
-		return [$and: nonempty]
+
+
+	static BasicDBObject andList(DBObject... clauses){
+		andList(clauses)
 	}
 
-	static BasicDBObject and(DBObject... clauses){
-		def nonempty = clauses.findAll {it && it.size() > 0}
-		if (nonempty.size() == 0) return [:]
-		if (nonempty.size() == 1) return nonempty
-		return [$and: nonempty]
+	static BasicDBObject orList(DBObject... clauses){
+		orList(clauses)
+	}
+
+	static BasicDBObject orList(Collection<DBObject> clauses){
+		onList(clauses, '$or')
+	}
+
+	static BasicDBObject andList (Collection<DBObject> clauses){
+		onList(clauses, '$and')
 	}
 	
-	static BasicDBObject or(DBObject... clauses){
+	static private BasicDBObject onList(Collection<DBObject> clauses, String operation) {
 		def nonempty = clauses.findAll {it && it.size() > 0}
 		if (nonempty.size() == 0) return [:]
 		if (nonempty.size() == 1) return nonempty
-		return [$or: nonempty]
-	}
-	
-	static BasicDBObject orList(List<DBObject> clauses){
-		def nonempty = clauses.findAll {it && it.size() > 0}
-		if (nonempty.size() == 0) return [:]
-		if (nonempty.size() == 1) return nonempty
-		return [$or: nonempty]
+		return [(operation): nonempty]		
 	}
 
 	abstract BasicDBObject searchClause(Map searchedFor)

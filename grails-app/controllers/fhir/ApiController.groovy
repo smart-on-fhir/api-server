@@ -6,6 +6,7 @@ import org.hl7.fhir.instance.model.AtomFeed
 import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Resource
+import org.hl7.fhir.instance.model.Patient
 
 import com.mongodb.BasicDBObject
 import com.mongodb.DBApiLayer
@@ -117,13 +118,25 @@ class ApiController {
 
 	private def updateService(Resource r, String resourceName, String fhirId) {
 
-		def compartments = params.list('compartments')
+		def compartments = params.list('compartments').collect {it}
+		if (r instanceof Patient) {
+			compartments.add("patient/@$fhirId")
+		} else if (r.subject) {
+			if (r.subject.typeSimple == 'Patient') {
+				compartments.add(r.subject.referenceSimple)
+			}
+		} else if (r.patient) {
+			if (r.patient.typeSimple == 'Patient') {
+				compartments.add(r.patient.referenceSimple)
+			}
+		}
+
 		if (!request.authorization.allows(operation: "PUT", compartments: compartments)){
 			throw new AuthorizationException("Can't write to compartments: $compartments")
 		}
 
+		log.debug("Compartments: $compartments")
 		DBObject rjson = r.encodeAsFhirJson().encodeAsDbObject()
-
 		String type = rjson.keySet().iterator().next()
 		String expectedType = searchIndexService.capitalizedModelName[resourceName]
 		if (type != expectedType){
@@ -136,19 +149,16 @@ class ApiController {
 		
 		def indexTerms = searchIndexService.indexResource(r);
 	
-
 		def h = new ResourceHistory(
 			fhirId: fhirId, 
-			compartments: compartments,
+			compartments: compartments as String[],
 			type: type,
 			action: 'POST',
-			content: rjson)
-			.save()
+			content: rjson).save()
 			
-
 		def rIndex = [
 			fhirId: fhirId,
-			compartments: compartments,
+			compartments: compartments as String[],
 			latest: h.id,
 			type: type,
 		]
@@ -204,7 +214,7 @@ class ApiController {
 			return
 		} 
 		request.authorization.require(operation:'GET', resource:h)
-		log.debug("K, ,authorized"+ h.properties)
+		log.debug("K, ,authorized")
 		request.resourceToRender = h		
 	}
 

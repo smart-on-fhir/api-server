@@ -12,8 +12,10 @@ class ResourceHistory {
 	String action
 	String type
 	DBObject content
-	Collection compartments
+	List compartments = []
 	Date received = new Date()
+
+	static embedded  = ['compartments']
 
 	static mapping = {
 		sort received:'desc'
@@ -32,13 +34,11 @@ class ResourceHistory {
 	}
 
 	static ResourceHistory getLatestByFhirId(String id){
-
 		def h= ResourceHistory.findAllByFhirId(id, [limit:1]).asList()
 		if (h.size()==0){
 			return null
 		}
 		h[0]
-		//h[0].content.toString().decodeFhirJson()
 	}
 
 	static ResourceHistory getFhirVersion(String id, String vid){

@@ -77,11 +77,25 @@ class AuthorizationService{
 			def status = tokenCache.cache.get(token, {
 				lookup(token)
 			})
-			
+			log.debug("remapping: $status")
+
+			// Token introspection param names have changed; support old + new
+			def mappedStatus = [
+				active: status.active ?: status.valid,
+				exp: status.exp ?: status.expires_at,
+				sub: status.sub ?: status.subject,
+				client_id: status.client_id,
+				scope: status.scope
+			]
+
+			status = mappedStatus
+			log.debug("STatus: $status")
+
 			if (!status.active) return null;
 			Date exp = org.joda.time.format.ISODateTimeFormat.dateTimeParser()
 				   .parseDateTime(status.exp).toDate()
 			def ret = new Authorization(
+					isAdmin: "fhir-complete" in status.scope,
 					isActive:status.active,
 					expiration: exp,
 					username: status.sub,
@@ -93,6 +107,7 @@ class AuthorizationService{
 				if (!m.matches()) return null
 				return "patient/@" +  (m[0][2] != "" ? m[0][2] : "example")
 			}
+			log.debug("Found bearer authorization for this request: $ret")
 			return ret
 		}
 		return null
@@ -121,7 +136,7 @@ class AuthorizationService{
 			if (isAdmin) return
 			
 			if (!compartments.any {it in p.resource.compartments})
-				throw new AuthorizationException("Unauthorized:  you only have access to " + compartments)
+				throw new AuthorizationException("Unauthorized:  you only have access to " + compartments + "not $p")
 		}
 		
 		def restrictSearch(clauses) {
