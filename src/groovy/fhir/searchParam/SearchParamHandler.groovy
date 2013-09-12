@@ -14,45 +14,6 @@ import org.w3c.dom.Node
 import com.mongodb.BasicDBObject
 import com.mongodb.DBObject
 
-// TODO implement generic logic for extracting References
-public class ReferenceSearchParamHandler extends SearchParamHandler {
-
-	@Override
-	protected void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {
-		nodes.each {
-			index.add(value(queryString('./f:reference/@value', it)));
-		}
-	}
-
-	@Override
-	protected String paramXpath() {
-		return "//"+this.xpath;
-	}
-
-	@Override
-	BasicDBObject searchClause(Map searchedFor){
-		// FHIR spec describes a slight difference between
-		// no modifier and ":text" on a code --
-		// but we're treating them the same here
-		if (searchedFor.modifier == null){
-			return [(fieldName):searchedFor.value]
-		}
-
-		if (searchedFor.modifier == "any"){
-			return [(fieldName):[$regex: '/'+searchedFor.value+'$']]
-		}
-
-		throw new RuntimeException("Unknown modifier: " + searchedFor)
-	}
-
-}
-
-// TODO extract Integer into its own class. Need clarification on
-// how this is different from other numerical types (double, say).
-public class IntegerSearchParamHandler extends StringSearchParamHandler {
-
-}
-
 
 /**
  * @author jmandel
@@ -163,14 +124,6 @@ public abstract class SearchParamHandler {
 		}
 	}
 
-
-	static BasicDBObject andList(DBObject... clauses){
-		andList(clauses)
-	}
-
-	static BasicDBObject orList(DBObject... clauses){
-		orList(clauses)
-	}
 
 	static BasicDBObject orList(Collection<DBObject> clauses){
 		onList(clauses, '$or')

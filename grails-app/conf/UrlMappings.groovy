@@ -7,7 +7,11 @@ class UrlMappings {
 
 		name base: "/fhir" {
 			controller="Api"
-			action=[GET: "conformance", POST: "transaction"]
+			action=[OPTIONS: "conformance", POST: "transaction"]
+		}
+
+		name metadata: "/fhir/metadata"(controller: "Api") {
+			action = [GET: "conformance"]
 		}
 
 		name summary: "/fhir/summary" {

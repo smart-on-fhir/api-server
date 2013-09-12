@@ -142,7 +142,7 @@ class AuthorizationService{
 		def restrictSearch(clauses) {
 			if (isAdmin) return clauses
 			def extra = new BasicDBObject([compartments: [$in: compartments]])
-			return SearchParamHandler.and(clauses, extra)
+			return SearchParamHandler.andList([clauses, extra])
 		}
 
 	}

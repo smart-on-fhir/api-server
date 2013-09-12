@@ -53,6 +53,10 @@ class ApiController {
 		log.debug("from ${bundleService.domain} [/] ${request.forwardURI}")
 		bundleService.domain + request.forwardURI + '?' + request.queryString
 	}
+	
+	def conformance(){
+		request.resourceToRender = searchIndexService.conformance
+	}
 
 	// Note that we don't offer real transaction (all-or-none) semantics
 	// but we do allow clients to apply a group of changes in a single

@@ -1,4 +1,7 @@
+
 package fhir;
+
+import java.text.SimpleDateFormat
 
 import javax.annotation.PostConstruct
 import javax.xml.parsers.DocumentBuilder
@@ -7,10 +10,15 @@ import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathFactory
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
-import org.hl7.fhir.instance.formats.XmlComposer
 import org.hl7.fhir.instance.formats.XmlParser
 import org.hl7.fhir.instance.model.Conformance
+import org.hl7.fhir.instance.model.Conformance.RestfulOperation;
 import org.hl7.fhir.instance.model.Resource
+import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
+import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceComponent
+import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceOperationComponent
+import org.hl7.fhir.utilities.xhtml.NodeType
+import org.hl7.fhir.utilities.xhtml.XhtmlNode
 import org.springframework.util.xml.SimpleNamespaceContext
 import org.xml.sax.InputSource
 
@@ -25,11 +33,12 @@ class SearchIndexService{
 	static def transactional = false
 	static def lazyInit = false
 
-	static XmlParser parser = new XmlParser()
-	static XmlComposer composer = new XmlComposer()
 	static GrailsApplication grailsApplication
 	static XPath xpathEvaluator = XPathFactory.newInstance().newXPath();
 	static SimpleNamespaceContext nsContext
+	static BundleService bundleService
+	static Conformance conformance
+	static XmlParser parser = new XmlParser()	
 
 	static Map<Class<Resource>,Collection> indexersByResource = [:]
 	static Map<String, String> xpathsMissingFromFhir;
@@ -38,7 +47,39 @@ class SearchIndexService{
 	@PostConstruct
 	void init() {
 		configureXpathSettings();
-		def conformance = resourceFromFile "profile.xml"
+
+		Conformance conformance = resourceFromFile "profile.xml"
+
+		conformance.text.div = new XhtmlNode();
+	    conformance.text.div.nodeType = NodeType.Element
+	    conformance.text.div.name = "div"
+		conformance.text.div.addText("Generated Conformance Statement -- see structured representation.")
+		conformance.identifierSimple = bundleService.fhirBase + '/conformance'
+		conformance.publisherSimple = "SMART on FHIR"
+		conformance.nameSimple =  "SMART on FHIR Conformance Statement"
+		conformance.descriptionSimple = "Describes capabilities of this SMART on FHIR server"
+		conformance.telecom[0].valueSimple = bundleService.fhirBase
+
+	    def format = new SimpleDateFormat("yyyy-MM-dd")
+		conformance.dateSimple = format.format(new Date())
+		
+		List supportedOps = [
+			RestfulOperation.read,
+			RestfulOperation.vread,
+			RestfulOperation.update,
+			RestfulOperation.search,
+			RestfulOperation.create,
+			RestfulOperation.transaction
+		]
+		
+		conformance.rest.each { ConformanceRestComponent r  ->
+			r.resource.each { ConformanceRestResourceComponent rc ->
+				rc.operation = rc.operation.findAll { ConformanceRestResourceOperationComponent o ->
+					o.codeSimple in supportedOps
+				}
+			}
+		}
+
 		setConformance(conformance)
 	}
 
@@ -68,7 +109,8 @@ class SearchIndexService{
 		return lookupClass("org.hl7.fhir.instance.model."+modelName);
 	}
 
-	public static Resource resourceFromFile(String file) {
+
+	private static Resource resourceFromFile(String file) {
 		def stream = classLoader.getResourceAsStream(file)
 		parser.parse(stream)
 	}
@@ -84,6 +126,7 @@ class SearchIndexService{
 
 	public void setConformance(Conformance c) throws Exception {
 		log.debug("Setting conformance profile")
+		conformance = c
 		def restResources = c.rest[0].resource
 		capitalizedModelName["binary"] = "Binary"
 		restResources.each { resource ->
