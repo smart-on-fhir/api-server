@@ -23,11 +23,12 @@ class ResourceHistory {
 
 	static List getEntriesById(List ids) {
 		Map byId = ResourceHistory.collection
-				.find( _id: [$in: ids])
-				.collectEntries {
-					[(it._id): [
-						it.type.toLowerCase() + '/@' +it.fhirId,
-						it.content.toString().decodeFhirJson()]]}
+		.find( _id: [$in: ids])
+		.collectEntries {
+			[(it._id): [
+					it.type.toLowerCase() + '/@' +it.fhirId,
+					it.content.toString().decodeFhirJson()]]}
+
 		return ids.collect {
 			byId[it]
 		}
@@ -42,15 +43,15 @@ class ResourceHistory {
 	}
 
 	static ResourceHistory getFhirVersion(String id, String vid){
-		
+
 		if (!ObjectId.isValid(vid)) return null
-		
-		
+
+
 		List<Resource> vs = ResourceHistory.collection.find([
 			'_id':new ObjectId(vid),
 			'fhirId':id
 		]).limit(1).toList()
-		
+
 		if (vs.size()==0){
 			return null
 		}
@@ -59,6 +60,6 @@ class ResourceHistory {
 		//vs[0].content.toString().decodeFhirJson()
 	}
 
-	
+
 }
 

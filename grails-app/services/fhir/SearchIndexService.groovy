@@ -193,11 +193,9 @@ class SearchIndexService{
 		// e.g. [key: "date", modifier: "after", value: "2010"]
 		def searchParams = params.collectMany { k,v ->
 			def c = k.split(":") as List
-			log.debug("k $k v is a ${v.class} " + (v instanceof Object[]))
 			if (v instanceof String[]) v = v as List
 			else v = [v]
 			return v.collect {oneVal ->
-				log.debug("adding ${c[0]}, ${c[1]}, $oneVal")
 				[key: c[0], modifier: c[1], value: oneVal]
 			}
 		}.findAll {

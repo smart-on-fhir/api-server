@@ -260,7 +260,7 @@ class ApiController {
 			it.latest
 		})
 
-		time("Fetched content")
+		time("Fetched content of size ${entriesForFeed.size()}")
 		
 		AtomFeed feed = bundleService.atomFeed([
 			entries: entriesForFeed,
