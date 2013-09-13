@@ -56,7 +56,7 @@ public abstract class SearchParamHandler {
 		return ret;
 	}
 
-	static void injectGrailsApplication(injectedXpathEvaluator){
+	static void injectXpathEvaluator(XPath injectedXpathEvaluator){
 		xpathEvaluator = injectedXpathEvaluator;
 	}
 

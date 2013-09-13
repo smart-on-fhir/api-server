@@ -48,8 +48,10 @@ fhir.searchParam.spotFixes = [
 	"f:Condition/f:onsetAge | f:Condition/f:onsetDate",
 "http://hl7.org/fhir/Group/search#value": 
 	"f:Condition/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
+"http://hl7.org/fhir/Observation/search#name": 
+	"f:Observation/f:name | f:Observation/f:component/f:name",
 "http://hl7.org/fhir/Observation/search#value": 
-	"f:Observation/f:component/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
+	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')] | f:Observation/f:component/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
 "http://hl7.org/fhir/Observation/search#date": 
 	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'applies')]",
 "http://hl7.org/fhir/Group/search#type-value":
@@ -65,7 +67,7 @@ fhir.searchParam.spotFixes = [
 		'f:status$' +
 		"f:date",
 "http://hl7.org/fhir/Observation/search#name-value":
-		'f:Observation/f:component$' +
+		'f:Observation/f:component | f:Observation$' +
 		'f:name$' +
 		'*[namespace-uri()="http://hl7.org/fhir" and starts-with(local-name(),"value")]'
 ]

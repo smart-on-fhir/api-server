@@ -23,7 +23,7 @@ public class CompositeSearchParamHandler extends SearchParamHandler {
 		def paths = xpath.split('\\$');
 		parent = paths[0];
 		children = paths[1..-1].collect {
-			"./$it/@value";
+			"./$it//@value";
 		}
 	}
 

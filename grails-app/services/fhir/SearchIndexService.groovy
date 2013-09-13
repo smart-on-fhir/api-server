@@ -89,7 +89,7 @@ class SearchIndexService{
 			prefix, uri -> nsContext.bindNamespaceUri(prefix, uri)
 		}
 		xpathEvaluator.setNamespaceContext(nsContext)
-		SearchParamHandler.injectGrailsApplication(xpathEvaluator)
+		SearchParamHandler.injectXpathEvaluator(xpathEvaluator)
 
 		def xpathFixes = ImmutableMap.<String, String> builder();
 		grailsApplication.config.fhir.searchParam.spotFixes.each {
