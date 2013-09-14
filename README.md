@@ -4,12 +4,13 @@ smart-on-fhir
 
 Open-source [FHIR](http://hl7.org/implement/standards/fhir/) Server to support patient- and clinician-facing apps.
 
-# Live demo: [API](https://api.fhir.me) | [Apps](https://apps.fhir.me)
-
 Still highly experimental, but has limited support for:
 
  * GET, POST, and PUT resources
- * Search for current resources based on FHIR's defined search params
+ * `transaction` (POST a bundle of resources)
+ * Search resources based on FHIR's defined search params
+
+## Live demo: [API](https://api.fhir.me) | [Apps](https://apps.fhir.me)
 
 ## Installing
 
