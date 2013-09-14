@@ -1,8 +1,12 @@
 smart-on-fhir
 =============
 
+
 Open-source [FHIR](http://hl7.org/implement/standards/fhir/) Server to support patient- and clinician-facing apps.
-Still highly experimental and highly unstable, but has limited support for:
+
+# Live demo: [API](https://api.fhir.me) | [Apps](https://apps.fhir.me)
+
+Still highly experimental, but has limited support for:
 
  * GET, POST, and PUT resources
  * Search for current resources based on FHIR's defined search params
@@ -13,7 +17,7 @@ Still highly experimental and highly unstable, but has limited support for:
 * Download and install [Grails 2.2.4](http://grails.org/download)
 * Install MongoDB (locally or use a remote service)
 
-###  Running
+###  Run it (using default config)
 ```
 $ git clone https://github.com/jmandel/smart-on-fhir
 $ cd smart-on-fhir
@@ -57,6 +61,28 @@ curl 'http://localhost:8080/fhir/diagnosticorder/@example' \
      -H 'Accept: application/json'
 ```
 
+## Getting more sample data
+You can load sample data from SMART's [Sample Patietns](https://github.com/chb/smart_sample_patients/tree/fhir):
+
+```
+$ git clone https://github.com/chb/smart_sample_patients
+$ cd smart_sample_patients/bin
+$ git checkout -b fhir
+$ python generate.py --write-fhir ../generated
+$ ls ../generated # a bunch of XML files
+```
+
+### Loading these files into your system
+
+```
+for i in *.xml; do 
+   curl 'http://localhost:9090/fhir/?' 
+        -H 'Content-Type: text/xml'
+        --data-binary @$i; 
+done
+```
+
+## Storing `Document`s + `DocumentReference`s
 There's very rudimentary support for adding C-CDA documents to the server,
 with a client-side loader script. The loader will:
  
