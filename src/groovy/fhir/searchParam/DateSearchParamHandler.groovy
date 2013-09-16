@@ -34,7 +34,7 @@ public class DateSearchParamHandler extends SearchParamHandler {
 		}
 	}
 
-	private static Interval precisionInterval(String s) {
+	public static Interval precisionInterval(String s) {
 		DateTime earliest = ISODateTimeFormat
 				.dateOptionalTimeParser()
 				.parseDateTime(s)

@@ -85,6 +85,7 @@ public abstract class JsonComposerBase extends XmlBase {
 
 	  prop("title", feed.getTitle());
     prop("id", feed.getId());
+    prop("totalResults", feed.getTotalResults());
     if (feed.getLinks().size() > 0) {
       openArray("link");
       for (String n : feed.getLinks().keySet()) {
@@ -122,18 +123,17 @@ public abstract class JsonComposerBase extends XmlBase {
 		prop("title", e.getTitle());
 		prop("id", e.getId());
 		if (e.getLinks().size() > 0) {
-		  openArray("links");
+		  openArray("link");
 		  for (String n : e.getLinks().keySet()) {
 		    json.beginObject();
 		    prop("rel", n);
-		    prop("href", e.getLinks().get(n));
+		    prop("href", e.getLinks().get(n).replace("&amp;", "&"));
 		    json.endObject();
 		  }
 		  closeArray();
 		}
 
-		if (e.getUpdated() != null)
-			prop("updated", dateToXml(e.getUpdated()));
+
 		if (e.getPublished() != null) 
 			prop("published", dateToXml(e.getPublished()));
 
@@ -162,13 +162,18 @@ public abstract class JsonComposerBase extends XmlBase {
 			}
 			closeArray();
 		}
-
+	  if (e.isDeleted()) {
+	    prop("deleted", dateToXml(e.getUpdated()));
+	  }  else {
+		if (e.getUpdated() != null)
+			prop("updated", dateToXml(e.getUpdated()));
 		open("content");
 		composeResource(e.getResource());
 		close();
 		if (e.getSummary() != null) {
 		  composeXhtml("summary", e.getSummary());
 		}
+	  }
 		json.endObject();  
 
 	}

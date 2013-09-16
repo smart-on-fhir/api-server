@@ -69,7 +69,10 @@ class SearchIndexService{
 			RestfulOperation.update,
 			RestfulOperation.search,
 			RestfulOperation.create,
-			RestfulOperation.transaction
+			RestfulOperation.transaction,
+			RestfulOperation.historysystem,
+			RestfulOperation.historytype,
+			RestfulOperation.historyinstance
 		]
 		
 		conformance.rest.each { ConformanceRestComponent r  ->
@@ -178,7 +181,7 @@ class SearchIndexService{
 
 
 	public BasicDBObject queryParamsToMongo(Map params){
-
+		log.debug("generating clauses for $params")
 		def rc = classForModel(params.resource)
 		def indexers = indexersByResource[rc] ?: []
 

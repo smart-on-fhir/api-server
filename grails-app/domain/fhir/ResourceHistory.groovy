@@ -16,22 +16,27 @@ class ResourceHistory {
 	Date received = new Date()
 
 	static embedded  = ['compartments']
+	static constraints = {
+		content nullable: true
+	}
 
 	static mapping = {
 		sort received:'desc'
 	}
 
 	static List getEntriesById(List ids) {
-		Map byId = ResourceHistory.collection
-		.find( _id: [$in: ids])
-		.collectEntries {
-			[(it._id): [
-					it.type.toLowerCase() + '/@' +it.fhirId,
-					it.content.toString().decodeFhirJson()]]}
-
-		return ids.collect {
-			byId[it]
+		Map byId = ResourceHistory.collection.find( _id: [$in: ids]).collectEntries {
+			[(it._id): it]
 		}
+		List inOrder = ids.collect {byId[id]}
+		return zipIdsWithEntries(inOrder)
+	}
+
+	static List zipIdsWithEntries(Iterable entries){
+		entries.collect {[
+				it.type.toLowerCase() + '/@' +it.fhirId,
+				it.content ? it.content.toString().decodeFhirJson() : null
+			]}
 	}
 
 	static ResourceHistory getLatestByFhirId(String id){

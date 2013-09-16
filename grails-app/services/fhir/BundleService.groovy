@@ -1,15 +1,14 @@
 package fhir;
 
+import groovyx.net.http.URIBuilder
+
 import java.util.regex.Pattern
 
 import org.bson.types.ObjectId
 import org.hl7.fhir.instance.model.AtomEntry
 import org.hl7.fhir.instance.model.AtomFeed
-import groovyx.net.http.URIBuilder
 
-class BundleValidationException extends Exception{
-	
-}
+class BundleValidationException extends Exception{ }
 
 class BundleService{
 
@@ -83,8 +82,12 @@ class BundleService{
 		feed.entryList.addAll entries.collect { id, resource ->
 			AtomEntry entry = new AtomEntry()
 			entry.id = fhirBase + '/'+ id
-			entry.resource = resource
 			entry.updated = now
+			if (resource == null) {
+				entry.deleted = true
+			} else {
+				entry.resource = resource
+			}
 			return entry
 		}
 
@@ -92,6 +95,7 @@ class BundleService{
 	}
 	
 	String nextPageFor(String url, PagingCommand paging) {
+		if (!url.matches('\\?')) url = url + "?"
 		URIBuilder u = new URIBuilder(url)
 
 		if ('_count' in u.query) {

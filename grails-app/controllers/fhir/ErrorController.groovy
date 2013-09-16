@@ -13,7 +13,7 @@ class ErrorController {
 			extra = request.exception.message
 		}
 		response.status=s
-		render("Request not authorized. $extra")
+		render(extra)
 	}	
 	
 	def status401() {
@@ -23,5 +23,9 @@ class ErrorController {
 	def status405() {
 		status(405)
 	}	
+	
+	def deleted(){
+		status(410)
+	}
 
 }

@@ -5,11 +5,11 @@ import grails.plugins.rest.client.RestBuilder
 import fhir.searchParam.SearchParamHandler
 
 import javax.annotation.PostConstruct
-	class AuthorizationException extends Exception {
-		def AuthorizationException(String msg){
-			super(msg)
-		}
+class AuthorizationException extends Exception {
+	def AuthorizationException(String msg){
+		super(msg)
 	}
+}
 
 /**
  * @author jmandel
@@ -93,7 +93,7 @@ class AuthorizationService{
 
 			if (!status.active) return null;
 			Date exp = org.joda.time.format.ISODateTimeFormat.dateTimeParser()
-				   .parseDateTime(status.exp).toDate()
+					.parseDateTime(status.exp).toDate()
 			def ret = new Authorization(
 					isAdmin: "fhir-complete" in status.scope,
 					isActive:status.active,
@@ -134,11 +134,11 @@ class AuthorizationService{
 
 		void require(p) {
 			if (isAdmin) return
-			
-			if (!compartments.any {it in p.resource.compartments})
-				throw new AuthorizationException("Unauthorized:  you only have access to " + compartments + "not $p")
+
+				if (!compartments.any {it in p.resource.compartments})
+					throw new AuthorizationException("Unauthorized:  you only have access to " + compartments + "not $p")
 		}
-		
+
 		def restrictSearch(clauses) {
 			if (isAdmin) return clauses
 			def extra = new BasicDBObject([compartments: [$in: compartments]])
@@ -146,7 +146,7 @@ class AuthorizationService{
 		}
 
 	}
-	
+
 	def evaluate(request){
 		// If auth is disabled, treat everyone as an admin
 		if (!grailsApplication.config.fhir.oauth.enabled) {
