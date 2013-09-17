@@ -22,7 +22,7 @@ AtomFeed feed = new AtomFeed()
 def rest = new RestBuilder(connectTimeout:10000, readTimeout:10000)
 Map oauth = [clientId: System.env.CLIENT_ID, clientSecret: System.env.CLIENT_SECRET]
 
-def fhirBase = System.env.BASE_URL +'/fhir'
+def fhirBase = System.env.BASE_URL
 String pid = System.env.PATIENT_ID ?: "123"
 String filePath = System.env.CCDA ?: 'grails-app/conf/examples/ccda.xml'
 byte[] bytes = Files.readAllBytes(Paths.get(filePath));

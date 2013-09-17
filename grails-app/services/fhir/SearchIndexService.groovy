@@ -36,7 +36,7 @@ class SearchIndexService{
 	static GrailsApplication grailsApplication
 	static XPath xpathEvaluator = XPathFactory.newInstance().newXPath();
 	static SimpleNamespaceContext nsContext
-	static BundleService bundleService
+	static UrlService urlService
 	static Conformance conformance
 	static XmlParser parser = new XmlParser()	
 
@@ -54,11 +54,11 @@ class SearchIndexService{
 	    conformance.text.div.nodeType = NodeType.Element
 	    conformance.text.div.name = "div"
 		conformance.text.div.addText("Generated Conformance Statement -- see structured representation.")
-		conformance.identifierSimple = bundleService.fhirBase + '/conformance'
+		conformance.identifierSimple = urlService.fhirBase + '/conformance'
 		conformance.publisherSimple = "SMART on FHIR"
 		conformance.nameSimple =  "SMART on FHIR Conformance Statement"
 		conformance.descriptionSimple = "Describes capabilities of this SMART on FHIR server"
-		conformance.telecom[0].valueSimple = bundleService.fhirBase
+		conformance.telecom[0].valueSimple = urlService.fhirBase
 
 	    def format = new SimpleDateFormat("yyyy-MM-dd")
 		conformance.dateSimple = format.format(new Date())

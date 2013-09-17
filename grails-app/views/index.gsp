@@ -24,7 +24,7 @@ h2 {display: inline-block; padding: 10px; background: rgba(0, 0, 0, 0.7);  font-
 <body>
 <h1>SMART on FHIR</h1>
 <h2>
-Service URL: <strong>${createLink(uri: '/', absolute:true)}fhir/</strong><br>
+Service URL: <strong>${createLink('', absolute:true)}</strong><br>
 Source: <strong><a href="https://github.com/jmandel/smart-on-fhir">GitHub</a></strong><br>
 </h2>
 

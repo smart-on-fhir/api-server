@@ -28,7 +28,7 @@ class ResourceHistory {
 		Map byId = ResourceHistory.collection.find( _id: [$in: ids]).collectEntries {
 			[(it._id): it]
 		}
-		List inOrder = ids.collect {byId[id]}
+		List inOrder = ids.collect {byId[it]}
 		return zipIdsWithEntries(inOrder)
 	}
 

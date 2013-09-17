@@ -83,12 +83,16 @@ class ApiController {
 	def searchIndexService
 	def authorizationService
 	BundleService bundleService
+	UrlService urlService
 
 	def getFullRequestURI(){
-		log.debug("from ${bundleService.domain} [/] ${request.forwardURI}")
-		bundleService.domain + request.forwardURI + '?' + request.queryString
+		urlService.fullRequestUrl(request)
 	}
 
+	def welcome() {
+		render(view:"/index")
+	}
+	
 	def conformance(){
 		request.resourceToRender = searchIndexService.conformance
 	}
@@ -117,8 +121,9 @@ class ApiController {
 		request.resourceToRender =  feed
 	}
 
+	// BlueButton-specific "summary" API: returns the most recent C-CDA
+	// clinical summary (resolving DocumentReference -- Document)
 	def summary() {
-
 		log.debug("Compartments: " + request.authorization.compartments)
 
 		def q = [
@@ -204,15 +209,7 @@ class ApiController {
 		collection.insert(new BasicDBObject(rIndex))
 
 		log.debug("Got $collection to insert $rIndex")
-
-		versionUrl = g.createLink(
-				mapping: 'resourceVersion',
-				absolute: true,
-				params: [
-					resource: resourceName,
-					id: fhirId,
-					vid: h.id
-				]).replace("%40","@")
+		versionUrl = urlService.resourceVersionLink(resourceName, fhirId, h.id.toString())
 
 		log.debug("Created version: " + versionUrl)
 		response.setHeader('Location', versionUrl)
@@ -233,15 +230,16 @@ class ApiController {
 	private List<String> getAndAuthorizeCompartments(r, String fhirId) {
 		def compartments = params.list('compartments').collect {it}
 		log.debug("Authorizing comparemtns start from: $compartments")
+
 		if ("compartments" in r.properties){
 			compartments.addAll(r.compartments)
 		} else if (r instanceof Patient) {
 			compartments.add("patient/@$fhirId")
-		} else if (r.subject) {
+		} else if ("subject" in r.properties) {
 			if (r.subject.typeSimple == 'Patient') {
 				compartments.add(r.subject.referenceSimple)
 			}
-		} else if (r.patient) {
+		} else if ("patient" in r.properties) {
 			if (r.patient.typeSimple == 'Patient') {
 				compartments.add(r.patient.referenceSimple)
 			}

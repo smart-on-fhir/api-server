@@ -5,8 +5,13 @@ class RequestFilters {
 	def grailsApplication
 
 	def filters = {
-		renderContent(controller: 'api', action: '*') {
+		authorizeRequest(controller: 'api', action: '*') {
 			before = {
+
+				if(params.action[request.method] in ['welcome', 'conformance']){
+					return true
+				}
+					
 				if (!authorizationService.evaluate(request)) {
 					forward controller: 'error', action: 'status401'
 					return false

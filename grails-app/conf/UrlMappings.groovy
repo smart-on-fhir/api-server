@@ -6,56 +6,52 @@ class UrlMappings {
 
 	static mappings = {
 
-		name base: "/fhir" {
+		name base: "/" {
 			controller="Api"
-			action=[OPTIONS: "conformance", POST: "transaction", DELETE: "delete"]
+			action=[GET: "welcome", OPTIONS: "conformance", POST: "transaction", DELETE: "delete"]
 		}
 
-		name metadata: "/fhir/metadata"(controller: "Api") {
+		name metadata: "/metadata"(controller: "Api") {
 			action = [GET: "conformance"]
 		}
 
-		name summary: "/fhir/summary" {
+		name summary: "/summary" {
 			controller="Api"
 			action=[GET: "summary"]
 		}
 
-
-		name resourceInstance: "/fhir/$resource/@$id" {
+		name resourceInstance: "/$resource/@$id" {
 			controller="Api"
 			action=[GET: "read", PUT: "update", DELETE: "delete"]
 		}
 
-
-		name resourceVersion: "/fhir/$resource/@$id/history/@$vid"(controller: "Api") {
+		name resourceVersion: "/$resource/@$id/history/@$vid"(controller: "Api") {
 			action = [GET: "vread"]
 		}
 
-		name resourceClass: "/fhir/$resource"(controller: "Api") {
+		name resourceClass: "/$resource"(controller: "Api") {
 			action = [GET: "search", POST: "create"]
 		}
 
-
-		name searchResource: "/fhir/$resource/search"(controller: "Api") {
+		name searchResource: "/$resource/search"(controller: "Api") {
 			action = [GET: "search", POST: "search"]
 		}
 
-		name summary: "/fhir/history" {
+		name summary: "/history" {
 			controller="Api"
 			action=[GET: "history"]
 		}
 
-		name resourceHistory: "/fhir/$resource/history" {
+		name resourceHistory: "/$resource/history" {
 			controller="Api"
 			action=[GET: "history"]
 		}
 
-		name resourceInstanceHistory: "/fhir/$resource/@$id/history" {
+		name resourceInstanceHistory: "/$resource/@$id/history" {
 			controller="Api"
 			action=[GET: "history"]
 		}
 
-		"/"(view:"/index")
 
 		"401"(controller: 'error', action: 'status401')
 		"500"(controller: 'error', action: 'deleted', exception: ResourceDeletedException)

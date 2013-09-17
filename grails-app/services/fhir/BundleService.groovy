@@ -14,40 +14,8 @@ class BundleService{
 
 	def transactional = false
 	def searchIndexService
-	def grailsLinkGenerator	
+	def urlService
 
-	private def fhirCombinedId(String p) {
-		String ret = null
-		def m = p =~ /\/fhir\/([^\/]+)\/@([^\/]+)(?:\/history\/@([^\/]+))?/
-
-		if (m.size()) {
-			ret =  m[0][1] + '/@' + m[0][2]
-		}
-
-		return ret
-	}
-
-	String getBaseURI() {
-		grailsLinkGenerator.link(uri:'', absolute:true)
-	}
-
-	String getDomain() {
-		def m = baseURI =~ /(https?:\/\/[^\/]+)/
-		return m[0][1]
-	}
-
-	String getFhirBase() {
-		baseURI + '/fhir'
-	}
-
-	URL getFhirBaseAbsolute() {
-		new URL(fhirBase + '/')
-	}
-	
-	String relativeResourceLink(String resource, String id) {
-		"$resource/@$id"
-	}
-	
 	void validateFeed(AtomFeed feed) {
 		if (feed == null) {
 			throw new BundleValidationException('Could not parse a bundle. Ensure you have set an appropriate content-type.')
@@ -81,7 +49,7 @@ class BundleService{
 		
 		feed.entryList.addAll entries.collect { id, resource ->
 			AtomEntry entry = new AtomEntry()
-			entry.id = fhirBase + '/'+ id
+			entry.id = urlService.fhirBase + '/'+ id
 			entry.updated = now
 			if (resource == null) {
 				entry.deleted = true
@@ -95,7 +63,6 @@ class BundleService{
 	}
 	
 	String nextPageFor(String url, PagingCommand paging) {
-		if (!url.matches('\\?')) url = url + "?"
 		URIBuilder u = new URIBuilder(url)
 
 		if ('_count' in u.query) {
@@ -126,7 +93,7 @@ class BundleService{
 			boolean needsAssignment = false
 			Class c = e.resource.class
 			try {
-				def asFhirCombinedId = fhirCombinedId(new URL(fhirBaseAbsolute, e.id).path)
+				def asFhirCombinedId = urlService.fhirCombinedId(new URL(urlService.fhirBaseAbsolute, e.id).path)
 				if(asFhirCombinedId) {
 					assignments[e.id] = asFhirCombinedId
 				} else {
@@ -139,7 +106,7 @@ class BundleService{
 				if (needsAssignment) {
 					String r = c.toString().split('\\.')[-1].toLowerCase()
 					String id = new ObjectId().toString()
-					assignments[e.id] = relativeResourceLink(r, id)
+					assignments[e.id] = urlService.relativeResourceLink(r, id)
 				}
 			}
 		}
