@@ -99,14 +99,6 @@ public abstract class SearchParamHandler {
 		return index;
 	}
 
-	String stripQuotes(Map searchedFor){
-		def val = searchedFor.value =~ /^"(.*)"$/
-		if (!val.matches()){
-			throw new RuntimeException("search strings must be in double quotes: " + searchedFor)
-		}
-		val[0][1]
-	}
-
 	/**
 	 * @param param is a single search param (map with keys: key, modifier, value)
 	 * @return a list of derived search params, in vase the value has a comma 
