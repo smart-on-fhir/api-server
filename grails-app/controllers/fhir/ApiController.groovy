@@ -92,7 +92,7 @@ class ApiController {
 	def welcome() {
 		render(view:"/index")
 	}
-	
+
 	def conformance(){
 		request.resourceToRender = searchIndexService.conformance
 	}
@@ -218,12 +218,20 @@ class ApiController {
 	}
 
 	def update() {
-		def body = request.getReader().text
+		def body = request.reader.text
+		Resource r;
 
-		Resource r = request.withFormat {
-			xml {body.decodeFhirXml()}
-			json {body.decodeFhirJson()}
+		if (params.resource == 'binary')  {
+			r = new Binary();
+			r.setContentType(request.contentType)
+			r.setContent(body.bytes)
+		} else {
+			r = request.withFormat {
+				xml {body.decodeFhirXml()}
+				json {body.decodeFhirJson()}
+			}
 		}
+
 		updateService(r, params.resource, params.id)
 	}
 
@@ -364,10 +372,10 @@ class ApiController {
 		paging.bind(params, request)
 
 		log.debug("history query: " + query.clauses.toString())
-		
+
 		def cursor = ResourceHistory.collection
-						.find(query.clauses)
-						.sort(received: 1)
+				.find(query.clauses)
+				.sort(received: 1)
 
 		paging.total = cursor.count()
 		time("Counted $paging.total tosort ${params.sort}")
@@ -376,7 +384,7 @@ class ApiController {
 				.limit(paging._count)
 				.skip(paging._skip)
 
-	
+
 		def entriesForFeed = ResourceHistory.zipIdsWithEntries(cursor)
 
 		time("Fetched content of size ${entriesForFeed.size()}")

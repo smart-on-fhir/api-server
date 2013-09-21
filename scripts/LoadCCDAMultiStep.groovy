@@ -130,8 +130,9 @@ rawResource.setContentType(doc.mimeTypeSimple)
 println "making closure"
 println("here oa" + oauth)
 
-def binary  = rest.post(fhirBase+"binary?compartments=patient/@$pid", withAuth {
-	body rawResource.encodeAsFhirXml()
+def binary  = rest.post(fhirBase+"binary", withAuth {
+	body bytes
+	contentType "application/hl7-v3+xml"
 })
 
 println binary.headers.location[0]
