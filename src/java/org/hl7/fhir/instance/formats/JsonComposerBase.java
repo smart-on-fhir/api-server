@@ -44,16 +44,16 @@ import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 import com.google.gson.stream.JsonWriter;
 
 
-public abstract class JsonComposerBase extends XmlBase {
+public abstract class JsonComposerBase extends XmlBase implements Composer {
 
 	protected JsonWriter json;
 	private boolean htmlPretty;
-	private boolean jsonPretty;
+	//private boolean jsonPretty;
 
 	public void compose(OutputStream stream, Resource resource, boolean pretty) throws Exception {
 		OutputStreamWriter osw = new OutputStreamWriter(stream, "UTF-8");
 		JsonWriter writer = new JsonWriter(osw);
-		writer.setIndent(pretty ? "  ":"");
+        writer.setIndent(pretty ? "  ":"");
 		writer.beginObject();
 		compose(writer, resource);
 		writer.endObject();
@@ -63,6 +63,7 @@ public abstract class JsonComposerBase extends XmlBase {
 	public void compose(OutputStream stream, AtomFeed feed, boolean pretty) throws Exception {
 		OutputStreamWriter osw = new OutputStreamWriter(stream, "UTF-8");
 		JsonWriter writer = new JsonWriter(osw);
+        writer.setIndent(pretty ? "  ":"");
 		writer.beginObject();
 		compose(writer, feed);
 		writer.endObject();
@@ -76,7 +77,9 @@ public abstract class JsonComposerBase extends XmlBase {
 
 	public void compose(JsonWriter writer, AtomFeed feed) throws Exception {
 		json = writer;
+		openObject("feed");
 		composeFeed(feed);
+		closeObject();
 	}
 
   // standard order for round-tripping examples succesfully:
@@ -85,7 +88,6 @@ public abstract class JsonComposerBase extends XmlBase {
 
 	  prop("title", feed.getTitle());
     prop("id", feed.getId());
-    prop("totalResults", feed.getTotalResults());
     if (feed.getLinks().size() > 0) {
       openArray("link");
       for (String n : feed.getLinks().keySet()) {
@@ -98,6 +100,20 @@ public abstract class JsonComposerBase extends XmlBase {
     }
 		if (feed.getUpdated() != null)
 			prop("updated", dateToXml(feed.getUpdated()));
+		if (feed.getTags().size() > 0) {
+			openArray("category");
+			for (String uri : feed.getTags().keySet()) {
+				json.beginObject();
+				prop("scheme", "http://hl7.org/fhir/tag");
+				prop("term", uri);
+				String label = feed.getTags().get(uri);
+				if (!Utilities.noString(label))
+					prop("label", label);
+				json.endObject();
+			}
+			closeArray();
+		}
+
 
 		if (feed.getAuthorName() != null || feed.getAuthorUri() != null) {
 		  openArray("author");
@@ -110,15 +126,17 @@ public abstract class JsonComposerBase extends XmlBase {
 		  closeArray();
 		}
 
-		openArray("entry");
-		for (AtomEntry e : feed.getEntryList())
-			composeEntry(e);
-		closeArray();
+		if (feed.getEntryList().size() > 0) {
+			openArray("entry");
+			for (AtomEntry<? extends Resource> e : feed.getEntryList())
+				composeEntry(e);
+			closeArray();
+		}
 	}
 
   // standard order for round-tripping examples succesfully:
   // title, id, links, updated, published, authors 
-	private void composeEntry(AtomEntry e) throws Exception {
+	private <T extends Resource> void composeEntry(AtomEntry<T> e) throws Exception {
 		json.beginObject();
 		prop("title", e.getTitle());
 		prop("id", e.getId());
@@ -127,18 +145,19 @@ public abstract class JsonComposerBase extends XmlBase {
 		  for (String n : e.getLinks().keySet()) {
 		    json.beginObject();
 		    prop("rel", n);
-		    prop("href", e.getLinks().get(n).replace("&amp;", "&"));
+		    prop("href", e.getLinks().get(n));
 		    json.endObject();
 		  }
 		  closeArray();
 		}
 
-
+		if (e.getUpdated() != null)
+			prop("updated", dateToXml(e.getUpdated()));
 		if (e.getPublished() != null) 
 			prop("published", dateToXml(e.getPublished()));
 
     if (e.getAuthorName() != null || e.getAuthorUri() != null) {
-      openArray("authors");
+      openArray("author");
       json.beginObject();
       if (e.getAuthorName() != null)
         prop("name", e.getAuthorName());
@@ -150,7 +169,7 @@ public abstract class JsonComposerBase extends XmlBase {
 
 
 		if (e.getTags().size() > 0) {
-			openArray("categories");
+			openArray("category");
 			for (String uri : e.getTags().keySet()) {
 				json.beginObject();
 				prop("scheme", "http://hl7.org/fhir/tag");
@@ -162,18 +181,13 @@ public abstract class JsonComposerBase extends XmlBase {
 			}
 			closeArray();
 		}
-	  if (e.isDeleted()) {
-	    prop("deleted", dateToXml(e.getUpdated()));
-	  }  else {
-		if (e.getUpdated() != null)
-			prop("updated", dateToXml(e.getUpdated()));
+
 		open("content");
 		composeResource(e.getResource());
 		close();
 		if (e.getSummary() != null) {
 		  composeXhtml("summary", e.getSummary());
 		}
-	  }
 		json.endObject();  
 
 	}
@@ -480,6 +494,16 @@ public abstract class JsonComposerBase extends XmlBase {
 
 	protected void closeArray() throws Exception {
 		json.endArray();
+	}
+
+	protected void openObject(String name) throws Exception {
+		if (name != null) 
+			json.name(name);
+		json.beginObject();
+	}
+
+	protected void closeObject() throws Exception {
+		json.endObject();
 	}
 
   protected void composeBinary(String name, Binary element) throws Exception {

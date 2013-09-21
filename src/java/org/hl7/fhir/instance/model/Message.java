@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -567,6 +567,13 @@ public class Message extends Resource {
 
     public List<ResourceReference> getData() { 
       return this.data;
+    }
+
+    // syntactic sugar
+    public ResourceReference addData() { 
+      ResourceReference t = new ResourceReference();
+      this.data.add(t);
+      return t;
     }
 
       public Message copy() {

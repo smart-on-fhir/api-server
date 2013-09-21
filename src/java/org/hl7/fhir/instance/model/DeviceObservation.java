@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -80,6 +80,13 @@ public class DeviceObservation extends Resource {
       return this.identifier;
     }
 
+    // syntactic sugar
+    public Identifier addIdentifier() { 
+      Identifier t = new Identifier();
+      this.identifier.add(t);
+      return t;
+    }
+
     public Instant getIssued() { 
       return this.issued;
     }
@@ -116,6 +123,13 @@ public class DeviceObservation extends Resource {
 
     public List<ResourceReference> getMeasurement() { 
       return this.measurement;
+    }
+
+    // syntactic sugar
+    public ResourceReference addMeasurement() { 
+      ResourceReference t = new ResourceReference();
+      this.measurement.add(t);
+      return t;
     }
 
       public DeviceObservation copy() {

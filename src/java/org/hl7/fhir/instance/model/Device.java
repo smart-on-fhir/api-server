@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -302,6 +302,13 @@ public class Device extends Resource {
       return this.assignedId;
     }
 
+    // syntactic sugar
+    public Identifier addAssignedId() { 
+      Identifier t = new Identifier();
+      this.assignedId.add(t);
+      return t;
+    }
+
     public ResourceReference getLocation() { 
       return this.location;
     }
@@ -320,6 +327,13 @@ public class Device extends Resource {
 
     public List<Contact> getContact() { 
       return this.contact;
+    }
+
+    // syntactic sugar
+    public Contact addContact() { 
+      Contact t = new Contact();
+      this.contact.add(t);
+      return t;
     }
 
     public Uri getUrl() { 

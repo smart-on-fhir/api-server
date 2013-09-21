@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -111,6 +111,13 @@ public class List_ extends Resource {
 
         public List<CodeableConcept> getFlag() { 
           return this.flag;
+        }
+
+    // syntactic sugar
+        public CodeableConcept addFlag() { 
+          CodeableConcept t = new CodeableConcept();
+          this.flag.add(t);
+          return t;
         }
 
         public Boolean getDeleted() { 
@@ -293,6 +300,13 @@ public class List_ extends Resource {
 
     public List<ListEntryComponent> getEntry() { 
       return this.entry;
+    }
+
+    // syntactic sugar
+    public ListEntryComponent addEntry() { 
+      ListEntryComponent t = new ListEntryComponent();
+      this.entry.add(t);
+      return t;
     }
 
     public CodeableConcept getEmptyReason() { 

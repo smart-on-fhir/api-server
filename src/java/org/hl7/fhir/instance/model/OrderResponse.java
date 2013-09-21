@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -264,6 +264,13 @@ public class OrderResponse extends Resource {
 
     public List<ResourceReference> getFulfillment() { 
       return this.fulfillment;
+    }
+
+    // syntactic sugar
+    public ResourceReference addFulfillment() { 
+      ResourceReference t = new ResourceReference();
+      this.fulfillment.add(t);
+      return t;
     }
 
       public OrderResponse copy() {

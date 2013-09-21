@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -237,8 +237,22 @@ public class MedicationDispense extends Resource {
           return this.receiver;
         }
 
+    // syntactic sugar
+        public ResourceReference addReceiver() { 
+          ResourceReference t = new ResourceReference();
+          this.receiver.add(t);
+          return t;
+        }
+
         public List<MedicationDispenseDispenseDosageComponent> getDosage() { 
           return this.dosage;
+        }
+
+    // syntactic sugar
+        public MedicationDispenseDispenseDosageComponent addDosage() { 
+          MedicationDispenseDispenseDosageComponent t = new MedicationDispenseDispenseDosageComponent();
+          this.dosage.add(t);
+          return t;
         }
 
       public MedicationDispenseDispenseComponent copy(MedicationDispense e) {
@@ -412,8 +426,22 @@ Terminologies used often pre-coordinate this term with the route and or form of 
           return this.reason;
         }
 
+    // syntactic sugar
+        public CodeableConcept addReason() { 
+          CodeableConcept t = new CodeableConcept();
+          this.reason.add(t);
+          return t;
+        }
+
         public List<ResourceReference> getResponsibleParty() { 
           return this.responsibleParty;
+        }
+
+    // syntactic sugar
+        public ResourceReference addResponsibleParty() { 
+          ResourceReference t = new ResourceReference();
+          this.responsibleParty.add(t);
+          return t;
         }
 
       public MedicationDispenseSubstitutionComponent copy(MedicationDispense e) {
@@ -515,8 +543,22 @@ Terminologies used often pre-coordinate this term with the route and or form of 
       return this.authorizingPrescription;
     }
 
+    // syntactic sugar
+    public ResourceReference addAuthorizingPrescription() { 
+      ResourceReference t = new ResourceReference();
+      this.authorizingPrescription.add(t);
+      return t;
+    }
+
     public List<MedicationDispenseDispenseComponent> getDispense() { 
       return this.dispense;
+    }
+
+    // syntactic sugar
+    public MedicationDispenseDispenseComponent addDispense() { 
+      MedicationDispenseDispenseComponent t = new MedicationDispenseDispenseComponent();
+      this.dispense.add(t);
+      return t;
     }
 
     public MedicationDispenseSubstitutionComponent getSubstitution() { 

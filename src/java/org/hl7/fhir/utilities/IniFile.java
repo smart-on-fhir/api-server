@@ -561,7 +561,7 @@ public final class IniFile
     public String[] getAllSectionNames()
     {
         int        iCntr  = 0;
-        Iterator<Object>   iter   = null;
+        Iterator   iter   = null;
         String[]   arrRet = null;
 
         try

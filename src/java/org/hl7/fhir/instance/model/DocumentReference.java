@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -138,6 +138,13 @@ public class DocumentReference extends Resource {
           return this.parameter;
         }
 
+    // syntactic sugar
+        public DocumentReferenceServiceParameterComponent addParameter() { 
+          DocumentReferenceServiceParameterComponent t = new DocumentReferenceServiceParameterComponent();
+          this.parameter.add(t);
+          return t;
+        }
+
       public DocumentReferenceServiceComponent copy(DocumentReference e) {
         DocumentReferenceServiceComponent dst = e.new DocumentReferenceServiceComponent();
         dst.type = type == null ? null : type.copy();
@@ -228,6 +235,13 @@ public class DocumentReference extends Resource {
 
         public List<CodeableConcept> getCode() { 
           return this.code;
+        }
+
+    // syntactic sugar
+        public CodeableConcept addCode() { 
+          CodeableConcept t = new CodeableConcept();
+          this.code.add(t);
+          return t;
         }
 
         public Period getPeriod() { 
@@ -385,6 +399,13 @@ public class DocumentReference extends Resource {
       return this.identifier;
     }
 
+    // syntactic sugar
+    public Identifier addIdentifier() { 
+      Identifier t = new Identifier();
+      this.identifier.add(t);
+      return t;
+    }
+
     public ResourceReference getSubject() { 
       return this.subject;
     }
@@ -411,6 +432,13 @@ public class DocumentReference extends Resource {
 
     public List<ResourceReference> getAuthor() { 
       return this.author;
+    }
+
+    // syntactic sugar
+    public ResourceReference addAuthor() { 
+      ResourceReference t = new ResourceReference();
+      this.author.add(t);
+      return t;
     }
 
     public ResourceReference getCustodian() { 

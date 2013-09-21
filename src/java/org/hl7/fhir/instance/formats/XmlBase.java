@@ -34,7 +34,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import org.apache.commons.codec.binary.Base64;
@@ -48,7 +47,7 @@ public class XmlBase {
  
   protected XmlPullParser loadXml(InputStream stream) throws Exception {
     BufferedInputStream input = new BufferedInputStream(stream);
-    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+    XmlPullParserFactory factory = XmlPullParserFactory.newInstance(System.getProperty(XmlPullParserFactory.PROPERTY_NAME), null);
     factory.setNamespaceAware(true);
     XmlPullParser xpp = factory.newPullParser();
     xpp.setInput(input, "UTF-8");

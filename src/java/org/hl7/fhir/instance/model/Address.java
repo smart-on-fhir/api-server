@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -182,6 +182,20 @@ public class Address extends Type {
 
     public List<String_> getLine() { 
       return this.line;
+    }
+
+    // syntactic sugar
+    public String_ addLine() { 
+      String_ t = new String_();
+      this.line.add(t);
+      return t;
+    }
+
+    public String_ addLineSimple(String value) { 
+      String_ t = new String_();
+      t.setValue(value);
+      this.line.add(t);
+      return t;
     }
 
     public String_ getCity() { 

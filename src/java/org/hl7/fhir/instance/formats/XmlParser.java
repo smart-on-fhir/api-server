@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.formats;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import org.hl7.fhir.instance.model.Id;
 import org.hl7.fhir.instance.model.Base64Binary;
@@ -48,6 +48,15 @@ import org.hl7.fhir.instance.model.*;
 import org.xmlpull.v1.*;
 
 public class XmlParser extends XmlParserBase {
+
+  public XmlParser() {
+    super();
+  }
+
+  public XmlParser(boolean allowUnknownContent) {
+    super();
+    setAllowUnknownContent(allowUnknownContent);
+  }
 
   private boolean parseElementContent(int eventType, XmlPullParser xpp, Element res) throws Exception {
     if (eventType == XmlPullParser.START_TAG && xpp.getName().equals("extension")) 

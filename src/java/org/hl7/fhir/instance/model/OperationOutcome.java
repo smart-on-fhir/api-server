@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -169,6 +169,20 @@ public class OperationOutcome extends Resource {
           return this.location;
         }
 
+    // syntactic sugar
+        public String_ addLocation() { 
+          String_ t = new String_();
+          this.location.add(t);
+          return t;
+        }
+
+        public String_ addLocationSimple(String value) { 
+          String_ t = new String_();
+          t.setValue(value);
+          this.location.add(t);
+          return t;
+        }
+
       public OperationOutcomeIssueComponent copy(OperationOutcome e) {
         OperationOutcomeIssueComponent dst = e.new OperationOutcomeIssueComponent();
         dst.severity = severity == null ? null : severity.copy();
@@ -189,6 +203,13 @@ public class OperationOutcome extends Resource {
 
     public List<OperationOutcomeIssueComponent> getIssue() { 
       return this.issue;
+    }
+
+    // syntactic sugar
+    public OperationOutcomeIssueComponent addIssue() { 
+      OperationOutcomeIssueComponent t = new OperationOutcomeIssueComponent();
+      this.issue.add(t);
+      return t;
     }
 
       public OperationOutcome copy() {

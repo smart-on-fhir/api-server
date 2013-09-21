@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -280,6 +280,13 @@ Use only if isNegated is set to TRUE.
       return this.identifier;
     }
 
+    // syntactic sugar
+    public Identifier addIdentifier() { 
+      Identifier t = new Identifier();
+      this.identifier.add(t);
+      return t;
+    }
+
     public Enumeration<MedicationAdminStatus> getStatus() { 
       return this.status;
     }
@@ -356,6 +363,13 @@ Use only if isNegated is set to TRUE.
       return this.reasonNotGiven;
     }
 
+    // syntactic sugar
+    public CodeableConcept addReasonNotGiven() { 
+      CodeableConcept t = new CodeableConcept();
+      this.reasonNotGiven.add(t);
+      return t;
+    }
+
     public Period getWhenGiven() { 
       return this.whenGiven;
     }
@@ -376,8 +390,22 @@ Use only if isNegated is set to TRUE.
       return this.administrationDevice;
     }
 
+    // syntactic sugar
+    public ResourceReference addAdministrationDevice() { 
+      ResourceReference t = new ResourceReference();
+      this.administrationDevice.add(t);
+      return t;
+    }
+
     public List<MedicationAdministrationDosageComponent> getDosage() { 
       return this.dosage;
+    }
+
+    // syntactic sugar
+    public MedicationAdministrationDosageComponent addDosage() { 
+      MedicationAdministrationDosageComponent t = new MedicationAdministrationDosageComponent();
+      this.dosage.add(t);
+      return t;
     }
 
       public MedicationAdministration copy() {

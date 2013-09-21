@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -161,6 +161,13 @@ public class Condition extends Resource {
           return this.assessment;
         }
 
+    // syntactic sugar
+        public ResourceReference addAssessment() { 
+          ResourceReference t = new ResourceReference();
+          this.assessment.add(t);
+          return t;
+        }
+
       public ConditionStageComponent copy(Condition e) {
         ConditionStageComponent dst = e.new ConditionStageComponent();
         dst.summary = summary == null ? null : summary.copy();
@@ -193,6 +200,13 @@ public class Condition extends Resource {
 
         public List<ResourceReference> getDetail() { 
           return this.detail;
+        }
+
+    // syntactic sugar
+        public ResourceReference addDetail() { 
+          ResourceReference t = new ResourceReference();
+          this.detail.add(t);
+          return t;
         }
 
       public ConditionEvidenceComponent copy(Condition e) {
@@ -520,12 +534,33 @@ public class Condition extends Resource {
       return this.evidence;
     }
 
+    // syntactic sugar
+    public ConditionEvidenceComponent addEvidence() { 
+      ConditionEvidenceComponent t = new ConditionEvidenceComponent();
+      this.evidence.add(t);
+      return t;
+    }
+
     public List<ConditionLocationComponent> getLocation() { 
       return this.location;
     }
 
+    // syntactic sugar
+    public ConditionLocationComponent addLocation() { 
+      ConditionLocationComponent t = new ConditionLocationComponent();
+      this.location.add(t);
+      return t;
+    }
+
     public List<ConditionRelatedItemComponent> getRelatedItem() { 
       return this.relatedItem;
+    }
+
+    // syntactic sugar
+    public ConditionRelatedItemComponent addRelatedItem() { 
+      ConditionRelatedItemComponent t = new ConditionRelatedItemComponent();
+      this.relatedItem.add(t);
+      return t;
     }
 
     public String_ getNotes() { 

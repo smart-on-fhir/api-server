@@ -29,7 +29,7 @@ package org.hl7.fhir.instance.model;
   
 */
 
-// Generated on Thu, Aug 15, 2013 17:20-0700 for FHIR v0.11
+// Generated on Sat, Sep 21, 2013 10:54-0400 for FHIR v0.11
 
 import java.util.*;
 
@@ -82,6 +82,13 @@ public class RelatedPerson extends Resource {
       return this.identifier;
     }
 
+    // syntactic sugar
+    public Identifier addIdentifier() { 
+      Identifier t = new Identifier();
+      this.identifier.add(t);
+      return t;
+    }
+
     public ResourceReference getPatient() { 
       return this.patient;
     }
@@ -110,6 +117,13 @@ public class RelatedPerson extends Resource {
       return this.telecom;
     }
 
+    // syntactic sugar
+    public Contact addTelecom() { 
+      Contact t = new Contact();
+      this.telecom.add(t);
+      return t;
+    }
+
     public CodeableConcept getGender() { 
       return this.gender;
     }
@@ -128,6 +142,13 @@ public class RelatedPerson extends Resource {
 
     public List<Attachment> getPhoto() { 
       return this.photo;
+    }
+
+    // syntactic sugar
+    public Attachment addPhoto() { 
+      Attachment t = new Attachment();
+      this.photo.add(t);
+      return t;
     }
 
       public RelatedPerson copy() {
