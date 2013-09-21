@@ -30,7 +30,7 @@ public class StringSearchParamHandler extends SearchParamHandler {
 	@Override
 	BasicDBObject searchClause(Map searchedFor){
 		
-		def val = stripQuotes(searchedFor)
+		def val = searchedFor.value
 		
 		if (searchedFor.modifier == null ||searchedFor.modifier == "partial"){
 				return [(fieldName): [ $regex: val, $options: 'i' ]]
