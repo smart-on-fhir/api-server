@@ -13,6 +13,7 @@ class ResponseFilters {
 				// TODO figure out why response.format is pinned to "all"
 				// (and after unpinning it, clean up the logic below).
 				def acceptable = request.getHeaders('accept')*.toLowerCase() + params._format
+				log.debug("Acceptable: " + acceptable)
 
 				def r = request?.resourceToRender
 				if (!r) {return true}

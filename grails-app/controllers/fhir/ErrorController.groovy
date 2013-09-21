@@ -22,7 +22,12 @@ class ErrorController {
 
 	def status405() {
 		status(405)
+	}
+
+	def status500() {
+		status(500)
 	}	
+	
 	
 	def deleted(){
 		status(410)

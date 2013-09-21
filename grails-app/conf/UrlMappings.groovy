@@ -57,6 +57,6 @@ class UrlMappings {
 		"500"(controller: 'error', action: 'deleted', exception: ResourceDeletedException)
 		"500"(controller: 'error', action: 'status405', exception:BundleValidationException)
 		"500"(controller: 'error', action: 'status401', exception:AuthorizationException)
-		"500"(view:'/error')
+		"500"(controller: 'error', action: 'status500')
 	}
 }
