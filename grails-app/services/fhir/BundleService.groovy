@@ -41,6 +41,7 @@ class BundleService{
 		feed.authorName = "groovy.config.atom.author-name"
 		feed.authorUri  = "groovy.config.atom.author-uri"
 		feed.id = feedId
+		feed.title = "FHIR Atom Feed"
 		feed.totalResults = paging.total
 
 		if (paging._skip + paging._count < paging.total) {
