@@ -44,9 +44,9 @@ class BundleService{
 		feed.title = "FHIR Atom Feed"
 		feed.totalResults = paging.total
 
+		feed.links.put("self", feed.id)
 		if (paging._skip + paging._count < paging.total) {
 			def nextPageUrl = nextPageFor(feed.id, paging)
-			feed.links.put("self", feed.id)
 			feed.links.put("next", nextPageUrl)
 		}
 		
