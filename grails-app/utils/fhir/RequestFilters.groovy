@@ -5,6 +5,7 @@ class RequestFilters {
 	def grailsApplication
 
 	def filters = {
+
 		authorizeRequest(controller: 'api', action: '*') {
 			before = {
 
@@ -19,6 +20,28 @@ class RequestFilters {
 				request.t0 = new Date().getTime()
 				return true
 			}			
+		}
+
+		parseResourceBody(controller: 'api', action: '*') {
+			before = {
+
+				def providingFormat = request.getHeaders('content-type')*.toLowerCase() + params._format
+				def acceptableFormat = request.getHeaders('accept')*.toLowerCase() + params._format
+
+				if (acceptableFormat.any {it =~ /json/}) {
+					request.acceptableFormat = "json"
+				} else {
+					request.acceptableFormat = "xml"
+				}
+	
+				if (providingFormat.any {it =~ /json/}) {
+					request.providingFormat = "json"
+				} else {
+					request.providingFormat = "xml"
+				}
+				println("Formats: ${request.acceptableFormat} + ${request.providingFormat}")
+				return true
+			}	
 		}
 	}
 }

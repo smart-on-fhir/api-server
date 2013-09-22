@@ -103,9 +103,11 @@ class ApiController {
 	def transaction() {
 
 		def body = request.getReader().text
-		AtomFeed feed = request.withFormat {
-			xml {body.decodeFhirXml()}
-			json {body.decodeFhirJson()}
+		AtomFeed feed;
+		if (request.providingFormat == "json") {
+			feed = body.decodeFhirJson()
+		} else {
+			feed = body.decodeFhirXml()
 		}
 
 		bundleService.validateFeed(feed)
@@ -226,9 +228,10 @@ class ApiController {
 			r.setContentType(request.contentType)
 			r.setContent(body.bytes)
 		} else {
-			r = request.withFormat {
-				xml {body.decodeFhirXml()}
-				json {body.decodeFhirJson()}
+			if (request.providingFormat == "json") {
+				r = body.decodeFhirJson()
+			} else {
+				r = body.decodeFhirXml()
 			}
 		}
 
