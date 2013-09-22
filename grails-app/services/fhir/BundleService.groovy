@@ -46,6 +46,7 @@ class BundleService{
 
 		if (paging._skip + paging._count < paging.total) {
 			def nextPageUrl = nextPageFor(feed.id, paging)
+			feed.links.put("self", feed.id)
 			feed.links.put("next", nextPageUrl)
 		}
 		
