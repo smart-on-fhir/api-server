@@ -10,7 +10,7 @@ class ResourceIndex {
 	ObjectId id
 	String fhirId
 	ObjectId latest
-	String type
+	String fhirType
 	Collection searchTerms
 	Collection compartments
 

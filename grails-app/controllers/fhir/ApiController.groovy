@@ -47,7 +47,7 @@ class HistoryCommand {
 		}
 		if (params.resource) {
 			String resource = searchIndexService.capitalizedModelName[params.resource]
-			clauses['type'] = resource
+			clauses['fhirType'] = resource
 		}
 		if (params.id) {
 			clauses['fhirId'] =  params.id
@@ -129,7 +129,7 @@ class ApiController {
 		log.debug("Compartments: " + request.authorization.compartments)
 
 		def q = [
-			type:'DocumentReference',
+			fhirType:'DocumentReference',
 			compartments:[$in:request.authorization.compartments],
 			searchTerms: [ $elemMatch: [
 					k:'type:code',
@@ -168,12 +168,12 @@ class ApiController {
 		log.debug("Compartments: $compartments")
 
 		DBObject rjson = r.encodeAsFhirJson().encodeAsDbObject()
-		String type = rjson.keySet().iterator().next()
+		String fhirType = rjson.keySet().iterator().next()
 		String expectedType = searchIndexService.capitalizedModelName[resourceName]
-		if (type != expectedType){
+		if (fhirType != expectedType){
 			response.status = 405
-			log.debug("Got a request whose type didn't match: $expectedType vs. $type")
-			return render("Can't post a $type to the $expectedType endpoint")
+			log.debug("Got a request whose type didn't match: $expectedType vs. $fhirType")
+			return render("Can't post a $fhirType to the $expectedType endpoint")
 		}
 
 		String versionUrl;
@@ -183,7 +183,7 @@ class ApiController {
 		def h = new ResourceHistory(
 				fhirId: fhirId,
 				compartments: compartments as String[],
-				type: type,
+				fhirType: fhirType,
 				action: 'POST',
 				content: rjson).save()
 
@@ -191,7 +191,7 @@ class ApiController {
 			fhirId: fhirId,
 			compartments: compartments as String[],
 			latest: h.id,
-			type: type,
+			fhirType: fhirType,
 		]
 
 		indexTerms.groupBy { it.paramName }.each {k, vlist ->
@@ -202,10 +202,10 @@ class ApiController {
 
 		log.debug("Writing rindex:  $rIndex")
 
-		def collection = ResourceIndex.forResource(type)
+		def collection = ResourceIndex.forResource(fhirType)
 		collection.remove(new BasicDBObject([
 			fhirId: fhirId,
-			type: type
+			fhirType: fhirType
 		]))
 
 		collection.insert(new BasicDBObject(rIndex))
@@ -266,13 +266,13 @@ class ApiController {
 	private def deleteService(ResourceHistory h, String fhirId) {
 		List<String> compartments = getAndAuthorizeCompartments(h, fhirId);
 		log.debug("Compartments: $compartments")
-		String type = h.type
+		String fhirType = h.fhirType
 
 
 		Map dParams = [
 			fhirId: fhirId,
 			compartments: compartments as String[],
-			type: h.type,
+			fhirType: h.fhirType,
 			action: 'DELETE',
 			content: null
 		]
@@ -282,9 +282,9 @@ class ApiController {
 
 		log.debug("Deleted $deleteEntry")
 
-		ResourceIndex.forResource(type).remove(new BasicDBObject([
+		ResourceIndex.forResource(fhirType).remove(new BasicDBObject([
 			fhirId: fhirId,
-			type: type
+			fhirType: fhirType
 		]))
 
 		log.debug("Deleted resource: " + fhirId)

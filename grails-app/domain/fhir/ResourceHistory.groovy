@@ -10,7 +10,7 @@ class ResourceHistory {
 	ObjectId id
 	String fhirId
 	String action
-	String type
+	String fhirType
 	DBObject content
 	List compartments = []
 	Date received = new Date()
@@ -34,7 +34,7 @@ class ResourceHistory {
 
 	static List zipIdsWithEntries(Iterable entries){
 		entries.collect {[
-				it.type.toLowerCase() + '/@' +it.fhirId,
+				it.fhirType.toLowerCase() + '/@' +it.fhirId,
 				it.content ? it.content.toString().decodeFhirJson() : null
 			]}
 	}
@@ -61,8 +61,6 @@ class ResourceHistory {
 			return null
 		}
 		vs[0]
-
-		//vs[0].content.toString().decodeFhirJson()
 	}
 
 

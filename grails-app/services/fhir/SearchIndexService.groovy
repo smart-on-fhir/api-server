@@ -233,7 +233,7 @@ class SearchIndexService{
 			orClauses.size() == 1 ? orClauses[0] :
 					SearchParamHandler.orList(orClauses)
 		}
-		clauses = clauses + [type:capitalizedModelName[params.resource]]
+		clauses = clauses + [fhirType:capitalizedModelName[params.resource]]
 		return SearchParamHandler.andList(clauses)
 	}
 }
