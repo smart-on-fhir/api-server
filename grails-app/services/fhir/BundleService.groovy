@@ -7,6 +7,7 @@ import java.util.regex.Pattern
 import org.bson.types.ObjectId
 import org.hl7.fhir.instance.model.AtomEntry
 import org.hl7.fhir.instance.model.AtomFeed
+import org.hl7.fhir.instance.model.Resource
 
 class BundleValidationException extends Exception{ }
 
@@ -25,6 +26,10 @@ class BundleService{
 			throw new BundleValidationException('Did not find any resources in the posted bundle.')
 			return
 		}
+	}
+	
+	String getResourceName(Resource r) {
+		r.class.toString().split('\\.')[-1].toLowerCase()
 	}
 
 	AtomFeed atomFeed(p) {
@@ -45,12 +50,11 @@ class BundleService{
 		
 		Calendar now = Calendar.instance
 		feed.updated = now
-			
-		
 		feed.entryList.addAll entries.collect { id, resource ->
 			AtomEntry entry = new AtomEntry()
 			entry.id = urlService.fhirBase + '/'+ id
 			entry.updated = now
+			entry.title = id
 			if (resource == null) {
 				entry.deleted = true
 			} else {
