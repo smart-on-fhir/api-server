@@ -13,6 +13,7 @@ import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.hl7.fhir.instance.formats.XmlParser
 import org.hl7.fhir.instance.model.Conformance
 import org.hl7.fhir.instance.model.Conformance.RestfulOperation;
+import org.hl7.fhir.instance.model.Conformance.SearchParamType;
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceComponent
@@ -25,6 +26,7 @@ import org.xml.sax.InputSource
 import com.google.common.collect.ImmutableMap
 import com.mongodb.BasicDBObject
 
+import fhir.searchParam.IdSearchParamHandler;
 import fhir.searchParam.SearchParamHandler
 import fhir.searchParam.SearchParamValue
 
@@ -38,11 +40,12 @@ class SearchIndexService{
 	static SimpleNamespaceContext nsContext
 	static UrlService urlService
 	static Conformance conformance
-	static XmlParser parser = new XmlParser()	
+	static XmlParser parser = new XmlParser()
 
 	static Map<Class<Resource>,Collection> indexersByResource = [:]
 	static Map<String, String> xpathsMissingFromFhir;
 	static Map<String, String> capitalizedModelName = [:]
+	static IdSearchParamHandler idIndexer;
 
 	@PostConstruct
 	void init() {
@@ -51,8 +54,8 @@ class SearchIndexService{
 		Conformance conformance = resourceFromFile "profile.xml"
 
 		conformance.text.div = new XhtmlNode();
-	    conformance.text.div.nodeType = NodeType.Element
-	    conformance.text.div.name = "div"
+		conformance.text.div.nodeType = NodeType.Element
+		conformance.text.div.name = "div"
 		conformance.text.div.addText("Generated Conformance Statement -- see structured representation.")
 		conformance.identifierSimple = urlService.fhirBase + '/conformance'
 		conformance.publisherSimple = "SMART on FHIR"
@@ -60,9 +63,9 @@ class SearchIndexService{
 		conformance.descriptionSimple = "Describes capabilities of this SMART on FHIR server"
 		conformance.telecom[0].valueSimple = urlService.fhirBase
 
-	    def format = new SimpleDateFormat("yyyy-MM-dd")
+		def format = new SimpleDateFormat("yyyy-MM-dd")
 		conformance.dateSimple = format.format(new Date())
-		
+
 		List supportedOps = [
 			RestfulOperation.read,
 			RestfulOperation.vread,
@@ -74,7 +77,7 @@ class SearchIndexService{
 			RestfulOperation.historytype,
 			RestfulOperation.historyinstance
 		]
-		
+
 		conformance.rest.each { ConformanceRestComponent r  ->
 			r.resource.each { ConformanceRestResourceComponent rc ->
 				rc.operation = rc.operation.findAll { ConformanceRestResourceOperationComponent o ->
@@ -149,6 +152,8 @@ class SearchIndexService{
 						xpathsMissingFromFhir[key] ?:searchParam.xpathSimple);
 			}
 		}
+
+		idIndexer = new IdSearchParamHandler(fieldName: "_id", fieldType: SearchParamType.token, xpath: null);
 	}
 
 	public static org.w3c.dom.Document fromResource(Resource r) throws IOException, Exception {
@@ -179,11 +184,11 @@ class SearchIndexService{
 		return ret;
 	}
 
-
 	public BasicDBObject queryParamsToMongo(Map params){
 		log.debug("generating clauses for $params")
 		def rc = classForModel(params.resource)
 		def indexers = indexersByResource[rc] ?: []
+		indexers = indexers + idIndexer;
 
 		// Just the indexers for the current resource type
 		// keyed on the searchParam name (e.g. "date", "subject")
@@ -194,7 +199,17 @@ class SearchIndexService{
 		// Represent each term in the query a
 		// key, modifier, and value
 		// e.g. [key: "date", modifier: "after", value: "2010"]
-		def searchParams = params.collectMany { k,v ->
+		log.debug("Pre params: $params")
+		def searchParams = params.collectMany { String k, v ->
+
+			// grails turns subject._id into two params: "subject._id" and "subject" which is a map w/ id
+			if (v.class == null) return []
+
+			def m = k =~ /^(.+)\._id$/
+			if (m.matches()) {
+				k=m[0][1]+":any"
+			}
+
 			def c = k.split(":") as List
 			if (v instanceof String[]) v = v as List
 			else v = [v]
@@ -205,6 +220,7 @@ class SearchIndexService{
 			it.key in indexerFor
 		}
 
+		log.error("Params: $searchParams")
 		// Run the assigned indexer on each term
 		// to generate an AND'able list of MongoDB
 		// query clauses.
