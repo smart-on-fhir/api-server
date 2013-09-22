@@ -214,6 +214,7 @@ class ApiController {
 		versionUrl = urlService.resourceVersionLink(resourceName, fhirId, h.id.toString())
 
 		log.debug("Created version: " + versionUrl)
+		response.setHeader('Content-Location', versionUrl)
 		response.setHeader('Location', versionUrl)
 		response.setStatus(201)
 		request.resourceToRender = r
