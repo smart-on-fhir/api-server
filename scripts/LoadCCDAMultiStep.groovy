@@ -134,7 +134,7 @@ def binary  = rest.post(fhirBase+"binary", withAuth {
 	body bytes
 	contentType "application/hl7-v3+xml"
 })
-
+println binary.properties
 println binary.headers.location[0]
 doc.locationSimple = (binary.headers.location[0]).split(fhirBase)[1]
 

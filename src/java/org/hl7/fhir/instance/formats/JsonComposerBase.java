@@ -53,6 +53,7 @@ public abstract class JsonComposerBase extends XmlBase implements Composer {
 	public void compose(OutputStream stream, Resource resource, boolean pretty) throws Exception {
 		OutputStreamWriter osw = new OutputStreamWriter(stream, "UTF-8");
 		JsonWriter writer = new JsonWriter(osw);
+
         writer.setIndent(pretty ? "  ":"");
 		writer.beginObject();
 		compose(writer, resource);

@@ -1,54 +1,65 @@
 package org.hl7.fhir.instance.model;
 
 public enum ResourceType {
-    Provenance,
+    User,
     Condition,
-    CarePlan,
     Supply,
-    Device,
-    Query,
-    Order,
+    GVFVariant,
     Organization,
-    Procedure,
-    Substance,
-    DiagnosticReport,
     Group,
     ValueSet,
-    Medication,
     Coverage,
+    VCFMeta,
     MedicationDispense,
-    MedicationPrescription,
     DeviceLog,
-    MedicationAdministration,
-    Encounter,
+    MedicationPrescription,
     DeviceCapabilities,
-    SecurityEvent,
     MedicationStatement,
-    List,
+    Sequence,
+    SequencingLab,
     Questionnaire,
     OperationOutcome,
     Conformance,
-    Document,
     Media,
-    Message,
-    FamilyHistory,
     Other,
     Profile,
-    Location,
-    Observation,
-    AllergyIntolerance,
     DocumentReference,
     Immunization,
+    Microarray,
+    OrderResponse,
+    ImagingStudy,
+    Practitioner,
+    GVFMeta,
+    VCFVariant,
+    CarePlan,
+    Provenance,
+    Device,
+    Query,
+    Order,
+    Procedure,
+    Substance,
+    DiagnosticReport,
+    Medication,
+    MedicationAdministration,
+    Encounter,
+    GeneExpression,
+    SequencingAnalysis,
+    SecurityEvent,
+    List,
+    Document,
+    Message,
+    FamilyHistory,
+    Location,
+    GeneticAnalysis,
+    AllergyIntolerance,
+    Observation,
     ImmunizationProfile,
     RelatedPerson,
     Specimen,
-    OrderResponse,
     DeviceObservation,
     Alert,
     Patient,
-    Practitioner,
     AdverseReaction,
-    ImagingStudy,
     DiagnosticOrder,
     Appointment,
     InterestOfCare,
@@ -56,102 +67,124 @@ public enum ResourceType {
 
     public String getPath() {;
       switch (this) {
-    case Provenance:
-      return "provenance";
+    case User:
+      return "user";
     case Condition:
       return "condition";
-    case CarePlan:
-      return "careplan";
     case Supply:
       return "supply";
-    case Device:
-      return "device";
-    case Query:
-      return "query";
-    case Order:
-      return "order";
+    case GVFVariant:
+      return "gvfvariant";
     case Organization:
       return "organization";
-    case Procedure:
-      return "procedure";
-    case Substance:
-      return "substance";
-    case DiagnosticReport:
-      return "diagnosticreport";
     case Group:
       return "group";
     case ValueSet:
       return "valueset";
-    case Medication:
-      return "medication";
     case Coverage:
       return "coverage";
+    case VCFMeta:
+      return "vcfmeta";
     case MedicationDispense:
       return "medicationdispense";
-    case MedicationPrescription:
-      return "medicationprescription";
     case DeviceLog:
       return "devicelog";
-    case MedicationAdministration:
-      return "medicationadministration";
-    case Encounter:
-      return "encounter";
+    case MedicationPrescription:
+      return "medicationprescription";
     case DeviceCapabilities:
       return "devicecapabilities";
-    case SecurityEvent:
-      return "securityevent";
     case MedicationStatement:
       return "medicationstatement";
-    case List:
-      return "list";
+    case Sequence:
+      return "sequence";
+    case SequencingLab:
+      return "sequencinglab";
     case Questionnaire:
       return "questionnaire";
     case OperationOutcome:
       return "operationoutcome";
     case Conformance:
       return "conformance";
-    case Document:
-      return "document";
     case Media:
       return "media";
-    case Message:
-      return "message";
-    case FamilyHistory:
-      return "familyhistory";
     case Other:
       return "other";
     case Profile:
       return "profile";
-    case Location:
-      return "location";
-    case Observation:
-      return "observation";
-    case AllergyIntolerance:
-      return "allergyintolerance";
     case DocumentReference:
       return "documentreference";
     case Immunization:
       return "immunization";
+    case Microarray:
+      return "microarray";
+    case OrderResponse:
+      return "orderresponse";
+    case ImagingStudy:
+      return "imagingstudy";
+    case Practitioner:
+      return "practitioner";
+    case GVFMeta:
+      return "gvfmeta";
+    case VCFVariant:
+      return "vcfvariant";
+    case CarePlan:
+      return "careplan";
+    case Provenance:
+      return "provenance";
+    case Device:
+      return "device";
+    case Query:
+      return "query";
+    case Order:
+      return "order";
+    case Procedure:
+      return "procedure";
+    case Substance:
+      return "substance";
+    case DiagnosticReport:
+      return "diagnosticreport";
+    case Medication:
+      return "medication";
+    case MedicationAdministration:
+      return "medicationadministration";
+    case Encounter:
+      return "encounter";
+    case GeneExpression:
+      return "geneexpression";
+    case SequencingAnalysis:
+      return "sequencinganalysis";
+    case SecurityEvent:
+      return "securityevent";
+    case List:
+      return "list";
+    case Document:
+      return "document";
+    case Message:
+      return "message";
+    case FamilyHistory:
+      return "familyhistory";
+    case Location:
+      return "location";
+    case GeneticAnalysis:
+      return "geneticanalysis";
+    case AllergyIntolerance:
+      return "allergyintolerance";
+    case Observation:
+      return "observation";
     case ImmunizationProfile:
       return "immunizationprofile";
     case RelatedPerson:
       return "relatedperson";
     case Specimen:
       return "specimen";
-    case OrderResponse:
-      return "orderresponse";
     case DeviceObservation:
       return "deviceobservation";
     case Alert:
       return "alert";
     case Patient:
       return "patient";
-    case Practitioner:
-      return "practitioner";
     case AdverseReaction:
       return "adversereaction";
-    case ImagingStudy:
-      return "imagingstudy";
     case DiagnosticOrder:
       return "diagnosticorder";
     case Appointment:
