@@ -67,9 +67,9 @@ You can load sample data from SMART's [Sample Patietns](https://github.com/chb/s
 
 ```
 $ sudo apt-get install python-jinja2
-$ git clone https://github.com/chb/smart_sample_patients
+$ git clone --recursive https://github.com/chb/smart_sample_patients
 $ cd smart_sample_patients/bin
-$ git checkout -b fhir
+$ git checkout fhir
 $ python generate.py --write-fhir ../generated
 $ ls ../generated # a bunch of XML files
 ```
