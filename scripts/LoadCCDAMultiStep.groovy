@@ -5,12 +5,12 @@ import groovy.transform.Field
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import org.hl7.fhir.instance.model.Binary
-import org.hl7.fhir.instance.model.CodeableConcept
-import org.hl7.fhir.instance.model.Coding
-import org.hl7.fhir.instance.model.DocumentReference
-import org.hl7.fhir.instance.model.Identifier
-import org.hl7.fhir.instance.model.ResourceReference
+import org.hl7.fhir.model.Binary
+import org.hl7.fhir.model.CodeableConcept
+import org.hl7.fhir.model.Coding
+import org.hl7.fhir.model.DocumentReference
+import org.hl7.fhir.model.Identifier
+import org.hl7.fhir.model.ResourceReference
 
 // TODO seriously clean this up, and/or replace it with
 // a standalone set of scripts that don't have a grails 

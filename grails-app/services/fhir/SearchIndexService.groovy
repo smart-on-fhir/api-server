@@ -12,7 +12,7 @@ import javax.xml.xpath.XPathFactory
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.hl7.fhir.instance.formats.XmlParser
 import org.hl7.fhir.instance.model.Conformance
-import org.hl7.fhir.instance.model.Conformance.RestfulOperation;
+import org.hl7.fhir.instance.model.Conformance.TypeRestfulOperation;
 import org.hl7.fhir.instance.model.Conformance.SearchParamType;
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
@@ -67,15 +67,15 @@ class SearchIndexService{
 		conformance.dateSimple = format.format(new Date())
 
 		List supportedOps = [
-			RestfulOperation.read,
-			RestfulOperation.vread,
-			RestfulOperation.update,
-			RestfulOperation.search,
-			RestfulOperation.create,
-			RestfulOperation.transaction,
-			RestfulOperation.historysystem,
-			RestfulOperation.historytype,
-			RestfulOperation.historyinstance
+			TypeRestfulOperation.read,
+			TypeRestfulOperation.vread,
+			TypeRestfulOperation.update,
+			TypeRestfulOperation.searchtype,
+			TypeRestfulOperation.create,
+			TypeRestfulOperation.historytype,
+			TypeRestfulOperation.historyinstance,
+			SystemRestfulOperation.transaction,
+			SystemRestfulOperation.historysystem
 		]
 
 		conformance.rest.each { ConformanceRestComponent r  ->
