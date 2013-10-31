@@ -40,7 +40,7 @@ def withAuth =  { Closure toWrap ->
 	}
 }
 
-//def patient = rest.get(fhirBase+"/patient/@$pid", withAuth {})
+//def patient = rest.get(fhirBase+"/patient/$pid", withAuth {})
 
 
 
@@ -60,7 +60,7 @@ def withAuth =  { Closure toWrap ->
 			
 	p = patientWriter.toString().decodeFhirXml()
 
-/*	def put = rest.put(fhirBase+"/patient/@$pid?compartments=patient/@$pid",
+/*	def put = rest.put(fhirBase+"/patient/$pid?compartments=patient/$pid",
 	withAuth {body patientWriter.toString() })
 	assert put.status == 201
 }
@@ -76,7 +76,7 @@ DocumentReference doc = new DocumentReference()
 
 def subject = new ResourceReference()
 subject.typeSimple = 'Patient'
-subject.referenceSimple = "patient/@$pid"
+subject.referenceSimple = "patient/$pid"
 
 doc.subject = subject
 
@@ -136,7 +136,7 @@ rawResource.setContentType(doc.mimeTypeSimple)
 println "making closure"
 println("here oa" + oauth)
 /*
- def binary  = rest.post(fhirBase+"/binary?compartments=patient/@$pid", withAuth {
+ def binary  = rest.post(fhirBase+"/binary?compartments=patient/$pid", withAuth {
 	body rawResource.encodeAsFhirXml()
 })
 println binary.headers.location[0]
@@ -144,7 +144,7 @@ println binary.headers.location[0]
 Calendar now = Calendar.instance
 
 AtomEntry patientRef = new AtomEntry()
-patientRef.id = "patient/@$pid"
+patientRef.id = "patient/$pid"
 patientRef.resource = p
 patientRef.updated = now
 
@@ -169,7 +169,7 @@ feed.authorUri  = "groovy.config.atom.author-uri"
 feed.id = "feed-id"
 feed.updated = now
 
-def docPost  = rest.post(fhirBase+"/?compartments=patient/@$pid",
+def docPost  = rest.post(fhirBase+"/?compartments=patient/$pid",
 	withAuth {
 		body feed.encodeAsFhirXml()
 })

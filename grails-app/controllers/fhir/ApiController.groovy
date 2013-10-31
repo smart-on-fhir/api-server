@@ -117,7 +117,7 @@ class ApiController {
 
 		feed.entryList.each { AtomEntry e ->
 			String r = e.resource.class.toString().split('\\.')[-1].toLowerCase()
-			updateService(e.resource, r, e.id.split('@')[1])
+			updateService(e.resource, r, e.id.split('/')[1])
 		}
 
 		request.resourceToRender =  feed
@@ -153,7 +153,7 @@ class ApiController {
 				.content.toString()
 				.decodeFhirJson()
 
-		def location = doc.locationSimple =~ /binary\/@(.*)/
+		def location = doc.locationSimple =~ /binary\/(.*)/
 		request.resourceToRender = ResourceHistory.getLatestByFhirId(location[0][1])
 	}
 
@@ -167,8 +167,8 @@ class ApiController {
 		def compartments = getAndAuthorizeCompartments(r, fhirId)
 		log.debug("Compartments: $compartments")
 
-		DBObject rjson = r.encodeAsFhirJson().encodeAsDbObject()
-		String fhirType = rjson.keySet().iterator().next()
+		DBObject rjson = r.encodeAsFhirJson().decodeDbObject()
+		String fhirType = rjson['resourceType']
 		String expectedType = searchIndexService.capitalizedModelName[resourceName]
 		if (fhirType != expectedType){
 			response.status = 405
@@ -246,15 +246,11 @@ class ApiController {
 		if ("compartments" in r.properties){
 			compartments.addAll(r.compartments)
 		} else if (r instanceof Patient) {
-			compartments.add("patient/@$fhirId")
+			compartments.add("patient/$fhirId")
 		} else if ("subject" in r.properties) {
-			if (r.subject.typeSimple == 'Patient') {
 				compartments.add(r.subject.referenceSimple)
-			}
 		} else if ("patient" in r.properties) {
-			if (r.patient.typeSimple == 'Patient') {
 				compartments.add(r.patient.referenceSimple)
-			}
 		}
 
 		if (!request.authorization.allows(operation: "PUT", compartments: compartments)){

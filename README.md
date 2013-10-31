@@ -40,7 +40,7 @@ Add new data to the server via HTTP PUT or POST.  For example, with default
 authentication settings and a server running at http://localhost:8080, you can add a new Diagnostic Order via:
 
 ```
-curl 'http://localhost:8080/diagnosticorder/@example' \
+curl 'http://localhost:8080/diagnosticorder/example' \
      -X PUT \
      -H 'Authorization: Basic Y2xpZW50OnNlY3JldA=='\
      -H 'Content-Type: text/xml' \
@@ -50,14 +50,14 @@ curl 'http://localhost:8080/diagnosticorder/@example' \
 And then you can retrieve a feed of diagnostic orders via:
 
 ```
-curl 'http://localhost:8080/diagnosticorder/search' \
+curl 'http://localhost:8080/diagnosticorder' \
      -H 'Authorization: Basic Y2xpZW50OnNlY3JldA=='
 ```
 
 or fetch a single resource as JSON via:
 
 ```
-curl 'http://localhost:8080/diagnosticorder/@example' \
+curl 'http://localhost:8080/diagnosticorder/example' \
      -H 'Authorization: Basic Y2xpZW50OnNlY3JldA==' \
      -H 'Accept: application/json'
 ```

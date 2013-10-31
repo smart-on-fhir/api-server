@@ -62,7 +62,7 @@ class AuthorizationService{
 			log.debug("try an admin access password" + decoded)
 			if (decoded[0] == oauth.clientId && decoded[1] == oauth.clientSecret) {
 				def ret = new Authorization(isAdmin: true)
-				//ret = new Authorization([isActive:true, username:'josh',app:'somapp',compartments:['patient/@456', 'patient/@123']])
+				//ret = new Authorization([isActive:true, username:'josh',app:'somapp',compartments:['patient/456', 'patient/123']])
 				return ret
 			}
 		}
@@ -105,7 +105,7 @@ class AuthorizationService{
 			ret.compartments = status.scope.collect {
 				def m = (it =~ /(summary|search):(.*)/)
 				if (!m.matches()) return null
-				return "patient/@" +  (m[0][2] != "" ? m[0][2] : "example")
+				return "patient/" +  (m[0][2] != "" ? m[0][2] : "example")
 			}
 			log.debug("Found bearer authorization for this request: $ret")
 			return ret

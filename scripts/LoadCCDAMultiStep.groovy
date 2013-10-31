@@ -38,7 +38,7 @@ def withAuth =  { Closure toWrap ->
 }
 
 
-def patient = rest.get(fhirBase+"patient/@$pid", withAuth {})
+def patient = rest.get(fhirBase+"patient/$pid", withAuth {})
 
 println(""+ patient.status)
 if (patient.status == 404) {
@@ -54,7 +54,7 @@ if (patient.status == 404) {
 				}
 			}
 
-	def put = rest.put(fhirBase+"patient/@$pid", withAuth {
+	def put = rest.put(fhirBase+"patient/$pid", withAuth {
 		body patientWriter.toString()
 	})
 	assert put.status == 201
@@ -70,7 +70,7 @@ DocumentReference doc = new DocumentReference()
 
 def subject = new ResourceReference()
 subject.typeSimple = 'Patient'
-subject.referenceSimple = "patient/@$pid"
+subject.referenceSimple = "patient/$pid"
 
 doc.subject = subject
 
@@ -138,7 +138,7 @@ println binary.properties
 println binary.headers.location[0]
 doc.locationSimple = (binary.headers.location[0]).split(fhirBase)[1]
 
-def docPost  = rest.post(fhirBase+"documentreference?compartments=patient/@$pid",
+def docPost  = rest.post(fhirBase+"documentreference?compartments=patient/$pid",
 	withAuth {
 	body doc.encodeAsFhirXml()
 })

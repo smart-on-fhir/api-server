@@ -5,10 +5,9 @@ grails.project.test.reports.dir = "target/test-reports"
 grails.project.target.level = 1.7
 grails.project.source.level = 1.7
 
-grails.project.dependency.resolver = "maven" // or ivy
 grails.project.dependency.resolution = {
     inherits("global") { }
-    log "error" // 'error', 'warn', 'info', 'debug' or 'verbose'
+    log "warn" // 'error', 'warn', 'info', 'debug' or 'verbose'
     checksums true // Whether to verify checksums on resolve
 
     repositories {
@@ -19,7 +18,7 @@ grails.project.dependency.resolution = {
         grailsCentral()
         mavenLocal()
         mavenCentral()
-        mavenRepo "http://oss.sonatype.org/content/repositories/snapshots/"
+	//mavenRepo "https://oss.sonatype.org/content/repositories/snapshots/"
     }
 
     dependencies {
@@ -28,14 +27,18 @@ grails.project.dependency.resolution = {
 		runtime "com.google.code.gson:gson:2.2.4"
 		runtime "joda-time:joda-time:2.2"
 		runtime 'org.apache.commons:commons-io:1.3.2'
-		runtime "org.mongodb:mongo-java-driver:2.11.2"
+		runtime "org.mongodb:mongo-java-driver:2.11.3"
 		runtime 'net.sf.saxon:Saxon-HE:9.4'
 		runtime('org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
 			excludes 'groovy'
 			excludes 'xml-apis'
 			excludes 'xalan'
 		}
-		compile 'me.fhir:fhir:0.12.0-SNAPSHOT'
+
+               //runtime 'xpp3:xpp3:1.1.3.4.O'
+               //runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
+               //runtime 'org.json:json:20131018'
+	       compile 'me.fhir:fhir-0.12:0.1'
     }
 
     plugins {

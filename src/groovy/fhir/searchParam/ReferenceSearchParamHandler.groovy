@@ -28,7 +28,7 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 		}
 
 		if (searchedFor.modifier == "any"){
-			return [(fieldName):[$regex: '/@'+searchedFor.value+'$']]
+			return [(fieldName):[$regex: '/'+searchedFor.value+'$']]
 		}
 
 		throw new RuntimeException("Unknown modifier: " + searchedFor)

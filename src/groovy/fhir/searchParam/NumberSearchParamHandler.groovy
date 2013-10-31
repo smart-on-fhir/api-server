@@ -9,5 +9,5 @@ import com.mongodb.BasicDBObject;
 
 // Need clarification about how this is different from other
 // numerical types (double, say).
-public class IntegerSearchParamHandler extends StringSearchParamHandler {}
+public class NumberSearchParamHandler extends StringSearchParamHandler {}
 

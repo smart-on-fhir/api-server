@@ -29,12 +29,14 @@ class ResourceHistory {
 			[(it._id): it]
 		}
 		List inOrder = ids.collect {byId[it]}
+		println("In order: $inOrder")
 		return zipIdsWithEntries(inOrder)
 	}
 
 	static List zipIdsWithEntries(Iterable entries){
-		entries.collect {[
-				it.fhirType.toLowerCase() + '/@' +it.fhirId,
+		entries.findAll { it != null }
+		       .collect {[
+				it.fhirType.toLowerCase() + '/' +it.fhirId,
 				it.content ? it.content.toString().decodeFhirJson() : null
 			]}
 	}

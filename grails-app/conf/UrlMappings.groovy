@@ -20,12 +20,12 @@ class UrlMappings {
 			action=[GET: "summary"]
 		}
 
-		name resourceInstance: "/$resource/@$id" {
+		name resourceInstance: "/$resource/$id" {
 			controller="Api"
 			action=[GET: "read", PUT: "update", DELETE: "delete"]
 		}
 
-		name resourceVersion: "/$resource/@$id/history/@$vid"(controller: "Api") {
+		name resourceVersion: "/$resource/$id/_history/$vid"(controller: "Api") {
 			action = [GET: "vread"]
 		}
 
@@ -33,21 +33,17 @@ class UrlMappings {
 			action = [GET: "search", POST: "create"]
 		}
 
-		name searchResource: "/$resource/search"(controller: "Api") {
-			action = [GET: "search", POST: "search"]
-		}
-
 		name summary: "/history" {
 			controller="Api"
 			action=[GET: "history"]
 		}
 
-		name resourceHistory: "/$resource/history" {
+		name resourceHistory: "/$resource/_history" {
 			controller="Api"
 			action=[GET: "history"]
 		}
 
-		name resourceInstanceHistory: "/$resource/@$id/history" {
+		name resourceInstanceHistory: "/$resource/$id/_history" {
 			controller="Api"
 			action=[GET: "history"]
 		}
@@ -58,5 +54,6 @@ class UrlMappings {
 		"500"(controller: 'error', action: 'status405', exception:BundleValidationException)
 		"500"(controller: 'error', action: 'status401', exception:AuthorizationException)
 		"500"(controller: 'error', action: 'status500')
+
 	}
 }

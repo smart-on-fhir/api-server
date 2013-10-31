@@ -8,10 +8,10 @@ class UrlService{
 
 	private def fhirCombinedId(String p) {
 		String ret = null
-		def m = p =~ /\/([^\/]+)\/@([^\/]+)(?:\/history\/@([^\/]+))?/
+		def m = p =~ /\/([^\/]+)\/([^\/]+)(?:\/_history\/([^\/]+))?/
 
 		if (m.size()) {
-			ret =  m[0][1] + '/@' + m[0][2]
+			ret =  m[0][1] + '/' + m[0][2]
 		}
 
 		return ret
@@ -35,7 +35,7 @@ class UrlService{
 	}
 
 	String relativeResourceLink(String resource, String id) {
-		"$resource/@$id"
+		"$resource/$id"
 	}
 
 	String resourceLink(String resourceName, String fhirId) {
@@ -45,7 +45,7 @@ class UrlService{
 				params: [
 					resource: resourceName,
 					id: fhirId
-				]).replace("%40","@")
+				])
 	}
 
 	String resourceVersionLink(String resourceName, String fhirId, String vid) {
@@ -56,7 +56,7 @@ class UrlService{
 					resource: resourceName,
 					id: fhirId,
 					vid:vid 
-				]).replace("%40","@")
+				])
 	}
 	
 	String fullRequestUrl(request) {

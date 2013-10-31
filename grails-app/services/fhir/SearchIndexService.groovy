@@ -12,6 +12,8 @@ import javax.xml.xpath.XPathFactory
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.hl7.fhir.instance.formats.XmlParser
 import org.hl7.fhir.instance.model.Conformance
+import org.hl7.fhir.instance.model.Conformance.ConformanceRestOperationComponent
+import org.hl7.fhir.instance.model.Conformance.SystemRestfulOperation;
 import org.hl7.fhir.instance.model.Conformance.TypeRestfulOperation;
 import org.hl7.fhir.instance.model.Conformance.SearchParamType;
 import org.hl7.fhir.instance.model.Resource
@@ -79,6 +81,9 @@ class SearchIndexService{
 		]
 
 		conformance.rest.each { ConformanceRestComponent r  ->
+			r.operation = r.operation.findAll { ConformanceRestOperationComponent o ->
+				o.codeSimple in supportedOps
+			}
 			r.resource.each { ConformanceRestResourceComponent rc ->
 				rc.operation = rc.operation.findAll { ConformanceRestResourceOperationComponent o ->
 					o.codeSimple in supportedOps
