@@ -4,6 +4,7 @@ grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
 grails.project.target.level = 1.7
 grails.project.source.level = 1.7
+grails.project.dependency.resolver = "maven" // or ivy
 
 grails.project.dependency.resolution = {
     inherits("global") { }
@@ -44,7 +45,8 @@ grails.project.dependency.resolution = {
     plugins {
 	compile ":rest-client-builder:1.0.2"
 	compile ":mongodb:1.3.0"
-	compile ":standalone:1.2.1"
         build ":tomcat:7.0.42"
+	compile ":standalone:1.2.3"
+        runtime ":resources:1.2.1"
     }
 }

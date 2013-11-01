@@ -239,6 +239,13 @@ class ApiController {
 		updateService(r, params.resource, params.id)
 	}
 
+
+	/**
+	 * @param r 		Resource or ResourceHistory to inspect for compartments
+	 * @param fhirId	ID of the Resource (only required if it's a Patient resource)	
+	 * @return			List of all compartments needed
+	 * @throws			AuthorizatinException if user doesn't have access to _all_ compartments
+	 */
 	private List<String> getAndAuthorizeCompartments(r, String fhirId) {
 		def compartments = params.list('compartments').collect {it}
 		log.debug("Authorizing comparemtns start from: $compartments")
