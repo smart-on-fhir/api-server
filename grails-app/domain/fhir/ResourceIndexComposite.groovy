@@ -6,6 +6,7 @@ class ResourceIndexComposite extends ResourceIndex {
 
     static mapping = {
         tablePerHierarchy false
+		version false
     }
 }
 

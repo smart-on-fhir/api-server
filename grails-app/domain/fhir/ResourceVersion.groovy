@@ -15,6 +15,7 @@ class ResourceVersion {
 		content type: 'text'
 		table 'resource_version'
 		id name: 'version_id'
+		version false
 	}
 
 }

@@ -7,6 +7,7 @@ class ResourceIndexToken extends ResourceIndexTerm{
 
 	static mapping = {
         tablePerHierarchy false
+		version false
 	}
 	static constraints = {
 		token_text type: 'text', nullable: true

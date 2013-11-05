@@ -190,7 +190,7 @@ class SearchIndexService{
 		log.info("Logged")
 		log.info(ret.each { IndexedValue p ->
 			p.dbFields.each {k,v ->
-				println("$p.paramName ($p.handler.fieldType): $k -> $v\t\t ${v.class}")
+				println("$p.paramName ($p.handler.fieldType): $k -> $v\t\t")
 			}
 		})
 

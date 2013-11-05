@@ -1,22 +1,24 @@
 package fhir
 
+import javax.sql.DataSource
+
 import org.bson.types.ObjectId
+import org.hibernate.SessionFactory
 import org.hl7.fhir.instance.model.AtomEntry
 import org.hl7.fhir.instance.model.AtomFeed
 import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.DocumentReference
-import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Patient
+import org.hl7.fhir.instance.model.Resource
 
-import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mongodb.BasicDBObject
-import com.mongodb.DBApiLayer
-import com.mongodb.DBObject
 
-import fhir.searchParam.DateSearchParamHandler;
+import fhir.searchParam.DateSearchParamHandler
 import fhir.searchParam.IndexedValue
+import grails.transaction.Transactional
+import groovy.sql.Sql
 
 
 class PagingCommand {
@@ -88,6 +90,9 @@ class ApiController {
 	BundleService bundleService
 	UrlService urlService
 	JsonParser jsonParser= new JsonParser()
+	
+	SessionFactory sessionFactory
+	DataSource dataSource
 
 	def getFullRequestURI(){
 		urlService.fullRequestUrl(request)
@@ -101,9 +106,7 @@ class ApiController {
 		request.resourceToRender = searchIndexService.conformance
 	}
 
-	// Note that we don't offer real transaction (all-or-none) semantics
-	// but we do allow clients to apply a group of changes in a single
-	// request.  So it's  more like "batch" than a transaction...
+	@Transactional
 	def transaction() {
 
 		def body = request.getReader().text
@@ -123,7 +126,8 @@ class ApiController {
 			String r = e.resource.class.toString().split('\\.')[-1].toLowerCase()
 			updateService(e.resource, r, e.id.split('/')[1])
 		}
-
+		
+		sessionFactory.currentSession.flush()
 		request.resourceToRender =  feed
 	}
 
@@ -186,6 +190,8 @@ class ApiController {
 		String versionUrl;
 
 		def indexTerms = searchIndexService.indexResource(r);
+		println("New json")
+		println(rjson.toString())
 
 		def h = new ResourceVersion(
 				fhir_id: fhirId,
@@ -337,7 +343,14 @@ class ApiController {
 		paging.bind(params, request)
 		log.debug(query.clauses.toString())
 		time("precount $paging.total")
-
+		
+		Sql sql = Sql.newInstance(sessionFactory.currentSession.connection())
+		def rawSqlQuery = "select distinct on (fhir_id) fhir_id, content from resource_version order by fhir_id, rest_date desc"
+		def entries = sql.rows(rawSqlQuery).collectEntries {
+			println("Got a row: $it")
+			[(it.fhir_id): it.content.decodeFhirJson()]
+		}
+/*
 		String resource = searchIndexService.capitalizedModelName[params.resource]
 		def cursor = ResourceIndex.forResource(resource).find(query.clauses)
 		if (params.sort) {
@@ -355,9 +368,9 @@ class ApiController {
 		})
 
 		time("Fetched content of size ${entriesForFeed.size()}")
-
+*/
 		AtomFeed feed = bundleService.atomFeed([
-			entries: entriesForFeed,
+			entries: entries,
 			paging: paging,
 			feedId: fullRequestURI
 		])

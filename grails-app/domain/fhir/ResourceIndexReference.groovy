@@ -8,6 +8,7 @@ class ResourceIndexReference extends ResourceIndexTerm{
 
 	static mapping = {
         tablePerHierarchy false
+		version false
 	}
 	static constraints = {
 		reference_id nullable: true

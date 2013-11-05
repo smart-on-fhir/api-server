@@ -15,7 +15,7 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 
 		nodes.each {
 
-			String ref = query('./f:reference/@value', it);
+			String ref = query('./f:reference/@value', it).collect{it.nodeValue}.join("");
 			Map parts = urlService.fhirUrlParts(ref)
 
 			if (!parts['type'])  {

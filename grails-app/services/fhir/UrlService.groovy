@@ -5,7 +5,7 @@ package fhir;
 class UrlService{
 	def transactional = false
 	def grailsLinkGenerator
-    def regex = /\/([^\/]+)\/([^\/]+)(?:\/_history\/([^\/]+))?/
+    def regex = /([^\/]+)\/([^\/]+)(?:\/_history\/([^\/]+))?/
 
 	private String fhirCombinedId(String p) {
 		String ret = null

@@ -7,5 +7,6 @@ class ResourceIndexTerm {
 
 	static mapping = {
         tablePerHierarchy false
+		version false
 	}
 }

@@ -10,15 +10,11 @@ dataSource {
     url = "jdbc:postgresql://localhost/fhir"
     username = "fhir"
     password = "fhir"
-	dbCreate = "create"
+	dbCreate = "update"
 }
 
 
-hibernate {
-    cache.use_second_level_cache = true
-    cache.use_query_cache = false
-	cache.region.factory_class = 'org.hibernate.cache.ehcache.EhCacheRegionFactory' // Hibernate 4
-}
+hibernate { }
 
 environments { 
    development { 

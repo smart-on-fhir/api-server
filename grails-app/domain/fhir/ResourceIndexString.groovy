@@ -7,6 +7,7 @@ class ResourceIndexString extends ResourceIndexTerm{
 	static mapping = {
 		string_value type: 'text'
         tablePerHierarchy false
+		version false
 	}
 }
 
