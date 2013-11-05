@@ -18,40 +18,12 @@ fhir.namespaces = [
 ]
 
 fhir.searchParam.spotFixes = [
-"http://hl7.org/fhir/Patient/search#gender": 
-	"f:Patient/f:gender",
-"http://hl7.org/fhir/Patient/search#given": 
-	"f:Patient/f:name/f:given",
-"http://hl7.org/fhir/Patient/search#family": 
-	"f:Patient/f:name/f:family",
-"http://hl7.org/fhir/Patient/search#name": 
-	"f:Patient/f:name/*",
-"http://hl7.org/fhir/Patient/search#contact": 
-	"f:Patient/f:contact/f:value",
-"http://hl7.org/fhir/Patient/search#active": 
-	"f:Patient/f:active",
-"http://hl7.org/fhir/Patient/search#address": 
-	"f:Patient/f:address/*",
-"http://hl7.org/fhir/Patient/search#animal-breed": 
-	"f:Patient/f:animal/f:breed",
-"http://hl7.org/fhir/Patient/search#animal-species": 
-	"f:Patient/f:animal/f:species",
-"http://hl7.org/fhir/Patient/search#birthdate": 
-	"f:Patient/f:birthDate",
-"http://hl7.org/fhir/Patient/search#identifier": 
-	"f:Patient/f:identifier",
-"http://hl7.org/fhir/Patient/search#language": 
-	"f:Patient/f:communication",
-"http://hl7.org/fhir/Patient/search#provider":	
-	"f:Patient/f:provider",
 "http://hl7.org/fhir/Condition/search#onset": 
 	"f:Condition/f:onsetAge | f:Condition/f:onsetDate",
 "http://hl7.org/fhir/Group/search#value": 
 	"f:Condition/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
-"http://hl7.org/fhir/Observation/search#name": 
-	"f:Observation/f:name | f:Observation/f:component/f:name",
 "http://hl7.org/fhir/Observation/search#value": 
-	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')] | f:Observation/f:component/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
+	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
 "http://hl7.org/fhir/Observation/search#date": 
 	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'applies')]",
 "http://hl7.org/fhir/Group/search#type-value":

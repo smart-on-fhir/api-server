@@ -8,12 +8,15 @@ import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Patient
 
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.mongodb.BasicDBObject
 import com.mongodb.DBApiLayer
 import com.mongodb.DBObject
 
 import fhir.searchParam.DateSearchParamHandler;
-import fhir.searchParam.SearchParamValue
+import fhir.searchParam.IndexedValue
 
 
 class PagingCommand {
@@ -84,6 +87,7 @@ class ApiController {
 	def authorizationService
 	BundleService bundleService
 	UrlService urlService
+	JsonParser jsonParser= new JsonParser()
 
 	def getFullRequestURI(){
 		urlService.fullRequestUrl(request)
@@ -167,9 +171,12 @@ class ApiController {
 		def compartments = getAndAuthorizeCompartments(r, fhirId)
 		log.debug("Compartments: $compartments")
 
-		DBObject rjson = r.encodeAsFhirJson().decodeDbObject()
-		String fhirType = rjson['resourceType']
+		JsonObject rjson = jsonParser.parse(r.encodeAsFhirJson())
+		log.debug("Parsed a $rjson.resourceType.asString")
+
+		String fhirType = rjson.resourceType.asString
 		String expectedType = searchIndexService.capitalizedModelName[resourceName]
+
 		if (fhirType != expectedType){
 			response.status = 405
 			log.debug("Got a request whose type didn't match: $expectedType vs. $fhirType")
@@ -180,39 +187,24 @@ class ApiController {
 
 		def indexTerms = searchIndexService.indexResource(r);
 
-		def h = new ResourceHistory(
-				fhirId: fhirId,
-				compartments: compartments as String[],
-				fhirType: fhirType,
-				action: 'POST',
-				content: rjson).save()
+		def h = new ResourceVersion(
+				fhir_id: fhirId,
+				fhir_type: fhirType,
+				rest_operation: 'POST',
+				content: rjson.toString())
+		log.debug("Made rv: $h with $h.fhir_id $h.version_id")
+		h.save(failOnError: true)
+		log.debug("now rv: $h with $h.fhir_id $h.version_id")
 
-		def rIndex = [
-			fhirId: fhirId,
-			compartments: compartments as String[],
-			latest: h.id,
-			fhirType: fhirType,
-		]
-
-		indexTerms.groupBy { it.paramName }.each {k, vlist ->
-			def values = vlist.collect {it.paramValue}
-			if (values.size())
-				rIndex[k] = values
+		indexTerms.collect { IndexedValue v ->
+			v.handler.createIndex(v, fhirId, fhirType)
+		}.each { ResourceIndexTerm it ->
+			log.debug("Got an unsaved idx: $it")
+			it.save(failOnError: true)
+			log.debug("And saved it: $it")
 		}
-
-		log.debug("Writing rindex:  $rIndex")
-
-		def collection = ResourceIndex.forResource(fhirType)
-		collection.remove(new BasicDBObject([
-			fhirId: fhirId,
-			fhirType: fhirType
-		]))
-
-		collection.insert(new BasicDBObject(rIndex))
-
-		log.debug("Got $collection to insert $rIndex")
-		versionUrl = urlService.resourceVersionLink(resourceName, fhirId, h.id.toString())
-
+		
+		versionUrl = urlService.resourceVersionLink(resourceName, fhirId, h.version_id)
 		log.debug("Created version: " + versionUrl)
 		response.setHeader('Content-Location', versionUrl)
 		response.setHeader('Location', versionUrl)

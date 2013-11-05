@@ -5,15 +5,27 @@ package fhir;
 class UrlService{
 	def transactional = false
 	def grailsLinkGenerator
+    def regex = /\/([^\/]+)\/([^\/]+)(?:\/_history\/([^\/]+))?/
 
-	private def fhirCombinedId(String p) {
+	private String fhirCombinedId(String p) {
 		String ret = null
-		def m = p =~ /\/([^\/]+)\/([^\/]+)(?:\/_history\/([^\/]+))?/
+		Map parts = fhirUrlParts(s)
+		if (parts.size() == 0) return ret
+		return "${parts.type}/${parts.id}"
+	}
 
+	private Map fhirUrlParts(String p) {
+		Map ret = [:]
+		def m = (p =~ regex)
 		if (m.size()) {
-			ret =  m[0][1] + '/' + m[0][2]
+			ret['type'] = m[0][1]
+			ret['id'] = m[0][1]
+			if (m.size() > 2) {
+				ret['version'] = m[0][2]
+			} else {
+				ret['version'] = null
+			}
 		}
-
 		return ret
 	}
 
@@ -48,14 +60,14 @@ class UrlService{
 				])
 	}
 
-	String resourceVersionLink(String resourceName, String fhirId, String vid) {
+	String resourceVersionLink(String resourceName, String fhirId, vid) {
 		grailsLinkGenerator.link(
 				mapping: 'resourceVersion',
 				absolute: true,
 				params: [
 					resource: resourceName,
 					id: fhirId,
-					vid:vid 
+					vid:vid.toString()
 				])
 	}
 	

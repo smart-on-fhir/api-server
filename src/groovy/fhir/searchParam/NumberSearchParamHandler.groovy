@@ -1,13 +1,75 @@
 package fhir.searchParam
 
+import org.hl7.fhir.instance.model.Document
+import org.hl7.fhir.instance.model.MedicationPrescription;
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.w3c.dom.Node
-import org.w3c.dom.NodeList
 
-import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObject
+import fhir.ResourceIndexNumber
+import fhir.ResourceIndexTerm
 
-// Need clarification about how this is different from other
-// numerical types (double, say).
-public class NumberSearchParamHandler extends StringSearchParamHandler {}
+public class NumberSearchParamHandler extends SearchParamHandler {
+
+	@Override
+	protected String paramXpath() {
+		return "//"+this.xpath;
+	}
+
+	@Override
+	public void processMatchingXpaths(List<Node> numberNodes, List<IndexedValue> index) {
+		
+		for (Node n : numberNodes) {
+
+			// plain numbers
+			query("./@value", n).each { plainNumber->
+				index.add(value([
+					number_min: plainNumber,	
+					number_max: plainNumber
+				]))
+			}
+
+			// numbers in Quantity or one of its subtypes
+			query("./f:value", n).each { q ->
+				def number = query("./@value", q)
+				def comparator = query("../f:comparator/@value", q)
+				
+				def number_min = null;
+				def number_max = null;
+				
+				if (!comparator) {
+					number_min = number
+					number_max = number
+				} else if (comparator == '<' || comparator == '<=') {
+					number_max = number;
+				} else if (comparator == '>' || comparator == '>=') {
+					number_min = number;
+				}
+
+				index.add(value([
+					number_min: number_min,
+					number_max: number_max
+				]))
+			}
+		}
+	}
+
+	@Override
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+		def ret = new ResourceIndexNumber()
+		ret.search_param = indexedValue.handler.fieldName
+		ret.fhir_id = fhirId
+		ret.fhir_type = fhirType
+		ret.number_min = indexedValue.dbFields.number_min
+		ret.number_max = indexedValue.dbFields.number_max
+		return ret
+	}
+
+	@Override
+	BasicDBObject searchClause(Map searchedFor){
+		throw new RuntimeException("Numeric search not implemented")
+	}
+	
+}
 

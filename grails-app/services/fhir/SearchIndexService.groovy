@@ -27,10 +27,12 @@ import org.xml.sax.InputSource
 
 import com.google.common.collect.ImmutableMap
 import com.mongodb.BasicDBObject
+import com.mongodb.DBObject
 
-import fhir.searchParam.IdSearchParamHandler;
+import fhir.searchParam.IdSearchParamHandler
+import fhir.searchParam.IndexedValue
 import fhir.searchParam.SearchParamHandler
-import fhir.searchParam.SearchParamValue
+import fhir.searchParam.SearchedValue
 
 class SearchIndexService{
 
@@ -100,7 +102,9 @@ class SearchIndexService{
 			prefix, uri -> nsContext.bindNamespaceUri(prefix, uri)
 		}
 		xpathEvaluator.setNamespaceContext(nsContext)
+
 		SearchParamHandler.injectXpathEvaluator(xpathEvaluator)
+		SearchParamHandler.injectUrlService(urlService)
 
 		def xpathFixes = ImmutableMap.<String, String> builder();
 		grailsApplication.config.fhir.searchParam.spotFixes.each {
@@ -169,7 +173,7 @@ class SearchIndexService{
 		return d;
 	}
 
-	public List<SearchParamValue> indexResource(Resource rx) {
+	public List<IndexedValue> indexResource(Resource rx) {
 
 		log.info("\n\nExtracting search index terms for a new " + rx.class)
 
@@ -181,64 +185,159 @@ class SearchIndexService{
 		org.w3c.dom.Document rdoc = fromResource(rx)
 		def ret = indexers.collectMany {
 			SearchParamHandler h -> h.execute(rdoc)
-		} findAll { SearchParamValue v ->
-			v.paramValue != ""
 		}
+
+		log.info("Logged")
+		log.info(ret.each { IndexedValue p ->
+			p.dbFields.each {k,v ->
+				println("$p.paramName ($p.handler.fieldType): $k -> $v\t\t ${v.class}")
+			}
+		})
 
 		log.info("# index fields: " + ret.size())
 		return ret;
 	}
 
-	public BasicDBObject queryParamsToMongo(Map params){
-		log.debug("generating clauses for $params")
-		def rc = classForModel(params.resource)
+	public void queryParamsToSql(Map params){
+
+	}
+	
+	
+	Map<String,SearchParamHandler> indexerFor(String resourceName){
+		def rc = classForModel(resourceName)
 		def indexers = indexersByResource[rc] ?: []
 		indexers = indexers + idIndexer;
 
 		// Just the indexers for the current resource type
 		// keyed on the searchParam name (e.g. "date", "subject")
-		Map<String,SearchParamHandler> indexerFor = indexers.collectEntries {
+		return indexers.collectEntries { SearchParamHandler it ->
 			[(it.fieldName): it]
 		}
+	}
+	
+	List paramAsList(v) {
+		// grails turns subject._id into two params: "subject._id" and "subject" which is a map w/ id
+		if (v.class == null) return null
+		if (v instanceof String[])
+			return v as List
+		return [v]
+	}
+
+	public List<SearchedValue> queryToHandlerTree (Map params) {
+		List<SearchedValue> ret = []
+		Map indexerFor = indexerFor(params.resource)
 
 		// Represent each term in the query a
 		// key, modifier, and value
 		// e.g. [key: "date", modifier: "after", value: "2010"]
-		log.debug("Pre params: $params")
-		def searchParams = params.collectMany { String k, v ->
+		params.each { String k, v ->
 
-			// grails turns subject._id into two params: "subject._id" and "subject" which is a map w/ id
-			if (v.class == null) return []
+			v = paramAsList(v)
+			if (!v) return
 
-			def m = k =~ /^(.+)\._id$/
-			if (m.matches()) {
-				k=m[0][1]+":any"
+			List paramParts = k.split(":")
+			String paramName = paramParts[0]
+			String modifier = paramParts.size() > 1 ? paramParts[1..-1].join(":") : ""
+
+			SearchParamHandler indexer = indexerFor[paramName]
+			if (!indexer) return
+
+			v.each {String oneVal ->
+				if (indexer.fieldType == SearchParamType.reference && modifier.indexOf('.') != -1) {
+					// a chaining query -- need to recurse
+
+					def modifierParts = modifier.split("\\.")
+					def resource = modifierParts[0]
+					def nextModifier = modifierParts.size() > 1 ? modifierParts[1..-1].join(".") : null
+
+					ret += new SearchedValue( handler: indexer, modifier: resource, values: "*")
+
+					ret += [queryToHandlerTree([
+							  resource: resource, (nextModifier): oneVal
+							])]
+				} else {
+					ret += new SearchedValue(
+							handler: indexer,
+							modifier: modifier,
+							values: oneVal)
+				}
 			}
-
-			def c = k.split(":") as List
-			if (v instanceof String[]) v = v as List
-			else v = [v]
-			return v.collect {oneVal ->
-				[key: c[0], modifier: c[1], value: oneVal]
-			}
-		}.findAll {
-			it.key in indexerFor
 		}
 
-		log.error("Params: $searchParams")
+		log.error("returning Params: $ret")
+		return ret
+	}
+
+	void sqlClauses(List searchedFor, List<Integer> relativeTo, boolean push) {
+
+		if (searchedFor.size() == 0) return
+
+		List<Integer> prev = relativeTo.collect{it}
+		List<Integer> current = relativeTo.collect{it}
+
+		def head = searchedFor[0]
+		def rest = searchedFor.subList(1, searchedFor.size())
+
+		if (head instanceof List) {
+			sqlClauses(head, relativeTo, true)
+		} else {
+			if (push) current += 0 else current[-1]++
+			String prevRel = prev.join("_")
+			String rel = current.join("_")
+			if (push)
+			log.debug("JOIN resource_${head.handler.fieldType}_index table_$rel: on table_${prevRel}.reference_type=table_${rel}.type and table_${rel}.vals '$head.values'")
+			else 
+			log.debug("JOIN resource_${head.handler.fieldType}_index table_$rel: on table_${prevRel}.type=table_${rel}.type and table_${rel}.vals '$head.values'")
+		}
+
+		sqlClauses(rest, current, false)
+
+	}
+
+	List buildClauseTree(List<SearchedValue> vs, List ret){
+		vs.each { SearchedValue v->
+			if (v.handler.fieldType == SearchParamType.reference) {
+				if (v.values.indexOf('.') == -1) {
+					// chained search on a resource reference
+					// recurse to generate chainSteps
+					// so the final clause tree is a tree where all leaves are SearchedValues
+					// which can directly generate their simple matchers
+					ret.add(parseQueryParams([
+
+					]))
+
+				}
+			}
+			ret += v.handler.clausesFor(v)
+		}
+	}
+
+	public BasicDBObject queryParamsToMongo(Map params){
 		// Run the assigned indexer on each term
 		// to generate an AND'able list of MongoDB
 		// query clauses.
-		List<BasicDBObject> clauses = searchParams.collect {
-			def idx = indexerFor[it.key]
-			List orClauses = idx.orClausesFor(it).collect {
-				idx.searchClause(it)
+		List<SearchedValue> clauseTree = queryToHandlerTree(params)
+		println("Compete handler tree: $clauseTree")
+		sqlClauses(clauseTree, [0], false)
+		return
+
+		//List clauseTree = buildClauseTree(searchedFor, [])
+		//clauseTree += [[searchedFor[1], searchedFor[1]]]
+		//clauseTree += [searchedFor[1], searchedFor[1]]
+
+		List<BasicDBObject> clauses = clauseTree.collect { SearchedValue v ->
+			def idx = v.handler
+
+			List orClauses = idx.orClausesFor(v).collect {
+				idx.searchClause(v)
 			}
 
-			orClauses.size() == 1 ? orClauses[0] :
-					SearchParamHandler.orList(orClauses)
+			return orClauses.size() == 1 ?
+			orClauses[0] :
+			SearchParamHandler.orList(orClauses)
 		}
 		clauses = clauses + [fhirType:capitalizedModelName[params.resource]]
 		return SearchParamHandler.andList(clauses)
 	}
+
 }

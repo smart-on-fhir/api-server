@@ -5,14 +5,9 @@ import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.w3c.dom.Node
 
 import com.mongodb.BasicDBObject
+import fhir.ResourceIndexString
+import fhir.ResourceIndexTerm
 
-
-// FHIR ballot spec doens't fully explain how Text is different from Search...
-// for now we'll treat them the same.
-public class TextSearchParamHandler extends StringSearchParamHandler {
-	
-	
-}
 
 public class StringSearchParamHandler extends SearchParamHandler {
 
@@ -22,9 +17,21 @@ public class StringSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	public void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {
+	public void processMatchingXpaths(List<Node> nodes, List<IndexedValue> index) {
 		String parts = nodes.collect {it.nodeValue}.join(" ")
-		index.add(value(parts))
+		index.add(value([
+			string: parts	
+		]))
+	}
+	
+	@Override
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+		def ret = new ResourceIndexString()
+		ret.search_param = indexedValue.handler.fieldName
+		ret.fhir_id = fhirId
+		ret.fhir_type = fhirType
+		ret.string_value = indexedValue.dbFields.string
+		return ret
 	}
 
 	@Override
@@ -42,4 +49,5 @@ public class StringSearchParamHandler extends SearchParamHandler {
 		
 		throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
+
 }

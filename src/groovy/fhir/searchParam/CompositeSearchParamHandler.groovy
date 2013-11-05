@@ -9,6 +9,9 @@ import org.w3c.dom.NodeList
 
 import com.mongodb.BasicDBObject;
 
+import fhir.ResourceIndexComposite;
+import fhir.ResourceIndexTerm
+
 // Generates "composite" matches based on FHIR spec.  But unclear whether/how
 // composites interact with modifiers.  Are the terms in a composite individually
 // modifiable?  It not, how can one express "before this date" in a status-date pair?
@@ -20,6 +23,10 @@ public class CompositeSearchParamHandler extends SearchParamHandler {
 
 	@Override
 	protected void init(){
+		if (xpath == null) {
+			println("No composite xpath for " + fieldName)
+			return
+		}
 		def paths = xpath.split('\\$');
 		parent = paths[0];
 		children = paths[1..-1].collect {
@@ -33,7 +40,17 @@ public class CompositeSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	public void processMatchingXpaths(List<Node> compositeRoots, List<SearchParamValue> index){
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+		def ret = new ResourceIndexComposite()
+		ret.search_param = indexedValue.handler.fieldName
+		ret.fhir_id = fhirId
+		ret.fhir_type = fhirType
+		ret.composite_value = indexedValue.dbFields.composite
+		return ret
+	}
+
+	@Override
+	public void processMatchingXpaths(List<Node> compositeRoots, List<IndexedValue> index){
 
 		for (Node n : compositeRoots) {
 			List<String> combined = [];
@@ -49,7 +66,9 @@ public class CompositeSearchParamHandler extends SearchParamHandler {
 			}
 
 			if (combined.size() == children.size()) {
-				index.add(value(combined.join('$')))
+				index.add(value([
+					composite: combined.join('$')
+				]))
 			}
 
 		}

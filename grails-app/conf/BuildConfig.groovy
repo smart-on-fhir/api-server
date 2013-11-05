@@ -19,34 +19,35 @@ grails.project.dependency.resolution = {
         grailsCentral()
         mavenLocal()
         mavenCentral()
-	//mavenRepo "https://oss.sonatype.org/content/repositories/snapshots/"
+        //mavenRepo "https://oss.sonatype.org/content/repositories/snapshots/"
     }
 
     dependencies {
-		runtime 'com.google.guava:guava:14.0.1'
-		runtime "org.json:json:20090211"
-		runtime "com.google.code.gson:gson:2.2.4"
-		runtime "joda-time:joda-time:2.2"
-		runtime 'org.apache.commons:commons-io:1.3.2'
-		runtime "org.mongodb:mongo-java-driver:2.11.3"
-		runtime 'net.sf.saxon:Saxon-HE:9.4'
-		runtime('org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
-			excludes 'groovy'
-			excludes 'xml-apis'
-			excludes 'xalan'
-		}
+        runtime 'com.google.guava:guava:14.0.1'
+        runtime "org.json:json:20090211"
+        runtime "com.google.code.gson:gson:2.2.4"
+        runtime "joda-time:joda-time:2.2"
+        runtime 'org.apache.commons:commons-io:1.3.2'
+        runtime "org.mongodb:mongo-java-driver:2.11.3"
+        runtime 'net.sf.saxon:Saxon-HE:9.4'
+        runtime('org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
+            excludes 'groovy'
+            excludes 'xml-apis'
+            excludes 'xalan'
+        }
 
-               //runtime 'xpp3:xpp3:1.1.3.4.O'
-               //runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
-               //runtime 'org.json:json:20131018'
-	       compile 'me.fhir:fhir-0.12:0.1'
+        //runtime 'xpp3:xpp3:1.1.3.4.O'
+        //runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
+        //runtime 'org.json:json:20131018'
+		runtime 'org.postgresql:postgresql:9.3-1100-jdbc41' 
+        compile 'me.fhir:fhir-0.12:0.1'
     }
 
     plugins {
-	compile ":rest-client-builder:1.0.2"
-	compile ":mongodb:1.3.0"
+        compile ":rest-client-builder:1.0.2"
         build ":tomcat:7.0.42"
-	compile ":standalone:1.2.3"
+        runtime ":hibernate4:4.1.11.2"
+        compile ":standalone:1.2.3"
         runtime ":resources:1.2.1"
     }
 }

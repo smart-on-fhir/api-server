@@ -15,6 +15,9 @@ import org.w3c.dom.NodeList
 
 import com.mongodb.BasicDBObject;
 import com.sun.org.apache.xerces.internal.impl.dv.xs.PrecisionDecimalDV;
+import fhir.ResourceIndexDate
+import fhir.ResourceIndexString
+import fhir.ResourceIndexTerm
 
 public class DateSearchParamHandler extends SearchParamHandler {
 
@@ -24,13 +27,15 @@ public class DateSearchParamHandler extends SearchParamHandler {
 	}
 	
 	@Override
-	public void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index) {
+	public void processMatchingXpaths(List<Node> nodes, List<IndexedValue> index) {
 
 		nodes.each { 
 			String val = it.nodeValue
 			Interval precision = precisionInterval(val)
-			index.add(value(":before",precision.start.toDate()));
-			index.add(value(":after",precision.end.toDate()));
+			index.add(value([
+				date_min: precision.start.toDate(),	
+				date_max: precision.end.toDate()
+			]))
 		}
 	}
 
@@ -76,7 +81,18 @@ public class DateSearchParamHandler extends SearchParamHandler {
 		// (FHIR explicitly allows ignoring seconds on dateTimes).
 		return org.joda.time.Seconds.ZERO;
 	}
-	
+
+	@Override
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+		def ret = new ResourceIndexDate()
+		ret.search_param = indexedValue.handler.fieldName
+		ret.fhir_id = fhirId
+		ret.fhir_type = fhirType
+		ret.date_min = indexedValue.dbFields.date_min
+		ret.date_max = indexedValue.dbFields.date_max
+		return ret
+	}
+
 	@Override
 	BasicDBObject searchClause(Map searchedFor){
 		

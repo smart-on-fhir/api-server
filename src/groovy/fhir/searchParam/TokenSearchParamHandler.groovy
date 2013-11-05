@@ -6,6 +6,8 @@ import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 
 import com.mongodb.BasicDBObject;
+import fhir.ResourceIndexTerm
+import fhir.ResourceIndexToken
 
 
 /**
@@ -28,42 +30,51 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 	}
 
 	
-	void processMatchingXpaths(List<Node> tokens, List<SearchParamValue> index){
+	void processMatchingXpaths(List<Node> tokens, List<IndexedValue> index){
 		
 		for (Node n : tokens) {
 
 			// :text (the match does a partial searches on
 			//          * the text portion of a CodeableConcept or
-			//            the display portion of a Coding)
-
-			String textParts = query(".//@value", n).collect {
+			//            the display portion of a Coding or
+			//            the label portion of an Identifier)
+			String text = query(".//f:label/@value | .//f:display/@value | .//f:text/@value", n).collect {
 				it.nodeValue
 			}.join(" ")
 
-			index.add(value(":text", textParts))
-
 			// For CodeableConcept and Coding, list the code as "system/code"
-			query(".//f:code", n).each { codePart ->
-				String code = queryString("./@value", codePart);
-				String system = queryString("../f:system/@value", codePart);
-				index.add(value(":code", "$system/$code" as String));
-			}
-
-			// For Identifier, list the code as "system/key"
-			for (Node codePart : query(".//f:key", n)) {
-				String code = queryString("./@value", codePart);
-				String system = queryString("../f:system/@value", codePart);
-				index.add(value(":code", "$system/$code" as String));
+			// For Identifier, list the code as "system/value"
+			query(".//f:system", n).each { systemPart ->
+				String system = queryString("./@value", systemPart);
+				String code = queryString("../f:code/@value | ../f:value/@value", systemPart);
+				index.add(value([
+					namespace: system,	
+					code: code,	
+					text: text
+				]))
 			}
 
 			// For plain 'ol Code elements, we'll at least pull out the value
 			// (We won't try to determine the implicit system for now, since
 			//  it's not available in instance data or profile.xml)
-			query("./@value", n).each { codePart->
-				index.add(value(":code", codePart.nodeValue));
+			query("./@value", n).each {Node codePart->
+				index.add(value([
+					code: codePart.nodeValue
+				]))
 			}
 		}
+	}
 
+	@Override
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+		def ret = new ResourceIndexToken()
+		ret.search_param = indexedValue.handler.fieldName
+		ret.fhir_id = fhirId
+		ret.fhir_type = fhirType
+		ret.token_code = indexedValue.dbFields.code
+		ret.token_namespace  = indexedValue.dbFields.system
+		ret.token_text = indexedValue.dbFields.text
+		return ret
 	}
 
 	@Override

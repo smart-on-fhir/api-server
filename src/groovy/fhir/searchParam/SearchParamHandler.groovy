@@ -1,5 +1,7 @@
 package fhir.searchParam
 
+import fhir.ResourceIndexTerm
+import fhir.UrlService
 import groovy.util.logging.Log4j
 
 import javax.xml.xpath.XPath
@@ -28,7 +30,7 @@ public abstract class SearchParamHandler {
 	static XmlParser parser = new XmlParser()
 	static XmlComposer composer = new XmlComposer()
 	static XPath xpathEvaluator;
-
+	static UrlService urlService;
 
 	String fieldName;
 	SearchParamType fieldType;
@@ -59,10 +61,13 @@ public abstract class SearchParamHandler {
 	static void injectXpathEvaluator(XPath injectedXpathEvaluator){
 		xpathEvaluator = injectedXpathEvaluator;
 	}
+	static void injectUrlService(UrlService urlServiceIn){
+		urlService = urlServiceIn;
+	}
 
 	protected void init(){}
 
-	protected abstract void processMatchingXpaths(List<Node> nodes, List<SearchParamValue> index);
+	protected abstract void processMatchingXpaths(List<Node> nodes, List<IndexedValue> index);
 
 	protected abstract String paramXpath()
 
@@ -75,25 +80,26 @@ public abstract class SearchParamHandler {
 	List<Node> query(String xpath, Node n){
 		selectNodes(xpath, n)
 	}
-
-	public SearchParamValue value(String modifier, Object v){
-		new SearchParamValue(
-				paramName: fieldName + (modifier ?:""),
-				paramType: fieldType,
-				paramValue: v
-				);
+	
+	
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+		throw new Exception("createIndex not implemented")
 	}
 
-	public SearchParamValue value(Object v){
-		value(null,v);
+	public IndexedValue value(Object v){
+		new IndexedValue(
+				dbFields: v,
+				paramName: fieldName,
+				handler: this
+		);
 	}
 
 	public String queryString(String xpath, Node n){
 		query(xpath, n).collect { it.nodeValue }.join " "
 	}
 
-	public List<SearchParamValue> execute(org.w3c.dom.Document r) throws Exception {
-		List<SearchParamValue> index = []
+	public List<IndexedValue> execute(org.w3c.dom.Document r) throws Exception {
+		List<IndexedValue> index = []
 		List<Node> nodes = query(paramXpath(), r)
 		processMatchingXpaths(nodes, index);
 		return index;
@@ -124,12 +130,12 @@ public abstract class SearchParamHandler {
 	static BasicDBObject andList (Collection<DBObject> clauses){
 		onList(clauses, '$and')
 	}
-	
+
 	static private BasicDBObject onList(Collection<DBObject> clauses, String operation) {
 		def nonempty = clauses.findAll {it && it.size() > 0}
 		if (nonempty.size() == 0) return [:]
 		if (nonempty.size() == 1) return nonempty
-		return [(operation): nonempty]		
+		return [(operation): nonempty]
 	}
 
 	abstract BasicDBObject searchClause(Map searchedFor)

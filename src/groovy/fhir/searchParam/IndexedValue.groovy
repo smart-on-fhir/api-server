@@ -8,8 +8,8 @@ import org.hl7.fhir.instance.model.Conformance.SearchParamType;
 // For example:
 //     name="diagnosisDate", value="2000"
 //	   name="diagnosisDate:before", value="2000-01-01T00:00:00Z"
-class SearchParamValue{
+class IndexedValue{
+	public Map dbFields;
 	public String paramName;
-	public Object paramValue;
-	public SearchParamType paramType;
+	public SearchParamHandler handler;
 }
