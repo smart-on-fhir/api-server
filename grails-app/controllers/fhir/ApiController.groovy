@@ -51,7 +51,7 @@ class HistoryCommand {
 			clauses['received'] = [ $gte: _since ]
 		}
 		if (params.resource) {
-			String resource = searchIndexService.capitalizedModelName[params.resource]
+			String resource = params.resource
 			clauses['fhirType'] = resource
 		}
 		if (params.id) {
@@ -66,7 +66,7 @@ class SearchCommand {
 	def searchIndexService
 
 	def getClauses() {
-		def clauses = searchIndexService.queryParamsToMongo(params)
+		def clauses = searchIndexService.searchParamsToSql(params)
 		return request.authorization.restrictSearch(clauses)
 	}
 
@@ -123,7 +123,7 @@ class ApiController {
 		feed = bundleService.assignURIs(feed)
 
 		feed.entryList.each { AtomEntry e ->
-			String r = e.resource.class.toString().split('\\.')[-1].toLowerCase()
+			String r = e.resource.class.toString().split('\\.')[-1]
 			updateService(e.resource, r, e.id.split('/')[1])
 		}
 		
@@ -179,7 +179,7 @@ class ApiController {
 		log.debug("Parsed a $rjson.resourceType.asString")
 
 		String fhirType = rjson.resourceType.asString
-		String expectedType = searchIndexService.capitalizedModelName[resourceName]
+		String expectedType = resourceName
 
 		if (fhirType != expectedType){
 			response.status = 405
@@ -203,7 +203,7 @@ class ApiController {
 		log.debug("now rv: $h with $h.fhir_id $h.version_id")
 
 		indexTerms.collect { IndexedValue v ->
-			v.handler.createIndex(v, fhirId, fhirType)
+			v.handler.createIndex(v, h.version_id, fhirId, fhirType)
 		}.each { ResourceIndexTerm it ->
 			log.debug("Got an unsaved idx: $it")
 			it.save(failOnError: true)
@@ -222,7 +222,7 @@ class ApiController {
 		def body = request.reader.text
 		Resource r;
 
-		if (params.resource == 'binary')  {
+		if (params.resource == 'Binary')  {
 			r = new Binary();
 			r.setContentType(request.contentType)
 			r.setContent(body.bytes)
@@ -338,18 +338,21 @@ class ApiController {
 	}
 
 	def search(PagingCommand paging, SearchCommand query) {
+		request.t0 = new Date().time
 
 		query.bind(params, request)
 		paging.bind(params, request)
-		log.debug(query.clauses.toString())
+
+		def clauses = searchIndexService.searchParamsToSql(params)
+		//log.debug(query.clauses.toString())
 		time("precount $paging.total")
 		
 		Sql sql = Sql.newInstance(sessionFactory.currentSession.connection())
-		def rawSqlQuery = "select distinct on (fhir_id) fhir_id, content from resource_version order by fhir_id, rest_date desc"
-		def entries = sql.rows(rawSqlQuery).collectEntries {
-			println("Got a row: $it")
+		def rawSqlQuery = clauses.query.join('\n') + " limit 50"
+		def entries = sql.rows(rawSqlQuery, clauses.params).collectEntries {
 			[(it.fhir_id): it.content.decodeFhirJson()]
 		}
+		time("got entries")
 /*
 		String resource = searchIndexService.capitalizedModelName[params.resource]
 		def cursor = ResourceIndex.forResource(resource).find(query.clauses)

@@ -1,11 +1,9 @@
 package fhir
 
-class ResourceIndexComposite extends ResourceIndex {
+class ResourceIndexComposite extends ResourceIndexTerm {
 	String composite_value
 
-
     static mapping = {
-        tablePerHierarchy false
 		version false
     }
 }

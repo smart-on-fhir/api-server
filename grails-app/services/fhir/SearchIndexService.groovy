@@ -8,6 +8,7 @@ import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathFactory
+import java.util.regex.Pattern
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.hl7.fhir.instance.formats.XmlParser
@@ -48,7 +49,6 @@ class SearchIndexService{
 
 	static Map<Class<Resource>,Collection> indexersByResource = [:]
 	static Map<String, String> xpathsMissingFromFhir;
-	static Map<String, String> capitalizedModelName = [:]
 	static IdSearchParamHandler idIndexer;
 
 	@PostConstruct
@@ -114,7 +114,6 @@ class SearchIndexService{
 	}
 
 	public Class<Resource> classForModel(String modelName){
-		modelName = capitalizedModelName[modelName]?:modelName
 		if(modelName.equals("String")){
 			modelName += "_";
 		}
@@ -143,9 +142,7 @@ class SearchIndexService{
 		log.debug("Setting conformance profile")
 		conformance = c
 		def restResources = c.rest[0].resource
-		capitalizedModelName["binary"] = "Binary"
 		restResources.each { resource ->
-			capitalizedModelName[resource.typeSimple.toLowerCase()] = resource.typeSimple
 			Class model = classForModel resource.typeSimple
 
 			indexersByResource[model] = resource.searchParam.collect {	searchParam ->
@@ -153,7 +150,7 @@ class SearchIndexService{
 				String key = searchParam.sourceSimple
 
 				// Short-circuit FHIR's built-in xpath if defined. Handles:
-				//  * missing xpaths -- like in Patient
+				//  * missing xpaths
 				//  * broken xpaths  -- like 'f:value[x]'
 				SearchParamHandler.create(
 						searchParam.nameSimple,
@@ -162,7 +159,7 @@ class SearchIndexService{
 			}
 		}
 
-		idIndexer = new IdSearchParamHandler(fieldName: "_id", fieldType: SearchParamType.token, xpath: null);
+		idIndexer = new IdSearchParamHandler(searchParamName: "_id", fieldType: SearchParamType.token, xpath: null);
 	}
 
 	public static org.w3c.dom.Document fromResource(Resource r) throws IOException, Exception {
@@ -201,8 +198,8 @@ class SearchIndexService{
 	public void queryParamsToSql(Map params){
 
 	}
-	
-	
+
+
 	Map<String,SearchParamHandler> indexerFor(String resourceName){
 		def rc = classForModel(resourceName)
 		def indexers = indexersByResource[rc] ?: []
@@ -211,16 +208,39 @@ class SearchIndexService{
 		// Just the indexers for the current resource type
 		// keyed on the searchParam name (e.g. "date", "subject")
 		return indexers.collectEntries { SearchParamHandler it ->
-			[(it.fieldName): it]
+			[(it.searchParamName): it]
 		}
 	}
-	
+
 	List paramAsList(v) {
 		// grails turns subject._id into two params: "subject._id" and "subject" which is a map w/ id
+		if  (v == null) return []
 		if (v.class == null) return null
 		if (v instanceof String[])
 			return v as List
 		return [v]
+	}
+
+	private List<String> splitOne(String str, String c){
+		if  (str.indexOf(c) != -1) {
+			List<String> parts = str.split(Pattern.quote(c))
+			if (parts.size == 1)
+				return [parts[0], ""]
+			return [parts[0], parts[1..-1].join(c)]
+		}
+		return null
+	}
+
+	private List chainParts (String searchParam) {
+		def parts = splitOne(searchParam, '.')
+		if (parts == null) return [false, searchParam]
+		return [true] + parts
+	}
+
+	private List paramParts (String searchParam) {
+		def parts  = splitOne(searchParam, ':')
+		if (parts == null) return [searchParam]
+		return parts
 	}
 
 	public List<SearchedValue> queryToHandlerTree (Map params) {
@@ -230,114 +250,172 @@ class SearchIndexService{
 		// Represent each term in the query a
 		// key, modifier, and value
 		// e.g. [key: "date", modifier: "after", value: "2010"]
-		params.each { String k, v ->
+		params.each { String searchParam, searchValues ->
 
-			v = paramAsList(v)
-			if (!v) return
+			searchValues = paramAsList(searchValues)
+			if (!searchValues) { return }
 
-			List paramParts = k.split(":")
-			String paramName = paramParts[0]
-			String modifier = paramParts.size() > 1 ? paramParts[1..-1].join(":") : ""
+			def (isChained, beforeChain, afterChain) = chainParts(searchParam)
+			def (paramName, modifier) = paramParts(beforeChain)
 
 			SearchParamHandler indexer = indexerFor[paramName]
 			if (!indexer) return
-
-			v.each {String oneVal ->
-				if (indexer.fieldType == SearchParamType.reference && modifier.indexOf('.') != -1) {
-					// a chaining query -- need to recurse
-
-					def modifierParts = modifier.split("\\.")
-					def resource = modifierParts[0]
-					def nextModifier = modifierParts.size() > 1 ? modifierParts[1..-1].join(".") : null
-
-					ret += new SearchedValue( handler: indexer, modifier: resource, values: "*")
-
-					ret += [queryToHandlerTree([
-							  resource: resource, (nextModifier): oneVal
-							])]
-				} else {
-					ret += new SearchedValue(
-							handler: indexer,
-							modifier: modifier,
-							values: oneVal)
+				searchValues.each { String searchValue ->
+					if (isChained) { // a chaining query -- need to recurse
+						def resourceName = modifier
+						ret += new SearchedValue( handler: indexer, modifier: resourceName)
+						ret += [queryToHandlerTree([ resource: resourceName, (afterChain): searchValue ])]
+					} else {
+						ret += new SearchedValue( handler: indexer, modifier: modifier, values: searchValue)
+					}
 				}
-			}
 		}
 
 		log.error("returning Params: $ret")
 		return ret
 	}
 
-	void sqlClauses(List searchedFor, List<Integer> relativeTo, boolean push) {
+	private boolean isFirstClause(List current) {
+		return current.size() == 1 && current[0] == 1
+	}
 
-		if (searchedFor.size() == 0) return
+	def joinClauses(List clauseTree) {
+		joinClauses(clauseTree, [0], false)
+	}
 
-		List<Integer> prev = relativeTo.collect{it}
+	def joinClauses(List clauseTree, List<Integer> relativeTo, boolean push) {
+
+		if (clauseTree.size() == 0) return [query:[],params:[:]]
+
+		def headClause = clauseTree[0]
+		def remainingClauses = clauseTree.subList(1, clauseTree.size())
+
+		if (headClause instanceof List) {
+			return joinClauses(headClause, relativeTo, true)
+		}
+
 		List<Integer> current = relativeTo.collect{it}
+		if (push) current += 0 else current[-1]++
 
-		def head = searchedFor[0]
-		def rest = searchedFor.subList(1, searchedFor.size())
+		String prevRel = relativeTo.join("_")
+		String rel = current.join("_")
+		List<String> query = []
+		Map params = [:]
 
-		if (head instanceof List) {
-			sqlClauses(head, relativeTo, true)
-		} else {
-			if (push) current += 0 else current[-1]++
-			String prevRel = prev.join("_")
-			String rel = current.join("_")
-			if (push)
-			log.debug("JOIN resource_${head.handler.fieldType}_index table_$rel: on table_${prevRel}.reference_type=table_${rel}.type and table_${rel}.vals '$head.values'")
-			else 
-			log.debug("JOIN resource_${head.handler.fieldType}_index table_$rel: on table_${prevRel}.type=table_${rel}.type and table_${rel}.vals '$head.values'")
+		def (table, List fields) = headClause.handler.joinOn(headClause)
+		def fieldStrings = fields.collect { f ->
+			'  table_'+rel+'.'+f.name+' '+(f.operation ?: '=')+' :value_'+rel+'_'+f.name
 		}
+		params += fields.collectEntries { f -> [('value_'+rel+'_'+f.name): f.value] }
+		params += [('field_'+rel): headClause.handler.searchParamName]
 
-		sqlClauses(rest, current, false)
+		query += 'JOIN resource_index_term table_'+rel+' ON (\n' +
+				'  table_'+rel+'.search_param = :field_'+rel+ ' AND \n' +
+				'  table_'+prevRel+'.'+(push ? 'reference':'fhir')+'_type = table_'+rel+'.fhir_type AND \n' +
+				'  table_'+prevRel+'.'+(push ? 'reference':'fhir')+'_id = table_'+rel+'.fhir_id AND \n' +
+				fieldStrings.join(' AND \n') +
+				'  )'
 
+		def remaining = joinClauses(remainingClauses, current, false)
+		query += remaining.query
+		params += remaining.params
+		return [query: query, params: params]
 	}
 
-	List buildClauseTree(List<SearchedValue> vs, List ret){
-		vs.each { SearchedValue v->
-			if (v.handler.fieldType == SearchParamType.reference) {
-				if (v.values.indexOf('.') == -1) {
-					// chained search on a resource reference
-					// recurse to generate chainSteps
-					// so the final clause tree is a tree where all leaves are SearchedValues
-					// which can directly generate their simple matchers
-					ret.add(parseQueryParams([
+	Map  sorts = [
+		asc: [
+			fn: "min",
+			dir: "asc"
+		], desc: [
+			fn: "max",
+			dir: "desc"
+		]
+	]
 
-					]))
-
-				}
-			}
-			ret += v.handler.clausesFor(v)
-		}
+	private Map sortDirection(String sort) {
+		if (sort.indexOf(":") == -1) sorts.asc
+		return sorts[sort.split(":")[1]]
 	}
 
-	public BasicDBObject queryParamsToMongo(Map params){
-		// Run the assigned indexer on each term
-		// to generate an AND'able list of MongoDB
-		// query clauses.
+	private sortClauses(params, cs){
+		Map indexerFor = indexerFor(params.resource)
+		cs.query = ["select max(table_0.version_id) as version_id, \n"+
+			"row_number() OVER \n"+
+			"(ORDER BY @fullOrderClause@) AS sortfield \n"+
+			"FROM resource_index_term table_0"] + cs.query
+
+		cs.params += [
+			type: params.resource
+		]
+
+		String typeClause = "WHERE table_0.fhir_type=:type "
+		List<Map> orderBy =  []
+
+		def _sort = [
+			asc: paramAsList(params._sort) + paramAsList(params.'_sort:asc'),
+			desc: paramAsList(params['_sort:desc'])
+		]
+
+		def applySort = { Map sortDirection, String sortParam ->
+
+			def sortParamNum = orderBy.size()
+			def orderTable = "order_by_"+sortParamNum
+			SearchParamHandler indexer = indexerFor[sortParam]
+			orderBy +=  [
+				sortDirection: sortDirection,
+				column: orderTable+"."+indexer.orderByColumn
+			]
+
+			cs.params += [
+				("sort_param_"+sortParamNum): indexer.searchParamName
+			]
+
+			cs.query += """JOIN resource_index_term ${orderTable} on (
+                    table_0.fhir_type=${orderTable}.fhir_type AND
+                    table_0.fhir_id=${orderTable}.fhir_id AND
+                    ${orderTable}.search_param = :sort_param_${sortParamNum}
+                    )"""
+		}
+
+		_sort.asc.each {it -> applySort(sorts.asc, it)}
+		_sort.desc.each {it -> applySort(sorts.desc, it)}
+		orderBy += [sortDirection: sorts.asc, column: "table_0.version_id"]
+
+		def fullOrderClause = orderBy.collect{Map o ->
+			"${o.sortDirection.fn}("+o.column+") ${o.sortDirection.dir}"
+		}.join(", ")
+
+		cs.query += typeClause +
+				"GROUP BY table_0.fhir_type, table_0.fhir_id \n" +
+				"ORDER BY $fullOrderClause"
+
+		cs.fullOrderClause = fullOrderClause
+		return cs
+	}
+
+	public BasicDBObject searchParamsToSql(Map params){
+
 		List<SearchedValue> clauseTree = queryToHandlerTree(params)
-		println("Compete handler tree: $clauseTree")
-		sqlClauses(clauseTree, [0], false)
-		return
+		def cs = joinClauses(clauseTree)
+		def sorted = sortClauses(params, cs)
 
-		//List clauseTree = buildClauseTree(searchedFor, [])
-		//clauseTree += [[searchedFor[1], searchedFor[1]]]
-		//clauseTree += [searchedFor[1], searchedFor[1]]
+		String q = sorted.query.join("\n")
+		q = sorted.query.join("\n")
+		q = q.replace("@fullOrderClause@", sorted.fullOrderClause)
+		q = "select v.version_id, v.fhir_type, v.fhir_id, v.content from resource_version v join (\n"+
+				q + "\n) ol \n" +
+				"on ol.version_id=v.version_id order by ol.sortfield"
 
-		List<BasicDBObject> clauses = clauseTree.collect { SearchedValue v ->
-			def idx = v.handler
-
-			List orClauses = idx.orClausesFor(v).collect {
-				idx.searchClause(v)
-			}
-
-			return orClauses.size() == 1 ?
-			orClauses[0] :
-			SearchParamHandler.orList(orClauses)
+		String printQ = q
+		sorted.params.each {k,v->
+			println("Replacing $k $v")
+			printQ = printQ.replaceAll(Pattern.compile(':'+k+'\\s'), "'$v' ")
 		}
-		clauses = clauses + [fhirType:capitalizedModelName[params.resource]]
-		return SearchParamHandler.andList(clauses)
-	}
+		println("replaced all")
+		println(printQ)
 
+		sorted.query = [q]
+
+		return sorted
+	}
 }

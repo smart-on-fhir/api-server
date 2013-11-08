@@ -19,9 +19,9 @@ class UrlService{
 		def m = (p =~ regex)
 		if (m.size()) {
 			ret['type'] = m[0][1]
-			ret['id'] = m[0][1]
+			ret['id'] = m[0][2]
 			if (m.size() > 2) {
-				ret['version'] = m[0][2]
+				ret['version'] = m[0][3]
 			} else {
 				ret['version'] = null
 			}

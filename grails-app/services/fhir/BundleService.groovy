@@ -29,7 +29,7 @@ class BundleService{
 	}
 	
 	String getResourceName(Resource r) {
-		r.class.toString().split('\\.')[-1].toLowerCase()
+		r.class.toString().split('\\.')[-1]
 	}
 
 	AtomFeed atomFeed(p) {
@@ -110,7 +110,7 @@ class BundleService{
 				needsAssignment = true
 			} finally {
 				if (needsAssignment) {
-					String r = c.toString().split('\\.')[-1].toLowerCase()
+					String r = c.toString().split('\\.')[-1]
 					String id = new ObjectId().toString()
 					assignments[e.id] = urlService.relativeResourceLink(r, id)
 				}

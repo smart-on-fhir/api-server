@@ -12,6 +12,8 @@ import fhir.ResourceIndexTerm
 
 public class NumberSearchParamHandler extends SearchParamHandler {
 
+	String orderByField = "number_min"
+
 	@Override
 	protected String paramXpath() {
 		return "//"+this.xpath;
@@ -56,9 +58,10 @@ public class NumberSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, versionId, fhirId, fhirType) {
 		def ret = new ResourceIndexNumber()
-		ret.search_param = indexedValue.handler.fieldName
+		ret.search_param = indexedValue.handler.searchParamName
+		ret.version_id = versionId
 		ret.fhir_id = fhirId
 		ret.fhir_type = fhirType
 		ret.number_min = indexedValue.dbFields.number_min

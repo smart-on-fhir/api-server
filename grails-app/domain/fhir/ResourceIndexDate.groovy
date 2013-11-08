@@ -6,7 +6,6 @@ class ResourceIndexDate extends ResourceIndexTerm{
 	Date date_max
 
 	static mapping = {
-        tablePerHierarchy false
 		version false
 	}
 }

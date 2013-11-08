@@ -24,6 +24,9 @@ public class TokenSearchParamHandler extends SearchParamHandler {
  *	          - the coding/codeable concept)
  *	 :anyns matches all codes irrespective of the namespace.
 */
+
+	String orderByColumn = "token_text"
+
 	@Override
 	protected String paramXpath() {
 		return "//"+this.xpath;
@@ -66,13 +69,14 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, versionId, fhirId, fhirType) {
 		def ret = new ResourceIndexToken()
-		ret.search_param = indexedValue.handler.fieldName
+		ret.search_param = indexedValue.handler.searchParamName
+		ret.version_id = versionId
 		ret.fhir_id = fhirId
 		ret.fhir_type = fhirType
 		ret.token_code = indexedValue.dbFields.code
-		ret.token_namespace  = indexedValue.dbFields.system
+		ret.token_namespace  = indexedValue.dbFields.namespace
 		ret.token_text = indexedValue.dbFields.text
 		return ret
 	}
@@ -84,15 +88,15 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 		// (only :text should include display fields)
 		// but we're treating them the same here
 		if (searchedFor.modifier in [null, "code"]){
-			return [(fieldName+':code'): searchedFor.value]
+			return [(searchParamName+':code'): searchedFor.value]
 		}
 
 		if (searchedFor.modifier == "text"){
-			return [(fieldName+':text'): [$regex: searchedFor.value, $options: 'i']]
+			return [(searchParamName+':text'): [$regex: searchedFor.value, $options: 'i']]
 		}
 			
 		if (searchedFor.modifier == "anyns"){
-			return [(fieldName+':code'): [$regex: '/'+searchedFor.value+'$']]
+			return [(searchParamName+':code'): [$regex: '/'+searchedFor.value+'$']]
 		}
 
 		throw new RuntimeException("Unknown modifier: " + searchedFor)

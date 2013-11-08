@@ -32,11 +32,12 @@ public abstract class SearchParamHandler {
 	static XPath xpathEvaluator;
 	static UrlService urlService;
 
-	String fieldName;
+	String searchParamName;
 	SearchParamType fieldType;
 	String xpath;
+	String orderByColumn;
 
-	public static SearchParamHandler create(String fieldName,
+	public static SearchParamHandler create(String searchParamName,
 			SearchParamType fieldType,
 			String xpath) {
 
@@ -50,7 +51,7 @@ public abstract class SearchParamHandler {
 
 
 		SearchParamHandler ret =  c.newInstance(
-				fieldName: fieldName,
+				searchParamName: searchParamName,
 				fieldType: fieldType,
 				xpath: xpath
 				);
@@ -82,14 +83,14 @@ public abstract class SearchParamHandler {
 	}
 	
 	
-	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, versionId, fhirId, fhirType) {
 		throw new Exception("createIndex not implemented")
 	}
 
 	public IndexedValue value(Object v){
 		new IndexedValue(
 				dbFields: v,
-				paramName: fieldName,
+				paramName: searchParamName,
 				handler: this
 		);
 	}

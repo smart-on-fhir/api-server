@@ -8,6 +8,8 @@ import fhir.ResourceIndexReference
 import fhir.ResourceIndexTerm
 public class ReferenceSearchParamHandler extends SearchParamHandler {
 
+	String orderByColumn = "reference_id"
+
 	@Override
 	protected void processMatchingXpaths(List<Node> nodes, List<IndexedValue> index) {
 		
@@ -25,7 +27,7 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 				]))
 			} else {
 				index.add(value([
-					resource_is_external: true,
+					resource_is_external: false,
 					resource_id: parts.id,
 					resource_type: parts.type,
 					resource_version: parts.version
@@ -34,11 +36,29 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 
 		}
 	}
+	
+	def joinOn(SearchedValue v) {
+		List ret = ["resource_index_reference"]
+		List fields = []
+		if (v.values){
+			fields += [ name: 'reference_id', value: v.values]
+			fields += [ name: 'reference_version', value: "TODO"]
+		}
+		if (v.modifier) {
+			fields += [
+				name: 'reference_type',
+				value: v.modifier	
+			]
+		}
+		return ret + [fields]
+	}
+
 
 	@Override
-	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, versionId, fhirId, fhirType) {
 		def ret = new ResourceIndexReference()
-		ret.search_param = indexedValue.handler.fieldName
+		ret.search_param = indexedValue.handler.searchParamName
+		ret.version_id = versionId
 		ret.fhir_id = fhirId
 		ret.fhir_type = fhirType
 		ret.reference_id = indexedValue.dbFields.resource_id
@@ -59,11 +79,11 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 		// no modifier and ":text" on a code --
 		// but we're treating them the same here
 		if (searchedFor.modifier == null){
-			return [(fieldName):searchedFor.value]
+			return [(searchParamName):searchedFor.value]
 		}
 
 		if (searchedFor.modifier == "any"){
-			return [(fieldName):[$regex: '/'+searchedFor.value+'$']]
+			return [(searchParamName):[$regex: '/'+searchedFor.value+'$']]
 		}
 
 		throw new RuntimeException("Unknown modifier: " + searchedFor)

@@ -6,7 +6,6 @@ class ResourceIndexNumber extends ResourceIndexTerm{
 	float number_max
 
 	static mapping = {
-        tablePerHierarchy false
 		version false
 	}
 }

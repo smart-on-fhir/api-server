@@ -6,7 +6,6 @@ class ResourceIndexToken extends ResourceIndexTerm{
 	String token_text
 
 	static mapping = {
-        tablePerHierarchy false
 		version false
 	}
 	static constraints = {

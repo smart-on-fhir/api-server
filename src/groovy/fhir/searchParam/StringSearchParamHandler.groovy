@@ -11,6 +11,8 @@ import fhir.ResourceIndexTerm
 
 public class StringSearchParamHandler extends SearchParamHandler {
 
+	String orderByColumn = "string_value"
+
 	@Override
 	protected String paramXpath() {
 		return "//$xpath//@value";
@@ -25,9 +27,10 @@ public class StringSearchParamHandler extends SearchParamHandler {
 	}
 	
 	@Override
-	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, versionId, fhirId, fhirType) {
 		def ret = new ResourceIndexString()
-		ret.search_param = indexedValue.handler.fieldName
+		ret.search_param = indexedValue.handler.searchParamName
+		ret.version_id = versionId
 		ret.fhir_id = fhirId
 		ret.fhir_type = fhirType
 		ret.string_value = indexedValue.dbFields.string
@@ -40,14 +43,28 @@ public class StringSearchParamHandler extends SearchParamHandler {
 		def val = searchedFor.value
 		
 		if (searchedFor.modifier == null ||searchedFor.modifier == "partial"){
-				return [(fieldName): [ $regex: val, $options: 'i' ]]
+				return [(searchParamName): [ $regex: val, $options: 'i' ]]
 		}
 		
 		if (searchedFor.modifier == "exact"){
-				return [(fieldName): [ $regex:'^'+val+'$', $options: 'i' ]]
+				return [(searchParamName): [ $regex:'^'+val+'$', $options: 'i' ]]
 		}
 		
 		throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
 
+	def joinOn(SearchedValue v) {
+		List ret = ["resource_index_string"]
+		List fields = []
+		if (v.values){
+			fields += [ name: 'string_value', value: v.values+'%', operation: 'LIKE']
+		}
+		if (v.modifier) {
+			fields += [
+				name: 'reference_type',
+				value: v.modifier	
+			]
+		}
+		return ret + [fields]
+	}
 }

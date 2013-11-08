@@ -18,13 +18,15 @@ import fhir.ResourceIndexTerm
 
 public class CompositeSearchParamHandler extends SearchParamHandler {
 
+	String orderByColumn = "composite_value"
+
 	private String parent;
 	private List<String> children = []
 
 	@Override
 	protected void init(){
 		if (xpath == null) {
-			println("No composite xpath for " + fieldName)
+			println("No composite xpath for " + searchParamName)
 			return
 		}
 		def paths = xpath.split('\\$');
@@ -40,9 +42,10 @@ public class CompositeSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, versionId, fhirId, fhirType) {
 		def ret = new ResourceIndexComposite()
-		ret.search_param = indexedValue.handler.fieldName
+		ret.search_param = indexedValue.handler.searchParamName
+		ret.version_id = versionId
 		ret.fhir_id = fhirId
 		ret.fhir_type = fhirType
 		ret.composite_value = indexedValue.dbFields.composite
@@ -76,6 +79,6 @@ public class CompositeSearchParamHandler extends SearchParamHandler {
 
 	@Override
 	public BasicDBObject searchClause(Map searchedFor) {
-		return [(fieldName): searchedFor.value]
+		return [(searchParamName): searchedFor.value]
 	}
 }

@@ -21,6 +21,8 @@ import fhir.ResourceIndexTerm
 
 public class DateSearchParamHandler extends SearchParamHandler {
 
+	String orderByColumn = "date_min"
+
 	@Override
 	protected String paramXpath() {
 		return "//"+this.xpath+"/@value";
@@ -83,9 +85,10 @@ public class DateSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	public ResourceIndexTerm createIndex(IndexedValue indexedValue, fhirId, fhirType) {
+	public ResourceIndexTerm createIndex(IndexedValue indexedValue, versionId, fhirId, fhirType) {
 		def ret = new ResourceIndexDate()
-		ret.search_param = indexedValue.handler.fieldName
+		ret.search_param = indexedValue.handler.searchParamName
+		ret.version_id = versionId
 		ret.fhir_id = fhirId
 		ret.fhir_type = fhirType
 		ret.date_min = indexedValue.dbFields.date_min
@@ -100,17 +103,17 @@ public class DateSearchParamHandler extends SearchParamHandler {
 		
 		if (searchedFor.modifier == null){
 			return and( 
-				[(fieldName+':before'): [ $gte: precision.start.toDate() ]],
-				[(fieldName+':after'): [ $lte: precision.end.toDate() ]]
+				[(searchParamName+':before'): [ $gte: precision.start.toDate() ]],
+				[(searchParamName+':after'): [ $lte: precision.end.toDate() ]]
 			)
 		}
 		
 		if (searchedFor.modifier == "before"){
-			return [(fieldName+':before'): [ $lte: precision.end.toDate() ]]
+			return [(searchParamName+':before'): [ $lte: precision.end.toDate() ]]
 		}
 		
 		if (searchedFor.modifier == "after"){
-			return [(fieldName+':after'): [ $gte: precision.start.toDate() ]]
+			return [(searchParamName+':after'): [ $gte: precision.start.toDate() ]]
 		}
 		
 		throw new RuntimeException("Unknown modifier: " + searchedFor)

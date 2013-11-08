@@ -7,7 +7,6 @@ class ResourceIndexReference extends ResourceIndexTerm{
 	String reference_is_external
 
 	static mapping = {
-        tablePerHierarchy false
 		version false
 	}
 	static constraints = {
