@@ -33,7 +33,7 @@ class UrlMappings {
 			action = [GET: "search", POST: "create"]
 		}
 
-		name summary: "/history" {
+		name summary: "/_history" {
 			controller="Api"
 			action=[GET: "history"]
 		}

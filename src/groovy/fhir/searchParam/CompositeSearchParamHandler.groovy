@@ -53,7 +53,7 @@ public class CompositeSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	public void processMatchingXpaths(List<Node> compositeRoots, List<IndexedValue> index){
+	public void processMatchingXpaths(List<Node> compositeRoots, org.w3c.dom.Document r, List<IndexedValue> index){
 
 		for (Node n : compositeRoots) {
 			List<String> combined = [];

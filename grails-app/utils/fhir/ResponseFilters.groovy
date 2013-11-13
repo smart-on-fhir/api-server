@@ -1,12 +1,19 @@
 package fhir
+import org.hibernate.SessionFactory
 import org.hl7.fhir.instance.model.AtomFeed;
 import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.Resource
 
 class ResponseFilters {
+	SessionFactory sessionFactory
+
 	def filters = {
 		renderContent(controller: '*', action: '*') {
 			after = {
+
+                sessionFactory.currentSession.flush()
+                sessionFactory.currentSession.clear()	
+
 				if (response.status == 204) return false
 
 				def r = request?.resourceToRender

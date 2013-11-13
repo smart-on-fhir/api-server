@@ -65,7 +65,7 @@ class BundleService{
 			return entry
 		}
 
-		feed
+		return feed
 	}
 	
 	String nextPageFor(String url, PagingCommand paging) {

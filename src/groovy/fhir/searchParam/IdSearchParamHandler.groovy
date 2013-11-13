@@ -25,7 +25,7 @@ public class IdSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	protected void processMatchingXpaths(List<Node> nodes,
+	protected void processMatchingXpaths(List<Node> nodes, org.w3c.dom.Document r,
 			List<IndexedValue> index) {
 		throw new Exception("Should not use Id Search Parameter to index a resource");
 	}

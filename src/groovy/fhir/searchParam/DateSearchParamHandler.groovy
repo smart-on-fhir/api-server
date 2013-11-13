@@ -29,7 +29,7 @@ public class DateSearchParamHandler extends SearchParamHandler {
 	}
 	
 	@Override
-	public void processMatchingXpaths(List<Node> nodes, List<IndexedValue> index) {
+	public void processMatchingXpaths(List<Node> nodes, org.w3c.dom.Document r,  List<IndexedValue> index) {
 
 		nodes.each { 
 			String val = it.nodeValue
@@ -96,26 +96,34 @@ public class DateSearchParamHandler extends SearchParamHandler {
 		return ret
 	}
 
+	private java.sql.Date toSqlDate(def d){
+		return new java.sql.Date(d.toDate().time)	
+	}
+	
+	@Override
+	def joinOn(SearchedValue v) {
+
+		Interval precision = precisionInterval(v.values)
+		List fields = []
+
+		if (v.modifier == null){
+			fields += [
+				name: 'date_min',
+				value:  toSqlDate(precision.start),
+				operation: '>='
+				]
+			fields += [
+				name: 'date_max',
+				value:  toSqlDate(precision.end),
+				operation: '<='
+				]
+		}
+
+		return fields
+	}
+
 	@Override
 	BasicDBObject searchClause(Map searchedFor){
-		
-		Interval precision = precisionInterval(searchedFor.value)
-		
-		if (searchedFor.modifier == null){
-			return and( 
-				[(searchParamName+':before'): [ $gte: precision.start.toDate() ]],
-				[(searchParamName+':after'): [ $lte: precision.end.toDate() ]]
-			)
-		}
-		
-		if (searchedFor.modifier == "before"){
-			return [(searchParamName+':before'): [ $lte: precision.end.toDate() ]]
-		}
-		
-		if (searchedFor.modifier == "after"){
-			return [(searchParamName+':after'): [ $gte: precision.start.toDate() ]]
-		}
-		
 		throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
 

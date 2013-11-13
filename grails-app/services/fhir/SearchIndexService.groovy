@@ -1,4 +1,3 @@
-
 package fhir;
 
 import java.text.SimpleDateFormat
@@ -8,6 +7,7 @@ import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathFactory
+
 import java.util.regex.Pattern
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
@@ -155,6 +155,7 @@ class SearchIndexService{
 				SearchParamHandler.create(
 						searchParam.nameSimple,
 						searchParam.typeSimple,
+						resource.typeSimple,
 						xpathsMissingFromFhir[key] ?:searchParam.xpathSimple);
 			}
 		}
@@ -193,10 +194,6 @@ class SearchIndexService{
 
 		log.info("# index fields: " + ret.size())
 		return ret;
-	}
-
-	public void queryParamsToSql(Map params){
-
 	}
 
 
@@ -254,6 +251,7 @@ class SearchIndexService{
 
 			searchValues = paramAsList(searchValues)
 			if (!searchValues) { return }
+			println("SearchVals $searchParam: $searchValues")
 
 			def (isChained, beforeChain, afterChain) = chainParts(searchParam)
 			def (paramName, modifier) = paramParts(beforeChain)
@@ -266,6 +264,7 @@ class SearchIndexService{
 						ret += new SearchedValue( handler: indexer, modifier: resourceName)
 						ret += [queryToHandlerTree([ resource: resourceName, (afterChain): searchValue ])]
 					} else {
+						println("Unchained add ret: $indexer $modifier $searchValue")
 						ret += new SearchedValue( handler: indexer, modifier: modifier, values: searchValue)
 					}
 				}
@@ -275,51 +274,55 @@ class SearchIndexService{
 		return ret
 	}
 
-	private boolean isFirstClause(List current) {
-		return current.size() == 1 && current[0] == 1
-	}
+	private String fieldSnippet(int prefix, Map field) {
+		String lowerCaseOp = field.operation ? field.operation.toString().toLowerCase() : null
 
-	def joinClauses(List clauseTree) {
-		joinClauses(clauseTree, [0], false)
-	}
-
-	def joinClauses(List clauseTree, List<Integer> relativeTo, boolean push) {
-
-		if (clauseTree.size() == 0) return [query:[],params:[:]]
-
-		def headClause = clauseTree[0]
-		def remainingClauses = clauseTree.subList(1, clauseTree.size())
-
-		if (headClause instanceof List) {
-			return joinClauses(headClause, relativeTo, true)
+		if (lowerCaseOp == 'is null') {
+			return "${field.name} is null"
 		}
+		if (lowerCaseOp == 'is not null') {
+			return "${field.name} is not null"
+		}
+		return field.name+" "+(field.operation ?: '=')+' :value_'+prefix+'_'+field.name
+	}
 
-		List<Integer> current = relativeTo.collect{it}
-		if (push) current += 0 else current[-1]++
+	int clauseNum=0
+	def joinClauses(List clauseTree) {
 
-		String prevRel = relativeTo.join("_")
-		String rel = current.join("_")
 		List<String> query = []
 		Map params = [:]
 
-		def (table, List fields) = headClause.handler.joinOn(headClause)
-		def fieldStrings = fields.collect { f ->
-			'  table_'+rel+'.'+f.name+' '+(f.operation ?: '=')+' :value_'+rel+'_'+f.name
+		clauseTree.each { clause ->
+			clauseNum++
+			Map remaining
+
+			if (clause instanceof List) {
+				println("Listy head $clause")
+				remaining =  joinClauses(clause)
+				query[-1] += " AND (reference_type, reference_id) in (\n" + remaining.query.join("\nINTERSECT\n") + "\n)"
+				params += remaining.params
+			} else {
+
+				def fields = clause.handler.joinOn(clause)
+				def fieldStrings = fields.collect { f ->
+					fieldSnippet(clauseNum, f)
+				}
+
+				params += fields.collectEntries { f -> [('value_'+clauseNum+'_'+f.name): f.value] }
+				params += [('field_'+clauseNum): clause.handler.searchParamName]
+				params += [('type_'+clauseNum): clause.handler.resourceName]
+
+				query +=  """
+					SELECT fhir_type, fhir_id from resource_index_term where
+					fhir_type = :type_${clauseNum} AND
+					search_param = :field_${clauseNum} AND 
+				    ${fieldStrings.join(" AND \n") }
+				"""
+			}
 		}
-		params += fields.collectEntries { f -> [('value_'+rel+'_'+f.name): f.value] }
-		params += [('field_'+rel): headClause.handler.searchParamName]
 
-		query += 'JOIN resource_index_term table_'+rel+' ON (\n' +
-				'  table_'+rel+'.search_param = :field_'+rel+ ' AND \n' +
-				'  table_'+prevRel+'.'+(push ? 'reference':'fhir')+'_type = table_'+rel+'.fhir_type AND \n' +
-				'  table_'+prevRel+'.'+(push ? 'reference':'fhir')+'_id = table_'+rel+'.fhir_id AND \n' +
-				fieldStrings.join(' AND \n') +
-				'  )'
+		return [query: [query.join("\nINTERSECT")], params: params]
 
-		def remaining = joinClauses(remainingClauses, current, false)
-		query += remaining.query
-		params += remaining.params
-		return [query: query, params: params]
 	}
 
 	Map  sorts = [
@@ -337,18 +340,21 @@ class SearchIndexService{
 		return sorts[sort.split(":")[1]]
 	}
 
+	private fullOrderClause(List<Map> orderBy) {
+		(orderBy.collect{Map o ->
+			"""
+			(select ${o.sortDirection.fn}(${o.column}) from resource_index_term t where 
+				t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) ${o.sortDirection.dir}
+			"""
+		} + """
+			s.version_id asc
+		""").join(", ")
+	}
+
 	private sortClauses(params, cs){
+
 		Map indexerFor = indexerFor(params.resource)
-		cs.query = ["select max(table_0.version_id) as version_id, \n"+
-			"row_number() OVER \n"+
-			"(ORDER BY @fullOrderClause@) AS sortfield \n"+
-			"FROM resource_index_term table_0"] + cs.query
 
-		cs.params += [
-			type: params.resource
-		]
-
-		String typeClause = "WHERE table_0.fhir_type=:type "
 		List<Map> orderBy =  []
 
 		def _sort = [
@@ -357,64 +363,56 @@ class SearchIndexService{
 		]
 
 		def applySort = { Map sortDirection, String sortParam ->
-
-			def sortParamNum = orderBy.size()
-			def orderTable = "order_by_"+sortParamNum
-			SearchParamHandler indexer = indexerFor[sortParam]
 			orderBy +=  [
 				sortDirection: sortDirection,
-				column: orderTable+"."+indexer.orderByColumn
+				column: indexerFor[sortParam].orderByColumn
 			]
-
 			cs.params += [
-				("sort_param_"+sortParamNum): indexer.searchParamName
+				("sort_param_"+orderBy.size()): indexerFor[sortParam].searchParamName
 			]
-
-			cs.query += """JOIN resource_index_term ${orderTable} on (
-                    table_0.fhir_type=${orderTable}.fhir_type AND
-                    table_0.fhir_id=${orderTable}.fhir_id AND
-                    ${orderTable}.search_param = :sort_param_${sortParamNum}
-                    )"""
 		}
 
 		_sort.asc.each {it -> applySort(sorts.asc, it)}
 		_sort.desc.each {it -> applySort(sorts.desc, it)}
-		orderBy += [sortDirection: sorts.asc, column: "table_0.version_id"]
 
-		def fullOrderClause = orderBy.collect{Map o ->
-			"${o.sortDirection.fn}("+o.column+") ${o.sortDirection.dir}"
-		}.join(", ")
+		return [
 
-		cs.query += typeClause +
-				"GROUP BY table_0.fhir_type, table_0.fhir_id \n" +
-				"ORDER BY $fullOrderClause"
-
-		cs.fullOrderClause = fullOrderClause
-		return cs
+			query: ["""
+                        SELECT s.version_id, s.fhir_type, s.fhir_id, min(v.content) as content from resource_index_term s 
+                        join resource_version v on s.version_id=v.version_id
+                        where
+                        (s.fhir_type, s.fhir_id) in 
+                        ( ${cs.query[0]} )
+                        group by s.version_id, s.fhir_type, s.fhir_id
+                        ORDER BY  ${fullOrderClause(orderBy)}
+			"""],
+			params: cs.params
+		]
 	}
 
 	public BasicDBObject searchParamsToSql(Map params){
 
 		List<SearchedValue> clauseTree = queryToHandlerTree(params)
-		def cs = joinClauses(clauseTree)
-		def sorted = sortClauses(params, cs)
+		def clauses = joinClauses(clauseTree)
 
-		String q = sorted.query.join("\n")
-		q = sorted.query.join("\n")
-		q = q.replace("@fullOrderClause@", sorted.fullOrderClause)
-		q = "select v.version_id, v.fhir_type, v.fhir_id, v.content from resource_version v join (\n"+
-				q + "\n) ol \n" +
-				"on ol.version_id=v.version_id order by ol.sortfield"
-
-		String printQ = q
-		sorted.params.each {k,v->
-			println("Replacing $k $v")
-			printQ = printQ.replaceAll(Pattern.compile(':'+k+'\\s'), "'$v' ")
+		if (clauses.query[0] == "") {
+			clauses.query = ["select fhir_type, fhir_id from resource_index_term where fhir_type = :type"]
+			clauses.params = [type: params.resource]
 		}
-		println("replaced all")
-		println(printQ)
 
-		sorted.query = [q]
+		def sorted = sortClauses(params, clauses)
+		def unsorted = sortClauses([resource: params.resource], clauses)
+
+		def countQuery  = """
+					select count(distinct version_id) as count 
+					from resource_index_term c where (fhir_type, fhir_id) in (${clauses.query[0]})
+					"""
+
+		println(countQuery)
+
+		sorted.count = countQuery
+		sorted.content = sorted.query[0] 
+		sorted.unsorted = unsorted.query[0]
 
 		return sorted
 	}

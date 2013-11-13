@@ -19,7 +19,7 @@ public class StringSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	public void processMatchingXpaths(List<Node> nodes, List<IndexedValue> index) {
+	public void processMatchingXpaths(List<Node> nodes, org.w3c.dom.Document r, List<IndexedValue> index) {
 		String parts = nodes.collect {it.nodeValue}.join(" ")
 		index.add(value([
 			string: parts	
@@ -54,10 +54,9 @@ public class StringSearchParamHandler extends SearchParamHandler {
 	}
 
 	def joinOn(SearchedValue v) {
-		List ret = ["resource_index_string"]
 		List fields = []
 		if (v.values){
-			fields += [ name: 'string_value', value: v.values+'%', operation: 'LIKE']
+			fields += [ name: 'string_value', value: '%'+v.values+'%', operation: 'ILIKE']
 		}
 		if (v.modifier) {
 			fields += [
@@ -65,6 +64,6 @@ public class StringSearchParamHandler extends SearchParamHandler {
 				value: v.modifier	
 			]
 		}
-		return ret + [fields]
+		return fields
 	}
 }

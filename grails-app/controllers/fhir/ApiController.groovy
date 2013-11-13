@@ -1,5 +1,6 @@
 package fhir
 
+import java.util.regex.Pattern
 import javax.sql.DataSource
 
 import org.bson.types.ObjectId
@@ -18,8 +19,6 @@ import com.mongodb.BasicDBObject
 import fhir.searchParam.DateSearchParamHandler
 import fhir.searchParam.IndexedValue
 import grails.transaction.Transactional
-import groovy.sql.Sql
-
 
 class PagingCommand {
 	Integer total
@@ -37,26 +36,42 @@ class HistoryCommand {
 	Map clauses = [:]
 	def request
 	def searchIndexService
+	def fhirType
+	def fhirId
 
 	def getClauses() {
-		return request.authorization.restrictSearch(clauses)
+		Map params = [:]
+		List restrictions = []
+
+		if (_since != null) {
+			restrictions += "rest_date > :_since"
+			params += [_since:_since]
+		}
+		if (fhirType != null) {
+			restrictions += "fhir_type= :fhirType"
+			params += [fhirType:fhirType]
+		}
+		if (fhirId != null) {
+			restrictions += "fhir_id = :fhirId"
+			params += [fhirId:fhirId]
+		}
+		
+		def restrictionsString = ""
+		if (restrictions.size() > 0) 
+			restrictionsString = " WHERE " + restrictions.join(" AND ")
+
+        return [
+			count: "select count(*) from resource_version $restrictionsString",
+			content: "select * from resource_version $restrictionsString",
+			params:  params
+		]
 	}
-
+ 
 	def bind(params, request) {
-
 		this.request = request
-		this._since = params._since ?  DateSearchParamHandler.precisionInterval(params._since).start.toDate() : null
-
-		if (_since) {
-			clauses['received'] = [ $gte: _since ]
-		}
-		if (params.resource) {
-			String resource = params.resource
-			clauses['fhirType'] = resource
-		}
-		if (params.id) {
-			clauses['fhirId'] =  params.id
-		}
+		this._since = params._since ? new java.sql.Date(DateSearchParamHandler.precisionInterval(params._since).start.toDate().time) : null
+		this.fhirType = params.resource ?: null
+		this.fhirId = params.id ?: null
 	}
 }
 
@@ -87,6 +102,8 @@ class ApiController {
 	static scope = "singleton"
 	def searchIndexService
 	def authorizationService
+	SqlService sqlService
+
 	BundleService bundleService
 	UrlService urlService
 	JsonParser jsonParser= new JsonParser()
@@ -118,16 +135,13 @@ class ApiController {
 		}
 
 		bundleService.validateFeed(feed)
-
-
 		feed = bundleService.assignURIs(feed)
-
-		feed.entryList.each { AtomEntry e ->
+		
+		feed.entryList.eachWithIndex { AtomEntry e, int i->
 			String r = e.resource.class.toString().split('\\.')[-1]
 			updateService(e.resource, r, e.id.split('/')[1])
 		}
-		
-		sessionFactory.currentSession.flush()
+
 		request.resourceToRender =  feed
 	}
 
@@ -147,7 +161,7 @@ class ApiController {
 				.find(q, [latest:-1])
 				.collect {it.latest}
 
-		def cursor = ResourceHistory.collection
+		def cursor = ResourceVersion.collection
 				.find([_id: [$in:ids]])
 				.sort([received:-1])
 				.limit(1)
@@ -162,7 +176,7 @@ class ApiController {
 				.decodeFhirJson()
 
 		def location = doc.locationSimple =~ /binary\/(.*)/
-		request.resourceToRender = ResourceHistory.getLatestByFhirId(location[0][1])
+		request.resourceToRender = ResourceVersion.getLatestByFhirId(location[0][1])
 	}
 
 	def create() {
@@ -189,35 +203,46 @@ class ApiController {
 
 		String versionUrl;
 
-		def indexTerms = searchIndexService.indexResource(r);
-		println("New json")
-		println(rjson.toString())
 
 		def h = new ResourceVersion(
 				fhir_id: fhirId,
 				fhir_type: fhirType,
 				rest_operation: 'POST',
 				content: rjson.toString())
-		log.debug("Made rv: $h with $h.fhir_id $h.version_id")
 		h.save(failOnError: true)
-		log.debug("now rv: $h with $h.fhir_id $h.version_id")
 
-		indexTerms.collect { IndexedValue v ->
-			v.handler.createIndex(v, h.version_id, fhirId, fhirType)
-		}.each { ResourceIndexTerm it ->
-			log.debug("Got an unsaved idx: $it")
-			it.save(failOnError: true)
-			log.debug("And saved it: $it")
-		}
+        ResourceCompartment.where { fhir_id == fhirId && fhir_type==fhirType}.deleteAll()
+		def c = new ResourceCompartment(
+			fhir_id: fhirId,
+			fhir_type: fhirType,
+			compartments: compartments	
+		).save(failOnError: false)
 		
+		insertIndexTerms(h.version_id, fhirType, fhirId, r)
+
 		versionUrl = urlService.resourceVersionLink(resourceName, fhirId, h.version_id)
 		log.debug("Created version: " + versionUrl)
+	
 		response.setHeader('Content-Location', versionUrl)
 		response.setHeader('Location', versionUrl)
 		response.setStatus(201)
 		request.resourceToRender = r
 	}
+	
+	def insertIndexTerms(versionId, String fhirType, String fhirId, Resource r) {
+		def indexTerms = searchIndexService.indexResource(r);
 
+		indexTerms.collect { IndexedValue val ->
+			val.handler.createIndex(val, versionId, fhirId, fhirType)
+		}.each { ResourceIndexTerm it ->
+			it.save(failOnError: true)
+		}
+	
+		r.contained.each { Resource it ->
+			insertIndexTerms(0, it.class.name.split("\\.")[-1], fhirId+"_contained_"+it.xmlId, it)
+		}
+    }
+		
 	def update() {
 		def body = request.reader.text
 		Resource r;
@@ -239,7 +264,7 @@ class ApiController {
 
 
 	/**
-	 * @param r 		Resource or ResourceHistory to inspect for compartments
+	 * @param r 		Resource or ResourceVersion to inspect for compartments
 	 * @param fhirId	ID of the Resource (only required if it's a Patient resource)	
 	 * @return			List of all compartments needed
 	 * @throws			AuthorizatinException if user doesn't have access to _all_ compartments
@@ -264,7 +289,7 @@ class ApiController {
 		return compartments
 	}
 
-	private def deleteService(ResourceHistory h, String fhirId) {
+	private def deleteService(ResourceVersion h, String fhirId) {
 		List<String> compartments = getAndAuthorizeCompartments(h, fhirId);
 		log.debug("Compartments: $compartments")
 		String fhirType = h.fhirType
@@ -279,7 +304,7 @@ class ApiController {
 		]
 		log.debug("Deleting $dParams")
 
-		ResourceHistory deleteEntry = new ResourceHistory(dParams).save()
+		ResourceVersion deleteEntry = new ResourceVersion(dParams).save()
 
 		log.debug("Deleted $deleteEntry")
 
@@ -298,7 +323,7 @@ class ApiController {
 		// TODO DRY this logic with 'getOr404'... or pre-action
 		// functions that handle this logic generically across
 		// GET, PUT, DELETE...
-		ResourceHistory h = ResourceHistory.getLatestByFhirId(fhirId)
+		ResourceVersion h = ResourceVersion.getLatestByFhirId(fhirId)
 		if (!h){
 			response.status = 404
 			return
@@ -307,7 +332,7 @@ class ApiController {
 		deleteService(h, fhirId)
 	}
 
-	private void readService(ResourceHistory h) {
+	private void readService(ResourceVersion h) {
 
 		if (!h){
 			response.status = 404
@@ -324,12 +349,12 @@ class ApiController {
 	}
 
 	def read() {
-		ResourceHistory h = ResourceHistory.getLatestByFhirId(params.id)
+		ResourceVersion h = ResourceVersion.getLatestByFhirId(params.id)
 		readService(h)
 	}
 
 	def vread() {
-		ResourceHistory h = ResourceHistory.getFhirVersion(params.id, params.vid)
+		ResourceVersion h = ResourceVersion.getFhirVersion(params.id, params.vid)
 		readService(h)
 	}
 
@@ -343,35 +368,34 @@ class ApiController {
 		query.bind(params, request)
 		paging.bind(params, request)
 
-		def clauses = searchIndexService.searchParamsToSql(params)
+		def sqlQuery = searchIndexService.searchParamsToSql(params)
 		//log.debug(query.clauses.toString())
 		time("precount $paging.total")
 		
-		Sql sql = Sql.newInstance(sessionFactory.currentSession.connection())
-		def rawSqlQuery = clauses.query.join('\n') + " limit 50"
-		def entries = sql.rows(rawSqlQuery, clauses.params).collectEntries {
+
+	
+		def rawSqlQuery = sqlQuery.content + 
+						  " limit ${paging._count}" + 
+						  " offset ${paging._skip}"
+						  
+		def t= rawSqlQuery
+		sqlQuery.params.each {k,v->
+			t = t.replaceAll(":"+k+"\\s", "'$v' ")
+		}
+		log.debug("QUERY: $t")
+
+		t= sqlQuery.count
+		sqlQuery.params.each {k,v->
+			t = t.replaceAll(":"+k+"\\s", "'$v' ")
+		}
+		log.debug("COUNT: $t")
+
+		paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
+		def entries = sqlService.rows(rawSqlQuery, sqlQuery.params).collectEntries {
 			[(it.fhir_id): it.content.decodeFhirJson()]
 		}
 		time("got entries")
-/*
-		String resource = searchIndexService.capitalizedModelName[params.resource]
-		def cursor = ResourceIndex.forResource(resource).find(query.clauses)
-		if (params.sort) {
-			cursor = cursor.sort(new BasicDBObject([(params.sort):1]))
-		}
 
-		paging.total = cursor.count()
-		time("Counted $paging.total tosort ${params.sort}")
-
-		cursor = cursor.limit(paging._count)
-				.skip(paging._skip)
-
-		def entriesForFeed = ResourceHistory.getEntriesById(cursor.collect {
-			it.latest
-		})
-
-		time("Fetched content of size ${entriesForFeed.size()}")
-*/
 		AtomFeed feed = bundleService.atomFeed([
 			entries: entries,
 			paging: paging,
@@ -382,30 +406,32 @@ class ApiController {
 		request.resourceToRender = feed
 	}
 
-	def history(PagingCommand paging, HistoryCommand query) {
-		query.bind(params, request)
+	def history(PagingCommand paging, HistoryCommand history) {
+
+		history.bind(params, request)
 		paging.bind(params, request)
+		
+		def clauses = history.clauses
 
-		log.debug("history query: " + query.clauses.toString())
+		log.debug("history query: " + clauses.count)
 
-		def cursor = ResourceHistory.collection
-				.find(query.clauses)
-				.sort(received: 1)
-
-		paging.total = cursor.count()
+		println sqlService.rows(clauses.count, clauses.params)
+		paging.total = sqlService.rows(clauses.count, clauses.params)[0].count
 		time("Counted $paging.total tosort ${params.sort}")
 
-		cursor = cursor
-				.limit(paging._count)
-				.skip(paging._skip)
+		def rawSqlQuery = clauses.content + 
+						  " limit ${paging._count}" + 
+						  " offset ${paging._skip}"
 
+		def entries = sqlService.rows(rawSqlQuery, clauses.params).collectEntries {
+			[(it.fhir_id): it.content.decodeFhirJson()]
+		}
+		time("got entries")
 
-		def entriesForFeed = ResourceHistory.zipIdsWithEntries(cursor)
-
-		time("Fetched content of size ${entriesForFeed.size()}")
+		time("Fetched content of size ${entries.size()}")
 
 		AtomFeed feed = bundleService.atomFeed([
-			entries: entriesForFeed,
+			entries: entries,
 			paging: paging,
 			feedId: fullRequestURI
 		])

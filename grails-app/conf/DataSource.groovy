@@ -5,8 +5,7 @@
 dataSource {
 	pooled = true
     driverClassName = "org.postgresql.Driver"
-    dialect = org.hibernate.dialect.PostgresDialect
-	
+    dialect = "net.kaleidos.hibernate.PostgresqlExtensionsDialect"
     url = "jdbc:postgresql://localhost/fhir"
     username = "fhir"
     password = "fhir"

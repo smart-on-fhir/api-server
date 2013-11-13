@@ -46,8 +46,11 @@ grails.project.dependency.resolution = {
     plugins {
         compile ":rest-client-builder:1.0.2"
         build ":tomcat:7.0.42"
-        runtime ":hibernate4:4.1.11.2"
+        //runtime ":hibernate4:4.1.11.2"
+		compile ":hibernate:3.6.10.3"
         compile ":standalone:1.2.3"
         runtime ":resources:1.2.1"
+
+        compile (":postgresql-extensions:0.5.1") {excludes 'hibernate'}
     }
 }

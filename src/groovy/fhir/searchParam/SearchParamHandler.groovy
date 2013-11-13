@@ -36,9 +36,11 @@ public abstract class SearchParamHandler {
 	SearchParamType fieldType;
 	String xpath;
 	String orderByColumn;
+	String resourceName;
 
 	public static SearchParamHandler create(String searchParamName,
 			SearchParamType fieldType,
+			String resourceName,
 			String xpath) {
 
 		String ft = fieldType.toString().capitalize();
@@ -53,7 +55,8 @@ public abstract class SearchParamHandler {
 		SearchParamHandler ret =  c.newInstance(
 				searchParamName: searchParamName,
 				fieldType: fieldType,
-				xpath: xpath
+				xpath: xpath,
+				resourceName: resourceName
 				);
 		ret.init();
 		return ret;
@@ -68,7 +71,7 @@ public abstract class SearchParamHandler {
 
 	protected void init(){}
 
-	protected abstract void processMatchingXpaths(List<Node> nodes, List<IndexedValue> index);
+	protected abstract void processMatchingXpaths(List<Node> nodes, org.w3c.dom.Document r, List<IndexedValue> index);
 
 	protected abstract String paramXpath()
 
@@ -102,7 +105,7 @@ public abstract class SearchParamHandler {
 	public List<IndexedValue> execute(org.w3c.dom.Document r) throws Exception {
 		List<IndexedValue> index = []
 		List<Node> nodes = query(paramXpath(), r)
-		processMatchingXpaths(nodes, index);
+		processMatchingXpaths(nodes, r, index);
 		return index;
 	}
 

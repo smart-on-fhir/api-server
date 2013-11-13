@@ -33,7 +33,7 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 	}
 
 	
-	void processMatchingXpaths(List<Node> tokens, List<IndexedValue> index){
+	void processMatchingXpaths(List<Node> tokens, org.w3c.dom.Document r, List<IndexedValue> index){
 		
 		for (Node n : tokens) {
 
@@ -80,6 +80,37 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 		ret.token_text = indexedValue.dbFields.text
 		return ret
 	}
+	
+	private List splitToken(String t) {
+		List v = t.split("\\|")
+		if (v.size() == 1) {
+			if (t.startsWith("\\|")) return [null, v[0]]
+			return ["anyns", v[0]]
+		}
+		return [v[0], v[1]]
+	}
+
+	@Override
+	def joinOn(SearchedValue v) {
+		def (namespace, code) = splitToken(v.values)
+		List fields = []
+		
+		if (v.modifier == null){
+			if (namespace == null) { 
+				fields += [ name: 'token_namespace', operation: 'is null' ]
+			}
+			if (!(namespace in [null, "anyns"])) {
+				 fields += [ name: 'token_namespace', value: namespace ]
+			}
+			fields += [ name: 'token_code', value: code ]
+		}
+
+		if (v.modifier == "text"){
+			fields += [ name: 'token_text', operation:'ILIKE', value: '%'+v.values+'%' ]
+		}
+			
+		return fields
+	}
 
 	@Override
 	BasicDBObject searchClause(Map searchedFor){
@@ -87,18 +118,6 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 		// no modifier and ":text" on a code --
 		// (only :text should include display fields)
 		// but we're treating them the same here
-		if (searchedFor.modifier in [null, "code"]){
-			return [(searchParamName+':code'): searchedFor.value]
-		}
-
-		if (searchedFor.modifier == "text"){
-			return [(searchParamName+':text'): [$regex: searchedFor.value, $options: 'i']]
-		}
-			
-		if (searchedFor.modifier == "anyns"){
-			return [(searchParamName+':code'): [$regex: '/'+searchedFor.value+'$']]
-		}
-
-		throw new RuntimeException("Unknown modifier: " + searchedFor)
+	throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
 }

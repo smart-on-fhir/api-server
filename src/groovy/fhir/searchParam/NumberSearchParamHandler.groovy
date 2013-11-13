@@ -20,7 +20,7 @@ public class NumberSearchParamHandler extends SearchParamHandler {
 	}
 
 	@Override
-	public void processMatchingXpaths(List<Node> numberNodes, List<IndexedValue> index) {
+	public void processMatchingXpaths(List<Node> numberNodes, org.w3c.dom.Document r, List<IndexedValue> index) {
 		
 		for (Node n : numberNodes) {
 
