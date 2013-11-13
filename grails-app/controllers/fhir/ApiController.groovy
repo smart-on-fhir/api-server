@@ -38,6 +38,8 @@ class HistoryCommand {
 	def searchIndexService
 	def fhirType
 	def fhirId
+	
+	//TODO restrict history by compartment
 
 	def getClauses() {
 		Map params = [:]
@@ -55,14 +57,20 @@ class HistoryCommand {
 			restrictions += "fhir_id = :fhirId"
 			params += [fhirId:fhirId]
 		}
+		if (request.authorization.accessIsRestricted) {
+			restrictions += " exists (select fhir_type, fhir_id from resource_compartment c " + 
+							" where v.fhir_type=c.fhir_type and v.fhir_id=c.fhir_id and " +
+							" compartments &&   ${request.authorization.compartmentsSql} )"
+			params += [fhirId:fhirId]
+		}
 		
 		def restrictionsString = ""
 		if (restrictions.size() > 0) 
 			restrictionsString = " WHERE " + restrictions.join(" AND ")
 
         return [
-			count: "select count(*) from resource_version $restrictionsString",
-			content: "select * from resource_version $restrictionsString",
+			count: "select count(*) from resource_version v $restrictionsString",
+			content: "select * from resource_version v $restrictionsString",
 			params:  params
 		]
 	}
@@ -189,6 +197,7 @@ class ApiController {
 
 	private def updateService(Resource r, String resourceName, String fhirId) {
 
+
 		def compartments = getAndAuthorizeCompartments(r, fhirId)
 		log.debug("Compartments: $compartments")
 
@@ -206,7 +215,6 @@ class ApiController {
 
 		String versionUrl;
 
-
 		def h = new ResourceVersion(
 				fhir_id: fhirId,
 				fhir_type: fhirType,
@@ -214,14 +222,16 @@ class ApiController {
 				content: rjson.toString())
 		h.save(failOnError: true)
 
-        ResourceCompartment.where { fhir_id == fhirId && fhir_type==fhirType}.deleteAll()
-		def c = new ResourceCompartment(
-			fhir_id: fhirId,
-			fhir_type: fhirType,
-			compartments: compartments	
-		).save(failOnError: false)
-		
-		insertIndexTerms(h.version_id, fhirType, fhirId, r)
+		def inserts = []
+
+		inserts += "delete from resource_compartment where fhir_id= $fhirId and fhir_type= $fhirType;"
+		//inserts += "insert into resource_compartment (fhir_id, fhir_type, compartments) values ($fhirType, $fhirId, '{" +compartments.join(",")+"}')"
+
+		insertIndexTerms(inserts, h.version_id, fhirType, fhirId, r)
+		println inserts.join(";\n")
+		println "GOT Executed"
+		println sqlService.sql.execute(inserts.join(";"))
+
 
 		versionUrl = urlService.resourceVersionLink(resourceName, fhirId, h.version_id)
 		log.debug("Created version: " + versionUrl)
@@ -232,18 +242,20 @@ class ApiController {
 		request.resourceToRender = r
 	}
 	
-	def insertIndexTerms(versionId, String fhirType, String fhirId, Resource r) {
+	def insertIndexTerms(List inserts, versionId, String fhirType, String fhirId, Resource r) {
 		def indexTerms = searchIndexService.indexResource(r);
 
 		indexTerms.collect { IndexedValue val ->
 			val.handler.createIndex(val, versionId, fhirId, fhirType)
 		}.each { ResourceIndexTerm it ->
-			it.save(failOnError: true)
+			//inserts += " insert into resource_index_term (version_id, class, fhir_type, fhir_id, search_param) values ('1','fakeclass', 'Test','123', 'testparm'); "
+			//it.save(failOnError: true)
 		}
 	
 		r.contained.each { Resource it ->
-			insertIndexTerms(0, it.class.name.split("\\.")[-1], fhirId+"_contained_"+it.xmlId, it)
+			insertIndexTerms(inserts, 0, it.class.name.split("\\.")[-1], fhirId+"_contained_"+it.xmlId, it)
 		}
+		return
     }
 		
 	def update() {
@@ -276,10 +288,8 @@ class ApiController {
 		def compartments = params.list('compartments').collect {it}
 		log.debug("Authorizing comparemtns start from: $compartments")
 
-		if ("compartments" in r.properties){
-			compartments.addAll(r.compartments)
-		} else if (r instanceof Patient) {
-			compartments.add("patient/$fhirId")
+		 if (r instanceof Patient) {
+			compartments.add("Patient/$fhirId")
 		} else if ("subject" in r.properties) {
 				compartments.add(r.subject.referenceSimple)
 		} else if ("patient" in r.properties) {
@@ -342,7 +352,7 @@ class ApiController {
 			return
 		}
 
-		if (h.action == 'DELETE'){
+		if (h.rest_operation == 'DELETE'){
 			throw new ResourceDeletedException("Resource ${h.fhirId} has been deleted. Try fetching its history.")
 		}
 
@@ -352,7 +362,7 @@ class ApiController {
 	}
 
 	def read() {
-		ResourceVersion h = ResourceVersion.getLatestByFhirId(params.id)
+		ResourceVersion h = sqlService.getLatestByFhirId(params.resource, params.id)
 		readService(h)
 	}
 
@@ -365,42 +375,22 @@ class ApiController {
 		log.debug("T $label: " + (new Date().getTime() - request.t0))
 	}
 
-	def search(PagingCommand paging, SearchCommand query) {
+	def search(SearchCommand query) {
 		request.t0 = new Date().time
-
 		query.bind(params, request)
-		paging.bind(params, request)
 
 		def sqlQuery = query.clauses
-		//searchIndexService.searchParamsToSql(params)
-		//log.debug(query.clauses.toString())
-		time("precount $paging.total")
-	
-		def rawSqlQuery = sqlQuery.content + 
-						  " limit ${paging._count}" + 
-						  " offset ${paging._skip}"
-						  
-		def t= rawSqlQuery
-		sqlQuery.params.each {k,v->
-			t = t.replaceAll(":"+k+"\\s", "'$v' ")
-		}
-		log.debug("QUERY: $t")
-
-		t= sqlQuery.count
-		sqlQuery.params.each {k,v->
-			t = t.replaceAll(":"+k+"\\s", "'$v' ")
-		}
-		log.debug("COUNT: $t")
-
-		paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
-		def entries = sqlService.rows(rawSqlQuery, sqlQuery.params).collectEntries {
+		time("precount")
+					  
+		query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
+		def entries = sqlService.rows(sqlQuery.content, sqlQuery.params).collectEntries {
 			[(it.fhir_id): it.content.decodeFhirJson()]
 		}
 		time("got entries")
 
 		AtomFeed feed = bundleService.atomFeed([
 			entries: entries,
-			paging: paging,
+			paging: query.paging,
 			feedId: fullRequestURI
 		])
 

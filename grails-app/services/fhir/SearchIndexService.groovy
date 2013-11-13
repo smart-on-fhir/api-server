@@ -296,7 +296,6 @@ class SearchIndexService{
 			Map remaining
 
 			if (clause instanceof List) {
-				println("Listy head $clause")
 				remaining =  joinClauses(clause, null, a)
 				query[-1] += " AND (reference_type, reference_id) in (\n" + remaining.query.join("\nINTERSECT\n") + "\n)"
 				params += remaining.params
@@ -318,19 +317,21 @@ class SearchIndexService{
 				    """${fieldStrings.join(" AND \n") } """
 			}
 		}
-		
+
 		if (query.size() == 0) {
 			clauseNum++;
-			query  += "select fhir_type, fhir_id from resource_index_term where fhir_type = :type_${clauseNum}"
-			params += [("type_${clauseNum}"): resourceName]
+			query  += " select fhir_type, fhir_id from resource_index_term where fhir_type = :type_${clauseNum} "
+			params += [('type_'+clauseNum): resourceName]
 		}
 		
-		if (a.accessIsRestricted()) {
+		if (a.accessIsRestricted && resourceName != null) {
+			//TODO remove resourceName != null restriction to enforce compartment permissions on joined resources
 			//TODO interpolate arrays into queries to prevent SQL injection
-            //query  += "select fhir_type, fhir_id from resource_compartment where compartments &&  '{"+a.compartments.join("','")+"}'"
+            query  += "select fhir_type, fhir_id from resource_compartment where compartments  &&  ${a.compartmentsSql}"
 		}
 
 		return [query: [query.join("\nINTERSECT\n")], params: params]
+
 	}
 
 	Map  sorts = [
@@ -359,6 +360,35 @@ class SearchIndexService{
 		""").join(", ")
 	}
 	
+	
+	/*
+	 * 
+More efficient: row_number() and join to content 12ms instead of 80
+
+select v.content, v.fhir_id, v.fhir_Type, v.version_id, sortv from resource_Version v join ( SELECT s.version_id,
+row_number() over (order by
+(select min(string_value) from resource_index_term t where 
+				t.search_param='family' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) asc,
+				
+(select min(string_value) from resource_index_term t where 
+				t.search_param='given' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) desc, s.version_id asc) as sortv
+			
+from resource_index_term s 
+                        where
+                        (s.fhir_type, s.fhir_id) in 
+                        ( select fhir_type, fhir_id from resource_index_term where fhir_type = 'Patient' )
+                        group by s.version_id, s.fhir_type, s.fhir_id
+                        ORDER BY  
+			(select min(string_value) from resource_index_term t where 
+				t.search_param='family' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) asc
+			, 
+			(select min(string_value) from resource_index_term t where 
+				t.search_param='given' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) desc
+			, 
+			s.version_id asc
+			 limit 5 offset 0) o on v.version_id=o.version_id order by sortv
+	 */
+
 	private sortClauses(params, cs){
 
 		Map indexerFor = indexerFor(params.resource)
@@ -390,6 +420,7 @@ class SearchIndexService{
 			query: ["""
                         select v.content, v.fhir_id, v.fhir_Type, v.version_id from resource_Version v join ( SELECT s.version_id,
                         row_number() over (ORDER BY ${fullOrderClause(orderBy)} ) as sortv
+                                                
                         from resource_index_term s 
                         where
                         (s.fhir_type, s.fhir_id) in 
@@ -402,10 +433,20 @@ class SearchIndexService{
 		]
 	}
 
-	public BasicDBObject searchParamsToSql(Map params, Authorization a, PagingCommand paging){
+	public BasicDBObject searchParamsToSql(Map params, Authorization a, paging){
 
 		List<SearchedValue> clauseTree = queryToHandlerTree(params)
 		def clauses = joinClauses(clauseTree, params.resource, a)
+		
+
+		if (clauses.query[0] == "") {
+			println "RESCUE empty query"
+			clauses.query = ["select fhir_type, fhir_id from resource_index_term where fhir_type = :type"]
+			clauses.params = [type: params.resource]
+		}
+		
+		println "CLAUSE Q " + clauses.query + "||"
+		println "CLAUSE P " + clauses.params
 
 		def sorted = sortClauses(params, clauses)
 		def unsorted = sortClauses([resource: params.resource], clauses)
@@ -414,12 +455,12 @@ class SearchIndexService{
 					select count(distinct version_id) as count 
 					from resource_index_term c where (fhir_type, fhir_id) in (${clauses.query[0]})
 					"""
-
+	
 		println(countQuery)
 
 		sorted.count = countQuery
-		sorted.content = sorted.query[0] 
-		sorted.unsorted = unsorted.query[0]
+		sorted.content = sorted.query[0] + " limit ${paging._count}" + " offset ${paging._skip}"
+		sorted.uncontent = unsorted.query[0] + " limit ${paging._count}" + " offset ${paging._skip}"
 
 		return sorted
 	}

@@ -139,13 +139,17 @@ class AuthorizationService{
 					throw new AuthorizationException("Unauthorized:  you only have access to " + compartments + "not $p")
 		}
 
+        String getCompartmentsSql() {
+			return "'{"+compartments.join("','")+"}'"
+        }
+		
 		def restrictSearch(clauses) {
 			if (isAdmin) return clauses
 			def extra = new BasicDBObject([compartments: [$in: compartments]])
 			return SearchParamHandler.andList([clauses, extra])
 		}
 
-		boolean accessIsRestricted() {
+		boolean getAccessIsRestricted() {
 			//if (isAdmin) return false
 			return true
 		}

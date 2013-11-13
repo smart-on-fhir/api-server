@@ -1,0 +1,1 @@
+ALTER TABLE resource_index_term ALTER id SET DEFAULT NEXTVAL('seq_resource_index_term');

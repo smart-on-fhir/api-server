@@ -11,6 +11,7 @@ class ResourceVersion {
 
 	String content
 
+
 	static mapping = {
 		content type: 'text'
 		table 'resource_version'
