@@ -30,4 +30,14 @@ public class IdSearchParamHandler extends SearchParamHandler {
 		throw new Exception("Should not use Id Search Parameter to index a resource");
 	}
 
+	def joinOn(SearchedValue v) {
+		println v.modifier
+		List fields = []
+		fields += [
+			name: 'fhir_id',
+			value: v.values	
+		]
+		return fields
+	}
+
 }

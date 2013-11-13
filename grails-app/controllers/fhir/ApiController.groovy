@@ -79,15 +79,18 @@ class SearchCommand {
 	def params
 	def request
 	def searchIndexService
+	PagingCommand paging
 
 	def getClauses() {
-		def clauses = searchIndexService.searchParamsToSql(params)
-		return request.authorization.restrictSearch(clauses)
+		def clauses = searchIndexService.searchParamsToSql(params, request.authorization, paging)
+		return clauses
 	}
 
 	def bind(params, request) {
 		this.params = params
 		this.request = request
+		this.paging = new PagingCommand()
+		this.paging.bind(params, request)
 	}
 }
 
@@ -368,11 +371,10 @@ class ApiController {
 		query.bind(params, request)
 		paging.bind(params, request)
 
-		def sqlQuery = searchIndexService.searchParamsToSql(params)
+		def sqlQuery = query.clauses
+		//searchIndexService.searchParamsToSql(params)
 		//log.debug(query.clauses.toString())
 		time("precount $paging.total")
-		
-
 	
 		def rawSqlQuery = sqlQuery.content + 
 						  " limit ${paging._count}" + 

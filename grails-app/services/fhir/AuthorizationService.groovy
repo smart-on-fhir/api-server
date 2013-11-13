@@ -120,7 +120,7 @@ class AuthorizationService{
 		Date expiration
 		String username
 		String app
-		List<String> compartments
+		List<String> compartments = ["Patient/52839115575e724386134bc7"]
 
 		boolean allows(p) {
 			// String operation, Class resource, List<String> compartmentsToCheck
@@ -143,6 +143,11 @@ class AuthorizationService{
 			if (isAdmin) return clauses
 			def extra = new BasicDBObject([compartments: [$in: compartments]])
 			return SearchParamHandler.andList([clauses, extra])
+		}
+
+		boolean accessIsRestricted() {
+			//if (isAdmin) return false
+			return true
 		}
 
 	}

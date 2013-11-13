@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableMap
 import com.mongodb.BasicDBObject
 import com.mongodb.DBObject
 
+import fhir.AuthorizationService.Authorization
 import fhir.searchParam.IdSearchParamHandler
 import fhir.searchParam.IndexedValue
 import fhir.searchParam.SearchParamHandler
@@ -157,10 +158,9 @@ class SearchIndexService{
 						searchParam.typeSimple,
 						resource.typeSimple,
 						xpathsMissingFromFhir[key] ?:searchParam.xpathSimple);
-			}
+			} + new IdSearchParamHandler(searchParamName: "_id", fieldType: SearchParamType.token, xpath: null, resourceName: resource.typeSimple);
 		}
 
-		idIndexer = new IdSearchParamHandler(searchParamName: "_id", fieldType: SearchParamType.token, xpath: null);
 	}
 
 	public static org.w3c.dom.Document fromResource(Resource r) throws IOException, Exception {
@@ -181,9 +181,9 @@ class SearchIndexService{
 		}
 
 		org.w3c.dom.Document rdoc = fromResource(rx)
-		def ret = indexers.collectMany {
-			SearchParamHandler h -> h.execute(rdoc)
-		}
+		def ret = indexers
+				.findAll{ ! (it instanceof IdSearchParamHandler )}
+				.collectMany { SearchParamHandler h -> h.execute(rdoc) }
 
 		log.info("Logged")
 		log.info(ret.each { IndexedValue p ->
@@ -200,7 +200,6 @@ class SearchIndexService{
 	Map<String,SearchParamHandler> indexerFor(String resourceName){
 		def rc = classForModel(resourceName)
 		def indexers = indexersByResource[rc] ?: []
-		indexers = indexers + idIndexer;
 
 		// Just the indexers for the current resource type
 		// keyed on the searchParam name (e.g. "date", "subject")
@@ -287,7 +286,7 @@ class SearchIndexService{
 	}
 
 	int clauseNum=0
-	def joinClauses(List clauseTree) {
+	def joinClauses(List clauseTree, String resourceName, Authorization a) {
 
 		List<String> query = []
 		Map params = [:]
@@ -298,11 +297,10 @@ class SearchIndexService{
 
 			if (clause instanceof List) {
 				println("Listy head $clause")
-				remaining =  joinClauses(clause)
+				remaining =  joinClauses(clause, null, a)
 				query[-1] += " AND (reference_type, reference_id) in (\n" + remaining.query.join("\nINTERSECT\n") + "\n)"
 				params += remaining.params
 			} else {
-
 				def fields = clause.handler.joinOn(clause)
 				def fieldStrings = fields.collect { f ->
 					fieldSnippet(clauseNum, f)
@@ -312,17 +310,27 @@ class SearchIndexService{
 				params += [('field_'+clauseNum): clause.handler.searchParamName]
 				params += [('type_'+clauseNum): clause.handler.resourceName]
 
-				query +=  """
-					SELECT fhir_type, fhir_id from resource_index_term where
-					fhir_type = :type_${clauseNum} AND
+				query +=  " SELECT fhir_type, fhir_id from resource_index_term where " + 
+					"fhir_type = :type_${clauseNum} AND " + 
+					(clause.handler instanceof IdSearchParamHandler ? "" : """
 					search_param = :field_${clauseNum} AND 
-				    ${fieldStrings.join(" AND \n") }
-				"""
+					""") + 
+				    """${fieldStrings.join(" AND \n") } """
 			}
 		}
+		
+		if (query.size() == 0) {
+			clauseNum++;
+			query  += "select fhir_type, fhir_id from resource_index_term where fhir_type = :type_${clauseNum}"
+			params += [("type_${clauseNum}"): resourceName]
+		}
+		
+		if (a.accessIsRestricted()) {
+			//TODO interpolate arrays into queries to prevent SQL injection
+            //query  += "select fhir_type, fhir_id from resource_compartment where compartments &&  '{"+a.compartments.join("','")+"}'"
+		}
 
-		return [query: [query.join("\nINTERSECT")], params: params]
-
+		return [query: [query.join("\nINTERSECT\n")], params: params]
 	}
 
 	Map  sorts = [
@@ -344,13 +352,13 @@ class SearchIndexService{
 		(orderBy.collect{Map o ->
 			"""
 			(select ${o.sortDirection.fn}(${o.column}) from resource_index_term t where 
-				t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) ${o.sortDirection.dir}
+				t.search_param=:${o.searchParamName} and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) ${o.sortDirection.dir}
 			"""
 		} + """
 			s.version_id asc
 		""").join(", ")
 	}
-
+	
 	private sortClauses(params, cs){
 
 		Map indexerFor = indexerFor(params.resource)
@@ -363,12 +371,14 @@ class SearchIndexService{
 		]
 
 		def applySort = { Map sortDirection, String sortParam ->
+			String sp = "sort_param_"+orderBy.size()
 			orderBy +=  [
 				sortDirection: sortDirection,
-				column: indexerFor[sortParam].orderByColumn
+				column: indexerFor[sortParam].orderByColumn,
+				searchParamName:  sp
 			]
 			cs.params += [
-				("sort_param_"+orderBy.size()): indexerFor[sortParam].searchParamName
+				(sp): indexerFor[sortParam].searchParamName
 			]
 		}
 
@@ -378,27 +388,24 @@ class SearchIndexService{
 		return [
 
 			query: ["""
-                        SELECT s.version_id, s.fhir_type, s.fhir_id, min(v.content) as content from resource_index_term s 
-                        join resource_version v on s.version_id=v.version_id
+                        select v.content, v.fhir_id, v.fhir_Type, v.version_id from resource_Version v join ( SELECT s.version_id,
+                        row_number() over (ORDER BY ${fullOrderClause(orderBy)} ) as sortv
+                        from resource_index_term s 
                         where
                         (s.fhir_type, s.fhir_id) in 
                         ( ${cs.query[0]} )
                         group by s.version_id, s.fhir_type, s.fhir_id
-                        ORDER BY  ${fullOrderClause(orderBy)}
+                        ORDER BY  ${fullOrderClause(orderBy)} 
+                        ) o on v.version_id=o.version_id order by sortv
 			"""],
 			params: cs.params
 		]
 	}
 
-	public BasicDBObject searchParamsToSql(Map params){
+	public BasicDBObject searchParamsToSql(Map params, Authorization a, PagingCommand paging){
 
 		List<SearchedValue> clauseTree = queryToHandlerTree(params)
-		def clauses = joinClauses(clauseTree)
-
-		if (clauses.query[0] == "") {
-			clauses.query = ["select fhir_type, fhir_id from resource_index_term where fhir_type = :type"]
-			clauses.params = [type: params.resource]
-		}
+		def clauses = joinClauses(clauseTree, params.resource, a)
 
 		def sorted = sortClauses(params, clauses)
 		def unsorted = sortClauses([resource: params.resource], clauses)
