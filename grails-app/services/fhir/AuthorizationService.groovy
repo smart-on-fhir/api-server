@@ -120,7 +120,7 @@ class AuthorizationService{
 		Date expiration
 		String username
 		String app
-		List<String> compartments = ["Patient/52839115575e724386134bc7"]
+		List<String> compartments = []//"{Patient/52854b1e575e2b72e5179404}"]
 
 		boolean allows(p) {
 			// String operation, Class resource, List<String> compartmentsToCheck
@@ -150,8 +150,7 @@ class AuthorizationService{
 		}
 
 		boolean getAccessIsRestricted() {
-			//if (isAdmin) return false
-			return true
+			return !isAdmin
 		}
 
 	}
@@ -162,6 +161,9 @@ class AuthorizationService{
 			request.authorization = new Authorization(isAdmin: true)
 			return true
 		}
+		
+		println "HEADER: "+ request.getHeader("Authorization")
+		
 
 		def basicAuthAccess = asBasicAuth(request)
 		if (basicAuthAccess) {

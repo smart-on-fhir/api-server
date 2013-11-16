@@ -6,8 +6,6 @@ import groovy.sql.Sql
 
 class SqlService{
 
-	def transactional = false
-	def sessionFactory
     def dataSource
 
 	Sql getSql() {

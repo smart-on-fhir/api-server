@@ -35,8 +35,8 @@ public class DateSearchParamHandler extends SearchParamHandler {
 			String val = it.nodeValue
 			Interval precision = precisionInterval(val)
 			index.add(value([
-				date_min: precision.start.toDate(),	
-				date_max: precision.end.toDate()
+				date_min: toSqlDate(precision.start),	
+				date_max: toSqlDate(precision.end)
 			]))
 		}
 	}

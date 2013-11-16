@@ -197,11 +197,12 @@ class ApiController {
 
 	private def updateService(Resource r, String resourceName, String fhirId) {
 
-
 		def compartments = getAndAuthorizeCompartments(r, fhirId)
 		log.debug("Compartments: $compartments")
 
 		JsonObject rjson = jsonParser.parse(r.encodeAsFhirJson())
+
+		log.debug("raw " + rjson)
 		log.debug("Parsed a $rjson.resourceType.asString")
 
 		String fhirType = rjson.resourceType.asString
@@ -224,14 +225,11 @@ class ApiController {
 
 		def inserts = []
 
-		inserts += "delete from resource_compartment where fhir_id= $fhirId and fhir_type= $fhirType;"
-		//inserts += "insert into resource_compartment (fhir_id, fhir_type, compartments) values ($fhirType, $fhirId, '{" +compartments.join(",")+"}')"
-
+		inserts.add ("delete from resource_compartment where fhir_type= $fhirType and fhir_id= $fhirId;" )
+		inserts.add("insert into resource_compartment (fhir_type, fhir_id, compartments) values ($fhirType, $fhirId, '{" +compartments.join(",")+"}');")
 		insertIndexTerms(inserts, h.version_id, fhirType, fhirId, r)
-		println inserts.join(";\n")
-		println "GOT Executed"
-		println sqlService.sql.execute(inserts.join(";"))
-
+		
+        inserts.each { sqlService.sql.execute(it) }
 
 		versionUrl = urlService.resourceVersionLink(resourceName, fhirId, h.version_id)
 		log.debug("Created version: " + versionUrl)
@@ -247,9 +245,8 @@ class ApiController {
 
 		indexTerms.collect { IndexedValue val ->
 			val.handler.createIndex(val, versionId, fhirId, fhirType)
-		}.each { ResourceIndexTerm it ->
-			//inserts += " insert into resource_index_term (version_id, class, fhir_type, fhir_id, search_param) values ('1','fakeclass', 'Test','123', 'testparm'); "
-			//it.save(failOnError: true)
+		}.each { ResourceIndexTerm term ->
+			inserts.add(term.insertStatement(versionId))
 		}
 	
 		r.contained.each { Resource it ->
@@ -286,6 +283,9 @@ class ApiController {
 	 */
 	private List<String> getAndAuthorizeCompartments(r, String fhirId) {
 		def compartments = params.list('compartments').collect {it}
+		compartments += request.authorization.compartments
+		compartments = compartments as Set
+		
 		log.debug("Authorizing comparemtns start from: $compartments")
 
 		 if (r instanceof Patient) {
@@ -299,7 +299,8 @@ class ApiController {
 		if (!request.authorization.allows(operation: "PUT", compartments: compartments)){
 			throw new AuthorizationException("Can't write to compartments: $compartments")
 		}
-		return compartments
+
+		return compartments as List
 	}
 
 	private def deleteService(ResourceVersion h, String fhirId) {
@@ -384,7 +385,7 @@ class ApiController {
 					  
 		query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
 		def entries = sqlService.rows(sqlQuery.content, sqlQuery.params).collectEntries {
-			[(it.fhir_id): it.content.decodeFhirJson()]
+			[(it.fhir_type+'/'+it.fhir_id): it.content.decodeFhirJson()]
 		}
 		time("got entries")
 

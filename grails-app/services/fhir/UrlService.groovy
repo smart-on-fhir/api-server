@@ -9,7 +9,7 @@ class UrlService{
 
 	private String fhirCombinedId(String p) {
 		String ret = null
-		Map parts = fhirUrlParts(s)
+		Map parts = fhirUrlParts(p)
 		if (parts.size() == 0) return ret
 		return "${parts.type}/${parts.id}"
 	}

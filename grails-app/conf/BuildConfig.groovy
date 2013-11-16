@@ -35,19 +35,19 @@ grails.project.dependency.resolution = {
             excludes 'xml-apis'
             excludes 'xalan'
         }
+	runtime 'org.postgresql:postgresql:9.3-1100-jdbc41' 
 
         //runtime 'xpp3:xpp3:1.1.3.4.O'
         //runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
         //runtime 'org.json:json:20131018'
-		runtime 'org.postgresql:postgresql:9.3-1100-jdbc41' 
-        compile 'me.fhir:fhir-0.12:0.3-SNAPSHOT'
+        compile 'me.fhir:fhir-0.12:0.4-SNAPSHOT'
     }
 
     plugins {
         compile ":rest-client-builder:1.0.2"
-        build ":tomcat:7.0.42"
+        compile ":tomcat:7.0.42"
         //runtime ":hibernate4:4.1.11.2"
-		compile ":hibernate:3.6.10.3"
+	compile ":hibernate:3.6.10.3"
         compile ":standalone:1.2.3"
         runtime ":resources:1.2.1"
 

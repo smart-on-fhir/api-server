@@ -7,13 +7,12 @@ class ErrorController {
 	private def status(int s) {
 		log.debug("Rendering a $s error")
 		def extra = ""
-
 		if (request.exception) {
-			log.debug(request.exception.stackTrace)
 			extra = request.exception.message
 		}
 		response.status=s
-		render(extra)
+		//render(extra)
+		render("Failed" + extra)
 	}	
 	
 	def status401() {

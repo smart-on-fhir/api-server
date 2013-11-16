@@ -5,19 +5,23 @@ import groovy.transform.Field
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import org.hl7.fhir.model.AtomEntry
-import org.hl7.fhir.model.AtomFeed
-import org.hl7.fhir.model.Binary
-import org.hl7.fhir.model.CodeableConcept
-import org.hl7.fhir.model.Coding
-import org.hl7.fhir.model.DocumentReference
-import org.hl7.fhir.model.Identifier
-import org.hl7.fhir.model.ResourceReference
+import org.hl7.fhir.instance.model.AtomEntry
+import org.hl7.fhir.instance.model.AtomFeed
+import org.hl7.fhir.instance.model.Binary
+import org.hl7.fhir.instance.model.CodeableConcept
+import org.hl7.fhir.instance.model.Coding
+import org.hl7.fhir.instance.model.DocumentReference
+import org.hl7.fhir.instance.model.Identifier
+import org.hl7.fhir.instance.model.ResourceReference
+
+import com.sun.org.apache.xalan.internal.xsltc.compiler.Import;
 
 // TODO seriously clean this up, and/or replace it with
 // a standalone set of scripts that don't have a grails 
 // dependency.  This approach is very far from ideal.
 AtomFeed feed = new AtomFeed()
+Import java.nio.file.
+Files.walkFileTree(Paths.get("/home/jmandel/smart/sample_ccdas/EMERGE"),
 
 def rest = new RestBuilder(connectTimeout:10000, readTimeout:10000)
 Map oauth = [clientId: System.env.CLIENT_ID, clientSecret: System.env.CLIENT_SECRET]
@@ -40,8 +44,7 @@ def withAuth =  { Closure toWrap ->
 	}
 }
 
-//def patient = rest.get(fhirBase+"/patient/$pid", withAuth {})
-
+//def patient = rest.get(fhirBase+"/Patient/$pid", withAuth {})
 
 
 //println(""+ patient.status)
@@ -60,7 +63,7 @@ def withAuth =  { Closure toWrap ->
 			
 	p = patientWriter.toString().decodeFhirXml()
 
-/*	def put = rest.put(fhirBase+"/patient/$pid?compartments=patient/$pid",
+/*	def put = rest.put(fhirBase+"/Patient/$pid?compartments=Patient/$pid",
 	withAuth {body patientWriter.toString() })
 	assert put.status == 201
 }
@@ -75,15 +78,14 @@ def h = new groovy.xml.Namespace('urn:hl7-org:v3')
 DocumentReference doc = new DocumentReference()
 
 def subject = new ResourceReference()
-subject.typeSimple = 'Patient'
-subject.referenceSimple = "patient/$pid"
+subject.referenceSimple = "Patient/$pid"
 
 doc.subject = subject
 
 def masterIdentifier = new Identifier()
 masterIdentifier.systemSimple = x.id[0].@root
-masterIdentifier.keySimple = x.id[0].@extension
-masterIdentifier.labelSimple = "Document ID ${masterIdentifier.systemSimple}/${masterIdentifier.keySimple}"
+masterIdentifier.valueSimple = x.id[0].@extension
+masterIdentifier.labelSimple = "Document ID ${masterIdentifier.systemSimple}" + (x.id[0].@extension ? "/${masterIdentifier.valueSimple}" : "")
 doc.masterIdentifier = masterIdentifier
 String patientCompartment = '123'
 
@@ -108,19 +110,11 @@ def contained =  []
 x.author.assignedAuthor.assignedPerson.each {
 	def author = new ResourceReference()
 	def name =  it.name.given.collect{it.text()}.join(" ")+ " " +  it.name.family.text()
-	author.typeSimple = 'Practitioner'
-	author.referenceSimple = '#author-'+contained.size()
 	author.displaySimple = name
 	doc.author.add(author)
 
-	def prac = """<Practitioner xmlns="http://hl7.org/fhir" id="${author.referenceSimple[1..-1]}">
-        <name>
-          <family value="${it.name.family.text()}"/>\n""" + 
-		  it.name.given.collect {"""<given value="${it.name.given[0].text()}"/>"""}.join("\n") +
-        """</name>
-	</Practitioner>"""
-    //println("prac: " + p)
-    doc.contained.add(prac.decodeFhirXml())
+	println it.name + " then given " + it.name.given.collect{it.text()}
+
 }
 
 doc.indexedSimple = Calendar.instance
@@ -136,7 +130,7 @@ rawResource.setContentType(doc.mimeTypeSimple)
 println "making closure"
 println("here oa" + oauth)
 /*
- def binary  = rest.post(fhirBase+"/binary?compartments=patient/$pid", withAuth {
+ def binary  = rest.post(fhirBase+"/binary?compartments=Patient/$pid", withAuth {
 	body rawResource.encodeAsFhirXml()
 })
 println binary.headers.location[0]
@@ -144,7 +138,7 @@ println binary.headers.location[0]
 Calendar now = Calendar.instance
 
 AtomEntry patientRef = new AtomEntry()
-patientRef.id = "patient/$pid"
+patientRef.id = "Patient/$pid"
 patientRef.resource = p
 patientRef.updated = now
 
@@ -169,7 +163,8 @@ feed.authorUri  = "groovy.config.atom.author-uri"
 feed.id = "feed-id"
 feed.updated = now
 
-def docPost  = rest.post(fhirBase+"/?compartments=patient/$pid",
+println ("Made from" +  feed.encodeAsFhirXml())
+def docPost  = rest.post(fhirBase,
 	withAuth {
 		body feed.encodeAsFhirXml()
 })

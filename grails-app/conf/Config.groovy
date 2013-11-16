@@ -18,30 +18,30 @@ fhir.namespaces = [
 ]
 
 fhir.searchParam.spotFixes = [
-"http://hl7.org/fhir/Condition/search#onset": 
+	"http://hl7.org/fhir/Condition/search#onset":
 	"f:Condition/f:onsetAge | f:Condition/f:onsetDate",
-"http://hl7.org/fhir/Group/search#value": 
+	"http://hl7.org/fhir/Group/search#value":
 	"f:Condition/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
-"http://hl7.org/fhir/Observation/search#value": 
+	"http://hl7.org/fhir/Observation/search#value":
 	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
-"http://hl7.org/fhir/Observation/search#date": 
+	"http://hl7.org/fhir/Observation/search#date":
 	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'applies')]",
-"http://hl7.org/fhir/Group/search#type-value":
-		'f:Group/f:characteristic$'+
-		'f:type$' +
-		'*[namespace-uri()="http://hl7.org/fhir" and starts-with(local-name(),"value")]',
-"http://hl7.org/fhir/DiagnosticOrder/search#status-date":
-		'f:DiagnosticOrder/f:event$'+
-		'f:status$' +
-		'f:date',
-"http://hl7.org/fhir/DiagnosticOrder/search#item-status-date":
-		'f:DiagnosticOrder/f:item$'+
-		'f:status$' +
-		"f:date",
-"http://hl7.org/fhir/Observation/search#name-value":
-		'f:Observation/f:component | f:Observation$' +
-		'f:name$' +
-		'*[namespace-uri()="http://hl7.org/fhir" and starts-with(local-name(),"value")]'
+	"http://hl7.org/fhir/Group/search#type-value":
+	'f:Group/f:characteristic$'+
+	'f:type$' +
+	'*[namespace-uri()="http://hl7.org/fhir" and starts-with(local-name(),"value")]',
+	"http://hl7.org/fhir/DiagnosticOrder/search#status-date":
+	'f:DiagnosticOrder/f:event$'+
+	'f:status$' +
+	'f:date',
+	"http://hl7.org/fhir/DiagnosticOrder/search#item-status-date":
+	'f:DiagnosticOrder/f:item$'+
+	'f:status$' +
+	"f:date",
+	"http://hl7.org/fhir/Observation/search#name-value":
+	'f:Observation/f:component | f:Observation$' +
+	'f:name$' +
+	'*[namespace-uri()="http://hl7.org/fhir" and starts-with(local-name(),"value")]'
 ]
 
 
@@ -50,18 +50,18 @@ grails.project.groupId = appName // change this to alter the default package nam
 grails.mime.file.extensions = false // enables the parsing of file extensions from URLs into the request format
 grails.mime.use.accept.header = true
 grails.mime.types = [
-    all:           '*/*',
-    atom:          'application/atom+xml',
-    css:           'text/css',
-    csv:           'text/csv',
-    form:          'application/x-www-form-urlencoded',
-    html:          ['text/html','application/xhtml+xml'],
-    js:            'text/javascript',
-    json:          ['application/json', 'text/json'],
-    multipartForm: 'multipart/form-data',
-    rss:           'application/rss+xml',
-    text:          'text/plain',
-    xml:           ['text/xml', 'application/xml', 'application/fhir+xml']
+	all:           '*/*',
+	atom:          'application/atom+xml',
+	css:           'text/css',
+	csv:           'text/csv',
+	form:          'application/x-www-form-urlencoded',
+	html:          ['text/html','application/xhtml+xml'],
+	js:            'text/javascript',
+	json:          ['application/json', 'text/json'],
+	multipartForm: 'multipart/form-data',
+	rss:           'application/rss+xml',
+	text:          'text/plain',
+	xml:           ['text/xml', 'application/xml', 'application/fhir+xml']
 ]
 
 // URL Mapping Cache Max Size, defaults to 5000
@@ -95,47 +95,48 @@ grails.exceptionresolver.params.exclude = ['password']
 grails.app.context = "/"
 
 environments {
-    development {
-        grails.logging.jul.usebridge = true		
-	fhir.oauth = [
-		enabled: true,
-		tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
-		introspectionUri: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
-		clientId: 'client',
-		clientSecret: 'secret'
-	]
-    }
-    production {
-        grails.logging.jul.usebridge = false
-        grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8080/fhir-server"
-	fhir.oauth = [
-		enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : true,
-		tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
-		introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
-		clientId: System.env.CLIENT_ID ?: 'client',
-		clientSecret: System.env.CLIENT_SECRET ?: 'secret'
-	]
-    }
+	development {
+		grails.logging.jul.usebridge = true
+		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8001"
+		fhir.oauth = [
+			enabled: true,
+			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
+			introspectionUri: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
+			clientId: 'client',
+			clientSecret: 'secret'
+		]
+	}
+	production {
+		grails.logging.jul.usebridge = false
+		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8080/fhir-server"
+		fhir.oauth = [
+			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : true,
+			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
+			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
+			clientId: System.env.CLIENT_ID ?: 'client',
+			clientSecret: System.env.CLIENT_SECRET ?: 'secret'
+		]
+	}
 }
 
 // log4j configuration
 log4j = {
-    // Example of changing the log pattern for the default console appender:
-    //
-    
+	// Example of changing the log pattern for the default console appender:
+	//
+
 	appenders {
-        console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
-    }
-	
+		console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
+	}
+
 	debug "grails.app"
-    error  'org.codehaus.groovy.grails.web.servlet',        // controllers
-           'org.codehaus.groovy.grails.web.pages',          // GSP
-           'org.codehaus.groovy.grails.web.sitemesh',       // layouts
-           'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
-           'org.codehaus.groovy.grails.web.mapping',        // URL mapping
-           'org.codehaus.groovy.grails.commons',            // core / classloading
-           'org.codehaus.groovy.grails.plugins',            // plugins
-           'org.springframework'
+	error  'org.codehaus.groovy.grails.web.servlet',        // controllers
+			'org.codehaus.groovy.grails.web.pages',          // GSP
+			'org.codehaus.groovy.grails.web.sitemesh',       // layouts
+			'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
+			'org.codehaus.groovy.grails.web.mapping',        // URL mapping
+			'org.codehaus.groovy.grails.commons',            // core / classloading
+			'org.codehaus.groovy.grails.plugins',            // plugins
+			'org.springframework'
 }
 
 // For an example of dynamically loading server URLs from environment vars:
@@ -144,23 +145,23 @@ log4j = {
 // Uncomment and edit the following lines to start using Grails encoding & escaping improvements
 
 /* remove this line 
-// GSP settings
-grails {
-    views {
-        gsp {
-            encoding = 'UTF-8'
-            htmlcodec = 'xml' // use xml escaping instead of HTML4 escaping
-            codecs {
-                expression = 'html' // escapes values inside null
-                scriptlet = 'none' // escapes output from scriptlets in GSPs
-                taglib = 'none' // escapes output from taglibs
-                staticparts = 'none' // escapes output from static template parts
-            }
-        }
-        // escapes all not-encoded output at final stage of outputting
-        filteringCodecForContentType {
-            //'text/html' = 'html'
-        }
-    }
-}
-remove this line */
+ // GSP settings
+ grails {
+ views {
+ gsp {
+ encoding = 'UTF-8'
+ htmlcodec = 'xml' // use xml escaping instead of HTML4 escaping
+ codecs {
+ expression = 'html' // escapes values inside null
+ scriptlet = 'none' // escapes output from scriptlets in GSPs
+ taglib = 'none' // escapes output from taglibs
+ staticparts = 'none' // escapes output from static template parts
+ }
+ }
+ // escapes all not-encoded output at final stage of outputting
+ filteringCodecForContentType {
+ //'text/html' = 'html'
+ }
+ }
+ }
+ remove this line */

@@ -1,0 +1,28 @@
+apply plugin: 'groovy'
+apply plugin: 'application'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+}
+
+dependencies {
+    compile 'me.fhir:fhir-0.12:0.4-SNAPSHOT'
+    compile 'org.codehaus.groovy:groovy-all:2.0.5'
+    compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.6'
+}
+
+task loadPatients (dependsOn: 'classes', type: JavaExec) {
+    main = 'LoadCCDA'
+    classpath = sourceSets.main.runtimeClasspath
+    environment.BASE_DIR = project.hasProperty('emergeDir') ? emergeDir : "sample_ccdas/EMERGE"
+    environment.BASE_URL = project.hasProperty('fhirBase') ? fhirBase : "http://localhost:8080"
+    environment.USERNAME = project.hasProperty('username') ? username : "client"
+    environment.PASSWORD = project.hasProperty('password') ? password : "secret"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.9-rc-3'
+}
