@@ -12,6 +12,7 @@ dependencies {
     compile 'me.fhir:fhir-0.12:0.4-SNAPSHOT'
     compile 'org.codehaus.groovy:groovy-all:2.0.5'
     compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.6'
+    compile "joda-time:joda-time:2.2"
 }
 
 task loadPatients (dependsOn: 'classes', type: JavaExec) {

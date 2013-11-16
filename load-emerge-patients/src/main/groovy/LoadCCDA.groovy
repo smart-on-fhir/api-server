@@ -2,6 +2,7 @@ import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.AtomEntry
 import org.hl7.fhir.instance.model.AtomFeed
 import org.hl7.fhir.instance.model.Binary
+import org.hl7.fhir.instance.model.Period
 import org.hl7.fhir.instance.model.CodeableConcept
 import org.hl7.fhir.instance.model.Coding
 import org.hl7.fhir.instance.model.DocumentReference
@@ -13,8 +14,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 
 import org.xmlpull.v1.XmlPullParserFactory;
-
-
+import org.joda.time.format.ISODateTimeFormat
 import groovy.xml.MarkupBuilder
 import groovy.transform.Field
 
@@ -110,9 +110,31 @@ def processOneFile(File file, String pid) {
    Map systems = [ '2.16.840.1.113883.6.1': 'http://loinc.org',
        '2.16.840.1.113883.6.96': 'http://snomed.info/id' ];
 
+   
+   doc.context = {
+	   def c = new DocumentReference.DocumentReferenceContextComponent();
+       def dateParser = ISODateTimeFormat.basicDate();
+       def dateFormatter = ISODateTimeFormat.date();
+	   c.period = {
+		   def period = new Period();
+           def start = dateParser.parseDateTime(x.documentationOf.serviceEvent.effectiveTime.low[0].@value[0..7])
+       	   def end = dateParser.parseDateTime(x.documentationOf.serviceEvent.effectiveTime.high[0].@value[0..7])
+			 
+		   // lie about the start time because EMERGE has a patient's birthdate here by mistake
+		   period.startSimple = dateFormatter.print(end.minus(24 * 60 * 60  * 1000));
+		   period.endSimple = dateFormatter.print(end);
+		   return period 
+	   }()
+	   return c
+   }()
+
    def type = new CodeableConcept();
-   typeCoding = new Coding();
-   type.coding = [typeCoding];
+   doc.type = type;
+   type.coding = []
+
+   def typeCoding = new Coding();
+   type.coding.add(typeCoding);
+
    if (x.code[0]?.@codeSystem) {
       typeCoding.systemSimple = systems[x.code[0].@codeSystem] ?: x.code[0].@codeSystem;
       typeCoding.codeSimple = x.code[0].@code;
@@ -121,7 +143,27 @@ def processOneFile(File file, String pid) {
       typeCoding.displaySimple = "Unknown";
    }
 
-   doc.type = type;
+   if (typeCoding.codeSimple == "34133-9") {
+      type.coding.add({
+      typeCoding = new Coding();
+      typeCoding.codeSimple = "Summary"
+      typeCoding.displaySimple = "Continuity of Care Document"
+	  return typeCoding
+      }())
+   }
+
+
+
+   doc.format = {
+      def format = new CodeableConcept();
+      format.coding = [{
+       def c = new Coding();
+       c.codeSimple="CCDA";
+       c.displaySimple = "Consolidated CDA"
+	   return c
+      }()]
+	  return format
+   }()
 
    def contained =  [];
    x.author.assignedAuthor.assignedPerson.each {
@@ -179,7 +221,7 @@ def processOneFile(File file, String pid) {
 
    UsernamePasswordCredentials creds = new UsernamePasswordCredentials(username, password);
    def basic = BasicScheme.authenticate(creds, "UTF-8", false);
-
+   
    def docPost  = rest.request(POST, XML) { req ->
 	uri.query  = [compartments: "Patient/$pid"]
 	headers[basic.name]  = basic.value

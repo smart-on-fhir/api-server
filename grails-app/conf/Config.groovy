@@ -22,6 +22,8 @@ fhir.searchParam.spotFixes = [
 	"f:Condition/f:onsetAge | f:Condition/f:onsetDate",
 	"http://hl7.org/fhir/Group/search#value":
 	"f:Condition/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
+	"http://hl7.org/fhir/Observation/search#name": 
+       "f:Observation/f:name | f:Observation/f:component/f:name",
 	"http://hl7.org/fhir/Observation/search#value":
 	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
 	"http://hl7.org/fhir/Observation/search#date":
@@ -99,7 +101,7 @@ environments {
 		grails.logging.jul.usebridge = true
 		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8001"
 		fhir.oauth = [
-			enabled: false,
+			enabled: true,
 			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
 			introspectionUri: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
 			clientId: 'client',

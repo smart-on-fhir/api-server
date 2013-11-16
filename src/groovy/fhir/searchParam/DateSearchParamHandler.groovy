@@ -25,19 +25,30 @@ public class DateSearchParamHandler extends SearchParamHandler {
 
 	@Override
 	protected String paramXpath() {
-		return "//"+this.xpath+"/@value";
+		return "//"+this.xpath
 	}
 
 	@Override
 	public void processMatchingXpaths(List<Node> nodes, org.w3c.dom.Document r,  List<IndexedValue> index) {
 
 		nodes.each {
-			String val = it.nodeValue
-			Interval precision = precisionInterval(val)
-			index.add(value([
-				date_min: toSqlDate(precision.start),
-				date_max: toSqlDate(precision.end)
-			]))
+
+			def low=null, high=null;
+			
+			if (query("./@value", it)){ // A simple dateTime finds a @value directly
+				low = query("./@value", it)[0].nodeValue
+				high = query("./@value", it)[0].nodeValue
+			} else { // a Period finds a start and end value
+				def startVals = query("./f:start/@value", it)
+				if (startVals) low = startVals[0].nodeValue
+				def endVals = query("./f:end/@value", it)
+				if (endVals) high = endVals[0].nodeValue
+			}
+			
+			Map m = [:]
+			if (low) m.date_min = toSqlDate(precisionInterval(low).start)
+			if (high) m.date_max = toSqlDate(precisionInterval(high).end)
+			if (m.size()) index.add(value(m))
 		}
 	}
 
