@@ -148,12 +148,12 @@ def processOneFile(File file, String pid) {
    Calendar now = Calendar.instance;
 
    AtomFeed feed = new AtomFeed();
-
+/*
    AtomEntry patientRef = new AtomEntry();
    patientRef.id = "Patient/$pid";
    patientRef.resource = p;
    patientRef.updated = now;
-
+*/
    AtomEntry rawEntry = new AtomEntry();
    rawEntry.id = "urn:cid:binary-document";
    rawEntry.resource = rawResource;
@@ -166,7 +166,7 @@ def processOneFile(File file, String pid) {
    rawDocRef.resource = doc;
    rawDocRef.updated = now;
 
-   feed.entryList.add(patientRef);
+   //feed.entryList.add(patientRef);
    feed.entryList.add(rawEntry);
    feed.entryList.add(rawDocRef);
 

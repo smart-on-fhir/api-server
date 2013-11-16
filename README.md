@@ -107,7 +107,7 @@ grails run-script scripts/LoadCCDA.groovy
 
 ## Loading EMERGE Test Patients
 
-To load a collection of 300 C-CDA documents (and a FHIR `DocumentReference` for each), you can do:
+To load a collection of >600 C-CDA documents (and a FHIR `DocumentReference` for each), you can do:
 
 ```
 cd load-emerge-patients
