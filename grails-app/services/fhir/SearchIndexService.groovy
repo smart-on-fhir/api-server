@@ -249,7 +249,7 @@ class SearchIndexService{
 		params.each { String searchParam, searchValues ->
 
 			searchValues = paramAsList(searchValues)
-			if (!searchValues) { return }
+			if (!searchValues || searchValues.size == 0) { return }
 			println("SearchVals $searchParam: $searchValues")
 
 			def (isChained, beforeChain, afterChain) = chainParts(searchParam)
