@@ -134,8 +134,8 @@ class AuthorizationService{
 		void require(p) {
 			if (isAdmin) return
 
-				if (!compartments.any {it in p.resource.compartments})
-					throw new AuthorizationException("Unauthorized:  you only have access to " + compartments + "not $p")
+			if (!compartments.any {it in p.resource.compartments})
+				throw new AuthorizationException("Unauthorized:  you only have access to " + compartments + "not $p")
 		}
 
         String getCompartmentsSql() {
