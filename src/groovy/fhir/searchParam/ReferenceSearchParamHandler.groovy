@@ -20,7 +20,7 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 				index.add(value([
 					contained_id: ref[1..-1],
 					contained_type: query("//f:contained/*[@id='"+ref[1..-1]+"']", r).collect{it.nodeName}.join("")
-				]))				
+				]))
 			}
 			else if (!parts['type'])  {
 				index.add(value([
@@ -38,19 +38,21 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 			}
 		}
 	}
-	
+
 	def joinOn(SearchedValue v) {
-		List fields = []
-		if (v.values){
-			fields += [ name: 'reference_id', value: v.values]
+		v.values.split(",").collect {
+			List fields = []
+			if (it){
+				fields += [ name: 'reference_id', value: it]
+			}
+			if (v.modifier) {
+				fields += [
+					name: 'reference_type',
+					value: v.modifier
+				]
+			}
+			return fields
 		}
-		if (v.modifier) {
-			fields += [
-				name: 'reference_type',
-				value: v.modifier	
-			]
-		}
-		return fields
 	}
 
 
@@ -61,7 +63,7 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 		ret.version_id = versionId
 		ret.fhir_id = fhirId
 		ret.fhir_type = fhirType
-		
+
 		if (indexedValue.dbFields.contained_id) {
 			ret.reference_id = fhirId+"_contained_"+indexedValue.dbFields.contained_id
 			ret.reference_type = indexedValue.dbFields.contained_type

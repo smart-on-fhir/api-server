@@ -17,13 +17,13 @@ import fhir.ResourceIndexToken
  *    - label, system and key (for identifier)
  */
 public class TokenSearchParamHandler extends SearchParamHandler {
-/*	 :text (the match does a partial searches on
- *	          - the text portion of a CodeableConcept or
- *	          -  the display portion of a Coding)
- *	 :code (a match on code and system of
- *	          - the coding/codeable concept)
- *	 :anyns matches all codes irrespective of the namespace.
-*/
+	/*	 :text (the match does a partial searches on
+	 *	          - the text portion of a CodeableConcept or
+	 *	          -  the display portion of a Coding)
+	 *	 :code (a match on code and system of
+	 *	          - the coding/codeable concept)
+	 *	 :anyns matches all codes irrespective of the namespace.
+	 */
 
 	String orderByColumn = "token_text"
 
@@ -32,9 +32,9 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 		return "//"+this.xpath;
 	}
 
-	
+
 	void processMatchingXpaths(List<Node> tokens, org.w3c.dom.Document r, List<IndexedValue> index){
-		
+
 		for (Node n : tokens) {
 
 			// :text (the match does a partial searches on
@@ -51,8 +51,8 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 				String system = queryString("./@value", systemPart);
 				String code = queryString("../f:code/@value | ../f:value/@value", systemPart);
 				index.add(value([
-					namespace: system,	
-					code: code,	
+					namespace: system,
+					code: code,
 					text: text
 				]))
 			}
@@ -80,7 +80,7 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 		ret.token_text = indexedValue.dbFields.text
 		return ret
 	}
-	
+
 	private List splitToken(String t) {
 		List v = t.split("\\|")
 		if (v.size() == 1) {
@@ -92,24 +92,26 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 
 	@Override
 	def joinOn(SearchedValue v) {
-		def (namespace, code) = splitToken(v.values)
-		List fields = []
-		
-		if (v.modifier == null){
-			if (namespace == null) { 
-				fields += [ name: 'token_namespace', operation: 'is null' ]
-			}
-			if (!(namespace in [null, "anyns"])) {
-				 fields += [ name: 'token_namespace', value: namespace ]
-			}
-			fields += [ name: 'token_code', value: code ]
-		}
+		v.values.split(",").collect {
+			def (namespace, code) = splitToken(it)
+			List fields = []
 
-		if (v.modifier == "text"){
-			fields += [ name: 'token_text', operation:'ILIKE', value: '%'+v.values+'%' ]
+			if (v.modifier == null){
+				if (namespace == null) {
+					fields += [ name: 'token_namespace', operation: 'is null' ]
+				}
+				if (!(namespace in [null, "anyns"])) {
+					fields += [ name: 'token_namespace', value: namespace ]
+				}
+				fields += [ name: 'token_code', value: code ]
+			}
+
+			if (v.modifier == "text"){
+				fields += [ name: 'token_text', operation:'ILIKE', value: '%'+it+'%' ]
+			}
+
+			return fields
 		}
-			
-		return fields
 	}
 
 	@Override
@@ -118,6 +120,6 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 		// no modifier and ":text" on a code --
 		// (only :text should include display fields)
 		// but we're treating them the same here
-	throw new RuntimeException("Unknown modifier: " + searchedFor)
+		throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
 }

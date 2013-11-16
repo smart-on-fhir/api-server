@@ -18,7 +18,7 @@ public class IdSearchParamHandler extends SearchParamHandler {
 		}
 		throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
-	
+
 	@Override
 	protected String paramXpath() {
 		throw new Exception("Should not use Id Search Parameter to index a resource");
@@ -31,13 +31,14 @@ public class IdSearchParamHandler extends SearchParamHandler {
 	}
 
 	def joinOn(SearchedValue v) {
-		println v.modifier
-		List fields = []
-		fields += [
-			name: 'fhir_id',
-			value: v.values	
-		]
-		return fields
+		v.values.split(",").collect {
+			List fields = []
+			fields += [
+				name: 'fhir_id',
+				value: v.values
+			]
+			return fields
+		}
 	}
 
 }

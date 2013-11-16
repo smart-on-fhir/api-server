@@ -22,10 +22,10 @@ public class StringSearchParamHandler extends SearchParamHandler {
 	public void processMatchingXpaths(List<Node> nodes, org.w3c.dom.Document r, List<IndexedValue> index) {
 		String parts = nodes.collect {it.nodeValue}.join(" ")
 		index.add(value([
-			string: parts	
+			string: parts
 		]))
 	}
-	
+
 	@Override
 	public ResourceIndexTerm createIndex(IndexedValue indexedValue, versionId, fhirId, fhirType) {
 		def ret = new ResourceIndexString()
@@ -39,31 +39,25 @@ public class StringSearchParamHandler extends SearchParamHandler {
 
 	@Override
 	BasicDBObject searchClause(Map searchedFor){
-		
+
 		def val = searchedFor.value
-		
+
 		if (searchedFor.modifier == null ||searchedFor.modifier == "partial"){
-				return [(searchParamName): [ $regex: val, $options: 'i' ]]
+			return [(searchParamName): [ $regex: val, $options: 'i' ]]
 		}
-		
+
 		if (searchedFor.modifier == "exact"){
-				return [(searchParamName): [ $regex:'^'+val+'$', $options: 'i' ]]
+			return [(searchParamName): [ $regex:'^'+val+'$', $options: 'i' ]]
 		}
-		
+
 		throw new RuntimeException("Unknown modifier: " + searchedFor)
 	}
 
 	def joinOn(SearchedValue v) {
-		List fields = []
-		if (v.values){
-			fields += [ name: 'string_value', value: '%'+v.values+'%', operation: 'ILIKE']
+		v.values.split(",").collect {
+			List fields = []
+			fields += [ name: 'string_value', value: '%'+it+'%', operation: 'ILIKE']
+			return fields
 		}
-		if (v.modifier) {
-			fields += [
-				name: 'reference_type',
-				value: v.modifier	
-			]
-		}
-		return fields
 	}
 }

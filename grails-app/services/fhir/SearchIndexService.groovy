@@ -273,7 +273,7 @@ class SearchIndexService{
 		return ret
 	}
 
-	private String fieldSnippet(int prefix, Map field) {
+	private String fieldSnippet(int clauseNum, int phraseNum, Map field) {
 		String lowerCaseOp = field.operation ? field.operation.toString().toLowerCase() : null
 
 		if (lowerCaseOp == 'is null') {
@@ -282,7 +282,8 @@ class SearchIndexService{
 		if (lowerCaseOp == 'is not null') {
 			return "${field.name} is not null"
 		}
-		return field.name+" "+(field.operation ?: '=')+' :value_'+prefix+'_'+field.name
+		
+		return field.name+" "+(field.operation ?: '=')+' :value_'+clauseNum+'_'+phraseNum+'_'+field.name
 	}
 
 	int clauseNum=0
@@ -300,21 +301,30 @@ class SearchIndexService{
 				query[-1] += " AND (reference_type, reference_id) in (\n" + remaining.query.join("\nINTERSECT\n") + "\n)"
 				params += remaining.params
 			} else {
-				def fields = clause.handler.joinOn(clause)
-				def fieldStrings = fields.collect { f ->
-					fieldSnippet(clauseNum, f)
-				}
 
-				params += fields.collectEntries { f -> [('value_'+clauseNum+'_'+f.name): f.value] }
-				params += [('field_'+clauseNum): clause.handler.searchParamName]
-				params += [('type_'+clauseNum): clause.handler.resourceName]
+				def orFields = clause.handler.joinOn(clause)
+				List orClauses =[]
+				
+				orFields.each { orf ->
+										int phraseNum=orClauses.size()
+
+                                        def fieldStrings = orf.collect { fieldSnippet(clauseNum,phraseNum, it) }
+										orClauses.add(fieldStrings.join(" AND "))
+
+                                        params += orf.collectEntries { f ->
+                                               [('value_'+clauseNum+'_'+phraseNum+'_'+f.name): f.value] 
+                                        }
+
+                                        params += [('field_'+clauseNum): clause.handler.searchParamName]
+                                        params += [('type_'+clauseNum): clause.handler.resourceName]
+				}
 
 				query +=  " SELECT fhir_type, fhir_id from resource_index_term where " + 
 					"fhir_type = :type_${clauseNum} AND " + 
 					(clause.handler instanceof IdSearchParamHandler ? "" : """
 					search_param = :field_${clauseNum} AND 
 					""") + 
-				    """${fieldStrings.join(" AND \n") } """
+				    """( ${orClauses.join(" OR \n") } )"""
 			}
 		}
 

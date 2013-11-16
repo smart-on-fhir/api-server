@@ -27,15 +27,15 @@ public class DateSearchParamHandler extends SearchParamHandler {
 	protected String paramXpath() {
 		return "//"+this.xpath+"/@value";
 	}
-	
+
 	@Override
 	public void processMatchingXpaths(List<Node> nodes, org.w3c.dom.Document r,  List<IndexedValue> index) {
 
-		nodes.each { 
+		nodes.each {
 			String val = it.nodeValue
 			Interval precision = precisionInterval(val)
 			index.add(value([
-				date_min: toSqlDate(precision.start),	
+				date_min: toSqlDate(precision.start),
 				date_max: toSqlDate(precision.end)
 			]))
 		}
@@ -97,29 +97,29 @@ public class DateSearchParamHandler extends SearchParamHandler {
 	}
 
 	private java.sql.Date toSqlDate(def d){
-		return new java.sql.Date(d.toDate().time)	
+		return new java.sql.Date(d.toDate().time)
 	}
-	
+
 	@Override
 	def joinOn(SearchedValue v) {
+		v.values.split(",").collect {
+			Interval precision = precisionInterval(v.values)
+			List fields = []
 
-		Interval precision = precisionInterval(v.values)
-		List fields = []
-
-		if (v.modifier == null){
-			fields += [
-				name: 'date_min',
-				value:  toSqlDate(precision.start),
-				operation: '>='
+			if (v.modifier == null){
+				fields += [
+					name: 'date_min',
+					value:  toSqlDate(precision.start),
+					operation: '>='
 				]
-			fields += [
-				name: 'date_max',
-				value:  toSqlDate(precision.end),
-				operation: '<='
+				fields += [
+					name: 'date_max',
+					value:  toSqlDate(precision.end),
+					operation: '<='
 				]
+			}
+			return fields
 		}
-
-		return fields
 	}
 
 	@Override
