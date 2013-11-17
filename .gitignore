@@ -22,3 +22,5 @@ stacktrace.log
 *.swp
 .groovy
 *.class
+*.properties.lock
+
