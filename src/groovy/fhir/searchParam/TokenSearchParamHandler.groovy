@@ -47,9 +47,9 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 
 			// For CodeableConcept and Coding, list the code as "system/code"
 			// For Identifier, list the code as "system/value"
-			query(".//f:system", n).each { systemPart ->
-				String system = queryString("./@value", systemPart);
-				String code = queryString("../f:code/@value | ../f:value/@value", systemPart);
+			query(".//f:code | .//f:value", n).each { systemPart ->
+				String system = queryString("../f:system/@value", systemPart);
+				String code = queryString("./@value", systemPart);
 				index.add(value([
 					namespace: system,
 					code: code,
