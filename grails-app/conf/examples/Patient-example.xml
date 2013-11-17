@@ -133,9 +133,9 @@
   </custodian>
   <documentationOf typeCode="DOC">
     <serviceEvent classCode="PCPR" moodCode="EVN">
-      <effectiveTime nullFlavor="UNK">
-        <low nullFlavor="UNK" />
-        <high nullFlavor="UNK" />
+      <effectiveTime>
+        <low value="20120506" />
+        <high value="20120506" />
       </effectiveTime>
       <performer typeCode="PRF">
         <templateId root="2.16.840.1.113883.3.88.11.83.4" />

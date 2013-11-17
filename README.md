@@ -116,4 +116,9 @@ git clone https://github.com/chb/sample_ccdas
 
 ```
 
+And load a single patient with id of `example`:
+```
+./gradlew -PemergeDir=../grails-app/conf/examples -PfhirBase="http://localhost:8080" loadPatients
+```
+
 

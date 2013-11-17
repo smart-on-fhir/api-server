@@ -42,17 +42,6 @@ class SqlService{
 
 	Resource getLatestSummary(Authorization a) {
 
-		if (a.compartments.size() == 1 && a.compartments[0] == "Patient/example") {
-
-			def stream = this.class.classLoader.getResourceAsStream("examples/ccda.xml")
-
-			Binary b = new Binary()
-			b.contentType = "application/hl7-v3+xml"
-			b.content = IOUtils.toByteArray(stream)
-
-			return b
-		}
-
 		def q = """select min(content) as content from resource_version where (fhir_type, fhir_id) in (
 						select fhir_type, fhir_id from resource_compartment where fhir_type='DocumentReference'
 						and compartments && """ +a.compartmentsSql+"""
