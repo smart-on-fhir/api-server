@@ -104,7 +104,7 @@ class AuthorizationService{
 			ret.compartments = status.scope.collect {
 				def m = (it =~ /(summary|search):(.*)/)
 				if (!m.matches()) return null
-				return "Patient/" +  m[0][2] ?: "example"
+				return "Patient/" +  (m[0][2] ?: "example")
 			}
 
 			log.debug("Found bearer authorization for this request: $ret")
