@@ -15,7 +15,7 @@ class UrlMappings {
 			action = [GET: "conformance"]
 		}
 
-		name summary: "/summary" {
+		name summary: "/BlueButtonSummary" {
 			controller="Api"
 			action=[GET: "summary"]
 		}

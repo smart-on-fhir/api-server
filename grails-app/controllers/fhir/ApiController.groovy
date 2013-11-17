@@ -159,35 +159,15 @@ class ApiController {
 	// BlueButton-specific "summary" API: returns the most recent C-CDA
 	// clinical summary (resolving DocumentReference -- Document)
 	def summary() {
+
 		log.debug("Compartments: " + request.authorization.compartments)
+		def d = sqlService.getLatestSummary(request.authorization)
 
-		def q = [
-			fhirType:'DocumentReference',
-			compartments:[$in:request.authorization.compartments],
-			searchTerms: [ $elemMatch: [
-					k:'type:code',
-					v:'http://loinc.org/34133-9']]]
-
-		List ids = ResourceIndex.forResource('DocumentReference')
-				.find(q, [latest:-1])
-				.collect {it.latest}
-
-		def cursor = ResourceVersion.collection
-				.find([_id: [$in:ids]])
-				.sort([received:-1])
-				.limit(1)
-
-		if (cursor.count() == 0) {
+		if (d == null) {
 			return response.status = 404
 		}
 
-		DocumentReference doc = cursor
-				.first()
-				.content.toString()
-				.decodeFhirJson()
-
-		def location = doc.locationSimple =~ /binary\/(.*)/
-		request.resourceToRender = ResourceVersion.getLatestByFhirId(location[0][1])
+        request.resourceToRender = d
 	}
 
 	def create() {

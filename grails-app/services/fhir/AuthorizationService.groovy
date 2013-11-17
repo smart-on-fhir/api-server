@@ -104,8 +104,9 @@ class AuthorizationService{
 			ret.compartments = status.scope.collect {
 				def m = (it =~ /(summary|search):(.*)/)
 				if (!m.matches()) return null
-				return "Patient/" +  (m[0][2] != "" ? m[0][2] : "example")
+				return "Patient/" +  m[0][2] ?: "example"
 			}
+
 			log.debug("Found bearer authorization for this request: $ret")
 			return ret
 		}
@@ -119,7 +120,7 @@ class AuthorizationService{
 		Date expiration
 		String username
 		String app
-		List<String> compartments = []//"{Patient/52854b1e575e2b72e5179404}"]
+		List<String> compartments = ["Patient/example"]
 
 		boolean allows(p) {
 			// String operation, Class resource, List<String> compartmentsToCheck
@@ -178,5 +179,4 @@ class AuthorizationService{
 
 		return false
 	}
-
 }

@@ -1,12 +1,20 @@
 package fhir;
 
+
+import org.apache.commons.io.IOUtils;
+import org.hl7.fhir.instance.model.Binary
+import org.hl7.fhir.instance.model.Resource
+import org.hl7.fhir.instance.model.DocumentReference
+
+import fhir.AuthorizationService.Authorization
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 
 
 class SqlService{
 
-    def dataSource
+	def dataSource
+	def urlService
 
 	Sql getSql() {
 		new Sql(dataSource)
@@ -32,5 +40,28 @@ class SqlService{
 		return ret[0]
 	}
 
+	Resource getLatestSummary(Authorization a) {
 
+		if (a.compartments.size() == 1 && a.compartments[0] == "Patient/example") {
+
+			def stream = this.class.classLoader.getResourceAsStream("examples/ccda.xml")
+
+			Binary b = new Binary()
+			b.contentType = "application/hl7-v3+xml"
+			b.content = IOUtils.toByteArray(stream)
+
+			return b
+		}
+
+		def q = """select min(content) as content from resource_version where (fhir_type, fhir_id) in (
+						select fhir_type, fhir_id from resource_compartment where fhir_type='DocumentReference'
+						and compartments && """ +a.compartmentsSql+"""
+					) group by fhir_type, fhir_id order by max(version_id) desc limit 1"""
+		def content = rows(q, [:])
+		if (!content) return null
+
+		DocumentReference r = content[0].content.decodeFhirJson()
+		Map location = urlService.fhirUrlParts(r.locationSimple)
+		return getLatestByFhirId(location.type, location.id).content.decodeFhirJson()
+	}
 }
