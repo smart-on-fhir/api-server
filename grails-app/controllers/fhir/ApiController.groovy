@@ -397,7 +397,7 @@ class ApiController {
 						  " offset ${paging._skip}"
 
 		def entries = sqlService.rows(rawSqlQuery, clauses.params).collectEntries {
-			[(it.fhir_id): it.content.decodeFhirJson()]
+			[(it.fhir_type+'/'+it.fhir_id): it.content.decodeFhirJson()]
 		}
 		time("got entries")
 

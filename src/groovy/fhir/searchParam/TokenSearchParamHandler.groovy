@@ -1,11 +1,10 @@
 package fhir.searchParam
 
-import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.w3c.dom.Node
-import org.w3c.dom.NodeList
 
-import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObject
+
 import fhir.ResourceIndexTerm
 import fhir.ResourceIndexToken
 
@@ -41,9 +40,7 @@ public class TokenSearchParamHandler extends SearchParamHandler {
 			//          * the text portion of a CodeableConcept or
 			//            the display portion of a Coding or
 			//            the label portion of an Identifier)
-			String text = query(".//f:label/@value | .//f:display/@value | .//f:text/@value", n).collect {
-				it.nodeValue
-			}.join(" ")
+			String text = queryString(".//f:label/@value | .//f:display/@value | .//f:text/@value", n)
 
 			// For CodeableConcept and Coding, list the code as "system/code"
 			// For Identifier, list the code as "system/value"

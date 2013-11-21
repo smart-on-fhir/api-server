@@ -140,7 +140,7 @@ class AuthorizationService{
 		}
 
         String getCompartmentsSql() {
-			return "'{"+compartments.join("','")+"}'"
+			return "'{"+compartments.join(",")+"}'"
         }
 		
 		def restrictSearch(clauses) {
