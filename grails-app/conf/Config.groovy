@@ -114,7 +114,7 @@ environments {
 		fhir.oauth = [
 			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : true,
 			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
-			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8080/openid-connect-server/introspect?token={token}',
+			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8080/openid-connect-server-webapp/introspect?token={token}',
 			clientId: System.env.CLIENT_ID ?: 'client',
 			clientSecret: System.env.CLIENT_SECRET ?: 'secret'
 		]

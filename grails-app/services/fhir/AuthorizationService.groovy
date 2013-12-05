@@ -120,7 +120,7 @@ class AuthorizationService{
 		Date expiration
 		String username
 		String app
-		List<String> compartments = ["Patient/example"]
+		List<String> compartments = []
 
 		boolean allows(p) {
 			// String operation, Class resource, List<String> compartmentsToCheck
