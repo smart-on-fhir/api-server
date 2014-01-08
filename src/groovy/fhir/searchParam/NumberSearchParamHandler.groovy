@@ -1,6 +1,5 @@
 package fhir.searchParam
 
-import org.hl7.fhir.instance.model.Document
 import org.hl7.fhir.instance.model.MedicationPrescription;
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.SearchParamType

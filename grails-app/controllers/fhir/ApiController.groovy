@@ -149,7 +149,7 @@ class ApiController {
 		feed = bundleService.assignURIs(feed)
 		
 		feed.entryList.eachWithIndex { AtomEntry e, int i->
-			String r = e.resource.class.toString().split('\\.')[-1]
+			String r = e.resource.class.toString().split('\\.')[-1].replace("_", "")
 			updateService(e.resource, r, e.id.split('/')[1])
 		}
 

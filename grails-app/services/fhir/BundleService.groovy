@@ -8,6 +8,7 @@ import org.bson.types.ObjectId
 import org.hl7.fhir.instance.model.AtomEntry
 import org.hl7.fhir.instance.model.AtomFeed
 import org.hl7.fhir.instance.model.Resource
+import org.hl7.fhir.instance.model.DateAndTime
 
 class BundleValidationException extends Exception{ }
 
@@ -50,7 +51,7 @@ class BundleService{
 			feed.links.put("next", nextPageUrl)
 		}
 		
-		Calendar now = Calendar.instance
+		def now = DateAndTime.now()
 		feed.updated = now
 		feed.entryList.addAll entries.collect { id, resource ->
 			AtomEntry entry = new AtomEntry()

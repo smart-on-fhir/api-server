@@ -4,7 +4,7 @@
   <text>
     <status value="generated"/>
     <div xmlns="http://www.w3.org/1999/xhtml">
-      <h2>Base FHIR Conformance Statement</h2>
+      <h2>Base FHIR Conformance Statement (Full)</h2>
       <p>This is the base conformance statement for FHIR. It represents a server that provides the full set of functionality defined by FHIR. It is provided to use as a template for system designers to build their own conformance statements from</p>
       <table>
         <tr>
@@ -118,6 +118,20 @@
           <td>y</td>
         </tr>
         <tr>
+          <td>Composition</td>
+          <td>
+            <a href="http://hl7.org/fhir/Composition">http://hl7.org/fhir/Composition</a>
+          </td>
+          <td>y</td>
+          <td>y</td>
+          <td>y</td>
+          <td>y</td>
+          <td>y</td>
+          <td>y</td>
+          <td>y</td>
+          <td>y</td>
+        </tr>
+        <tr>
           <td>ConceptMap</td>
           <td>
             <a href="http://hl7.org/fhir/ConceptMap">http://hl7.org/fhir/ConceptMap</a>
@@ -174,51 +188,9 @@
           <td>y</td>
         </tr>
         <tr>
-          <td>DeviceCapabilities</td>
+          <td>DeviceObservationReport</td>
           <td>
-            <a href="http://hl7.org/fhir/DeviceCapabilities">http://hl7.org/fhir/DeviceCapabilities</a>
-          </td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-        </tr>
-        <tr>
-          <td>DeviceData</td>
-          <td>
-            <a href="http://hl7.org/fhir/DeviceData">http://hl7.org/fhir/DeviceData</a>
-          </td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-        </tr>
-        <tr>
-          <td>DeviceLog</td>
-          <td>
-            <a href="http://hl7.org/fhir/DeviceLog">http://hl7.org/fhir/DeviceLog</a>
-          </td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-        </tr>
-        <tr>
-          <td>DeviceObservation</td>
-          <td>
-            <a href="http://hl7.org/fhir/DeviceObservation">http://hl7.org/fhir/DeviceObservation</a>
+            <a href="http://hl7.org/fhir/DeviceObservationReport">http://hl7.org/fhir/DeviceObservationReport</a>
           </td>
           <td>y</td>
           <td>y</td>
@@ -247,20 +219,6 @@
           <td>DiagnosticReport</td>
           <td>
             <a href="http://hl7.org/fhir/DiagnosticReport">http://hl7.org/fhir/DiagnosticReport</a>
-          </td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-          <td>y</td>
-        </tr>
-        <tr>
-          <td>Document</td>
-          <td>
-            <a href="http://hl7.org/fhir/Document">http://hl7.org/fhir/Document</a>
           </td>
           <td>y</td>
           <td>y</td>
@@ -496,9 +454,9 @@
           <td>y</td>
         </tr>
         <tr>
-          <td>Message</td>
+          <td>MessageHeader</td>
           <td>
-            <a href="http://hl7.org/fhir/Message">http://hl7.org/fhir/Message</a>
+            <a href="http://hl7.org/fhir/MessageHeader">http://hl7.org/fhir/MessageHeader</a>
           </td>
           <td>y</td>
           <td>y</td>
@@ -778,9 +736,9 @@
       </table>
     </div>
   </text>
-  <identifier value="http://hl7.org/fhir/conformance/base"/>
-  <version value="0.12-????"/>
-  <name value="Base FHIR Conformance Statement"/>
+  <identifier value="http://hl7.org/fhir/conformance-base"/>
+  <version value="0.12-2115"/>
+  <name value="Base FHIR Conformance Statement (Full)"/>
   <publisher value="FHIR Project Team"/>
   <telecom>
     <system value="url"/>
@@ -788,7 +746,7 @@
   </telecom>
   <description value="This is the base conformance statement for FHIR. It represents a server that provides the full set of functionality defined by FHIR. It is provided to use as a template for system designers to build their own conformance statements from"/>
   <status value="draft"/>
-  <date value="2013-10-30"/>
+  <date value="2013-12-31T16:14:16.433+11:00"/>
   <fhirVersion value="0.12"/>
   <acceptUnknown value="false"/>
   <format value="xml"/>
@@ -853,13 +811,13 @@
         <source value="http://hl7.org/fhir/AdverseReaction/search#date"/>
         <type value="date"/>
         <documentation value="The date of the reaction"/>
-        <xpath value="f:AdverseReaction/f:reactionDate"/>
+        <xpath value="f:AdverseReaction/f:date"/>
       </searchParam>
       <searchParam>
         <name value="symptom"/>
         <source value="http://hl7.org/fhir/AdverseReaction/search#symptom"/>
         <type value="token"/>
-        <documentation value="One of the symptoms of the reaction."/>
+        <documentation value="One of the symptoms of the reaction"/>
         <xpath value="f:AdverseReaction/f:symptom/f:code"/>
       </searchParam>
     </resource>
@@ -1023,6 +981,13 @@
         <code value="search-type"/>
       </operation>
       <searchParam>
+        <name value="activitycode"/>
+        <source value="http://hl7.org/fhir/CarePlan/search#activitycode"/>
+        <type value="token"/>
+        <documentation value="Detail type of activity"/>
+        <xpath value="f:CarePlan/f:activity/f:simple/f:code"/>
+      </searchParam>
+      <searchParam>
         <name value="patient"/>
         <source value="http://hl7.org/fhir/CarePlan/search#patient"/>
         <type value="reference"/>
@@ -1043,10 +1008,18 @@
         <xpath value="f:CarePlan/f:concern"/>
       </searchParam>
       <searchParam>
+        <name value="activitydetail"/>
+        <source value="http://hl7.org/fhir/CarePlan/search#activitydetail"/>
+        <type value="reference"/>
+        <documentation value="Activity details defined in specific resource"/>
+        <xpath value="f:CarePlan/f:activity/f:detail"/>
+      </searchParam>
+      <searchParam>
         <name value="activitydate"/>
         <source value="http://hl7.org/fhir/CarePlan/search#activitydate"/>
         <type value="date"/>
         <documentation value="Specified date occurs within period specified by CarePlan.activity.timingSchedule"/>
+        <xpath value="f:CarePlan/f:activity/f:simple/f:timing[x]"/>
       </searchParam>
       <searchParam>
         <name value="participant"/>
@@ -1062,12 +1035,114 @@
         <documentation value="Time period plan covers"/>
         <xpath value="f:CarePlan/f:period"/>
       </searchParam>
+    </resource>
+    <resource>
+      <type value="Composition"/>
+      <profile>
+        <reference value="http://hl7.org/fhir/Composition"/>
+      </profile>
+      <operation>
+        <code value="read"/>
+      </operation>
+      <operation>
+        <code value="vread"/>
+      </operation>
+      <operation>
+        <code value="update"/>
+      </operation>
+      <operation>
+        <code value="delete"/>
+      </operation>
+      <operation>
+        <code value="history-instance"/>
+      </operation>
+      <operation>
+        <code value="validate"/>
+      </operation>
+      <operation>
+        <code value="history-type"/>
+      </operation>
+      <operation>
+        <code value="create"/>
+      </operation>
+      <operation>
+        <code value="search-type"/>
+      </operation>
       <searchParam>
-        <name value="activity"/>
-        <source value="http://hl7.org/fhir/CarePlan/search#activity"/>
+        <name value="author"/>
+        <source value="http://hl7.org/fhir/Composition/search#author"/>
+        <type value="reference"/>
+        <documentation value="Who/what authored the composition"/>
+        <xpath value="f:Composition/f:author"/>
+      </searchParam>
+      <searchParam>
+        <name value="_id"/>
+        <source value="http://hl7.org/fhir/Composition/search#_id"/>
         <type value="token"/>
-        <documentation value="Detail type of activity"/>
-        <xpath value="f:CarePlan/f:activity/f:simple/f:code"/>
+        <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
+      </searchParam>
+      <searchParam>
+        <name value="attester"/>
+        <source value="http://hl7.org/fhir/Composition/search#attester"/>
+        <type value="reference"/>
+        <documentation value="Who attested the composition"/>
+        <xpath value="f:Composition/f:attester/f:party"/>
+      </searchParam>
+      <searchParam>
+        <name value="subject"/>
+        <source value="http://hl7.org/fhir/Composition/search#subject"/>
+        <type value="reference"/>
+        <documentation value="Who/what the composition is about"/>
+        <xpath value="f:Composition/f:subject"/>
+      </searchParam>
+      <searchParam>
+        <name value="section-content"/>
+        <source value="http://hl7.org/fhir/Composition/search#section-content"/>
+        <type value="reference"/>
+        <documentation value="The actual data for the section"/>
+        <xpath value="f:Composition/f:section/f:content"/>
+      </searchParam>
+      <searchParam>
+        <name value="context"/>
+        <source value="http://hl7.org/fhir/Composition/search#context"/>
+        <type value="token"/>
+        <documentation value="Code(s) that apply to the event being documented"/>
+        <xpath value="f:Composition/f:event/f:code"/>
+      </searchParam>
+      <searchParam>
+        <name value="class"/>
+        <source value="http://hl7.org/fhir/Composition/search#class"/>
+        <type value="token"/>
+        <documentation value="Categorisation of Composition"/>
+        <xpath value="f:Composition/f:class"/>
+      </searchParam>
+      <searchParam>
+        <name value="section-type"/>
+        <source value="http://hl7.org/fhir/Composition/search#section-type"/>
+        <type value="token"/>
+        <documentation value="Classification of section (recommended)"/>
+        <xpath value="f:Composition/f:section/f:code"/>
+      </searchParam>
+      <searchParam>
+        <name value="type"/>
+        <source value="http://hl7.org/fhir/Composition/search#type"/>
+        <type value="token"/>
+        <documentation value="Kind of composition (LOINC if possible)"/>
+        <xpath value="f:Composition/f:type"/>
+      </searchParam>
+      <searchParam>
+        <name value="identifier"/>
+        <source value="http://hl7.org/fhir/Composition/search#identifier"/>
+        <type value="token"/>
+        <documentation value="Logical identifier of composition (version-independent)"/>
+        <xpath value="f:Composition/f:identifier"/>
+      </searchParam>
+      <searchParam>
+        <name value="instant"/>
+        <source value="http://hl7.org/fhir/Composition/search#instant"/>
+        <type value="date"/>
+        <documentation value="Composition editing time"/>
+        <xpath value="f:Composition/f:instant"/>
       </searchParam>
     </resource>
     <resource>
@@ -1103,18 +1178,53 @@
         <code value="search-type"/>
       </operation>
       <searchParam>
+        <name value="dependson"/>
+        <source value="http://hl7.org/fhir/ConceptMap/search#dependson"/>
+        <type value="token"/>
+        <documentation value="Reference to element/field/valueset provides the context"/>
+        <xpath value="f:ConceptMap/f:concept/f:dependsOn/f:concept"/>
+      </searchParam>
+      <searchParam>
+        <name value="status"/>
+        <source value="http://hl7.org/fhir/ConceptMap/search#status"/>
+        <type value="token"/>
+        <documentation value="Status of the concept map"/>
+        <xpath value="f:ConceptMap/f:status"/>
+      </searchParam>
+      <searchParam>
+        <name value="date"/>
+        <source value="http://hl7.org/fhir/ConceptMap/search#date"/>
+        <type value="date"/>
+        <documentation value="The concept map publication date"/>
+        <xpath value="f:ConceptMap/f:date"/>
+      </searchParam>
+      <searchParam>
+        <name value="version"/>
+        <source value="http://hl7.org/fhir/ConceptMap/search#version"/>
+        <type value="token"/>
+        <documentation value="The version identifier of the concept map"/>
+        <xpath value="f:ConceptMap/f:version"/>
+      </searchParam>
+      <searchParam>
+        <name value="publisher"/>
+        <source value="http://hl7.org/fhir/ConceptMap/search#publisher"/>
+        <type value="string"/>
+        <documentation value="Name of the publisher of the concept map"/>
+        <xpath value="f:ConceptMap/f:publisher"/>
+      </searchParam>
+      <searchParam>
+        <name value="product"/>
+        <source value="http://hl7.org/fhir/ConceptMap/search#product"/>
+        <type value="token"/>
+        <documentation value="Reference to element/field/valueset provides the context"/>
+        <xpath value="f:ConceptMap/f:concept/f:map/f:product/f:concept"/>
+      </searchParam>
+      <searchParam>
         <name value="system"/>
         <source value="http://hl7.org/fhir/ConceptMap/search#system"/>
         <type value="token"/>
         <documentation value="The system for any destination concepts mapped by this map"/>
         <xpath value="f:ConceptMap/f:concept/f:map/f:system"/>
-      </searchParam>
-      <searchParam>
-        <name value="source"/>
-        <source value="http://hl7.org/fhir/ConceptMap/search#source"/>
-        <type value="reference"/>
-        <documentation value="The system for any concepts mapped by this concept map"/>
-        <xpath value="f:ConceptMap/f:source"/>
       </searchParam>
       <searchParam>
         <name value="_id"/>
@@ -1123,11 +1233,11 @@
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
       <searchParam>
-        <name value="status"/>
-        <source value="http://hl7.org/fhir/ConceptMap/search#status"/>
-        <type value="token"/>
-        <documentation value="Status of the concept map"/>
-        <xpath value="f:ConceptMap/f:status"/>
+        <name value="source"/>
+        <source value="http://hl7.org/fhir/ConceptMap/search#source"/>
+        <type value="reference"/>
+        <documentation value="The system for any concepts mapped by this concept map"/>
+        <xpath value="f:ConceptMap/f:source"/>
       </searchParam>
       <searchParam>
         <name value="description"/>
@@ -1151,32 +1261,11 @@
         <xpath value="f:ConceptMap/f:target"/>
       </searchParam>
       <searchParam>
-        <name value="date"/>
-        <source value="http://hl7.org/fhir/ConceptMap/search#date"/>
-        <type value="date"/>
-        <documentation value="The concept map publication date"/>
-        <xpath value="f:ConceptMap/f:date"/>
-      </searchParam>
-      <searchParam>
         <name value="identifier"/>
         <source value="http://hl7.org/fhir/ConceptMap/search#identifier"/>
         <type value="token"/>
         <documentation value="The identifier of the concept map"/>
         <xpath value="f:ConceptMap/f:identifier"/>
-      </searchParam>
-      <searchParam>
-        <name value="publisher"/>
-        <source value="http://hl7.org/fhir/ConceptMap/search#publisher"/>
-        <type value="string"/>
-        <documentation value="Name of the publisher of the concept map"/>
-        <xpath value="f:ConceptMap/f:publisher"/>
-      </searchParam>
-      <searchParam>
-        <name value="version"/>
-        <source value="http://hl7.org/fhir/ConceptMap/search#version"/>
-        <type value="token"/>
-        <documentation value="The version identifier of the concept map"/>
-        <xpath value="f:ConceptMap/f:version"/>
       </searchParam>
     </resource>
     <resource>
@@ -1236,7 +1325,7 @@
         <name value="subject"/>
         <source value="http://hl7.org/fhir/Condition/search#subject"/>
         <type value="reference"/>
-        <documentation value="Subject of this condition"/>
+        <documentation value="Who has the condition?"/>
         <xpath value="f:Condition/f:subject"/>
       </searchParam>
       <searchParam>
@@ -1271,7 +1360,7 @@
         <name value="encounter"/>
         <source value="http://hl7.org/fhir/Condition/search#encounter"/>
         <type value="reference"/>
-        <documentation value="Encounter during which the condition was first asserted"/>
+        <documentation value="Encounter when condition first asserted"/>
         <xpath value="f:Condition/f:encounter"/>
       </searchParam>
       <searchParam>
@@ -1384,13 +1473,6 @@
         <xpath value="f:Conformance/f:date"/>
       </searchParam>
       <searchParam>
-        <name value="mode"/>
-        <source value="http://hl7.org/fhir/Conformance/search#mode"/>
-        <type value="token"/>
-        <documentation value="Mode - restful (server/client) or messaging (sender/receiver)"/>
-        <xpath value="f:Conformance/f:rest/f:mode"/>
-      </searchParam>
-      <searchParam>
         <name value="version"/>
         <source value="http://hl7.org/fhir/Conformance/search#version"/>
         <type value="token"/>
@@ -1403,6 +1485,13 @@
         <type value="string"/>
         <documentation value="Name of the publisher of the conformance statement"/>
         <xpath value="f:Conformance/f:publisher"/>
+      </searchParam>
+      <searchParam>
+        <name value="mode"/>
+        <source value="http://hl7.org/fhir/Conformance/search#mode"/>
+        <type value="token"/>
+        <documentation value="Mode - restful (server/client) or messaging (sender/receiver)"/>
+        <xpath value="f:Conformance/f:rest/f:mode"/>
       </searchParam>
       <searchParam>
         <name value="software"/>
@@ -1541,6 +1630,13 @@
         <xpath value="f:Device/f:manufacturer"/>
       </searchParam>
       <searchParam>
+        <name value="udi"/>
+        <source value="http://hl7.org/fhir/Device/search#udi"/>
+        <type value="string"/>
+        <documentation value="FDA Mandated Unique Device Identifier"/>
+        <xpath value="f:Device/f:udi"/>
+      </searchParam>
+      <searchParam>
         <name value="type"/>
         <source value="http://hl7.org/fhir/Device/search#type"/>
         <type value="token"/>
@@ -1556,111 +1652,9 @@
       </searchParam>
     </resource>
     <resource>
-      <type value="DeviceCapabilities"/>
+      <type value="DeviceObservationReport"/>
       <profile>
-        <reference value="http://hl7.org/fhir/DeviceCapabilities"/>
-      </profile>
-      <operation>
-        <code value="read"/>
-      </operation>
-      <operation>
-        <code value="vread"/>
-      </operation>
-      <operation>
-        <code value="update"/>
-      </operation>
-      <operation>
-        <code value="delete"/>
-      </operation>
-      <operation>
-        <code value="history-instance"/>
-      </operation>
-      <operation>
-        <code value="validate"/>
-      </operation>
-      <operation>
-        <code value="history-type"/>
-      </operation>
-      <operation>
-        <code value="create"/>
-      </operation>
-      <operation>
-        <code value="search-type"/>
-      </operation>
-      <searchParam>
-        <name value="identity"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#identity"/>
-        <type value="reference"/>
-        <documentation value="Identifies this particular device uniquely"/>
-        <xpath value="f:DeviceCapabilities/f:identity"/>
-      </searchParam>
-      <searchParam>
-        <name value="facet"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#facet"/>
-        <type value="token"/>
-        <documentation value="The facet code"/>
-        <xpath value="f:DeviceCapabilities/f:virtualDevice/f:channel/f:metric/f:facet/f:code"/>
-      </searchParam>
-      <searchParam>
-        <name value="_id"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#_id"/>
-        <type value="token"/>
-        <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
-      </searchParam>
-      <searchParam>
-        <name value="metric"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#metric"/>
-        <type value="token"/>
-        <documentation value="The metric code"/>
-        <xpath value="f:DeviceCapabilities/f:virtualDevice/f:channel/f:metric/f:code"/>
-      </searchParam>
-      <searchParam>
-        <name value="manufacturer"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#manufacturer"/>
-        <type value="token"/>
-        <documentation value="Company that built the device"/>
-        <xpath value="f:DeviceCapabilities/f:manufacturer"/>
-      </searchParam>
-      <searchParam>
-        <name value="name"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#name"/>
-        <type value="string"/>
-        <documentation value="The name of this device"/>
-        <xpath value="f:DeviceCapabilities/f:name"/>
-      </searchParam>
-      <searchParam>
-        <name value="datatype"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#datatype"/>
-        <type value="token"/>
-        <documentation value="Quantity | Coding | Array | string"/>
-        <xpath value="f:DeviceCapabilities/f:virtualDevice/f:channel/f:metric/f:info/f:type"/>
-      </searchParam>
-      <searchParam>
-        <name value="code"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#code"/>
-        <type value="token"/>
-        <documentation value="The compatment code"/>
-        <xpath value="f:DeviceCapabilities/f:virtualDevice/f:code"/>
-      </searchParam>
-      <searchParam>
-        <name value="type"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#type"/>
-        <type value="token"/>
-        <documentation value="The type of device"/>
-        <xpath value="f:DeviceCapabilities/f:type"/>
-      </searchParam>
-      <searchParam>
-        <name value="channel"/>
-        <source value="http://hl7.org/fhir/DeviceCapabilities/search#channel"/>
-        <type value="token"/>
-        <documentation value="The channel code"/>
-        <xpath value="f:DeviceCapabilities/f:virtualDevice/f:channel/f:code"/>
-      </searchParam>
-    </resource>
-    <resource>
-      <type value="DeviceData"/>
-      <profile>
-        <reference value="http://hl7.org/fhir/DeviceData"/>
+        <reference value="http://hl7.org/fhir/DeviceObservationReport"/>
       </profile>
       <operation>
         <code value="read"/>
@@ -1691,206 +1685,44 @@
       </operation>
       <searchParam>
         <name value="observation"/>
-        <source value="http://hl7.org/fhir/DeviceData/search#observation"/>
+        <source value="http://hl7.org/fhir/DeviceObservationReport/search#observation"/>
         <type value="reference"/>
         <documentation value="The data for the metric"/>
-        <xpath value="f:DeviceData/f:virtualDevice/f:channel/f:metric/f:observation"/>
+        <xpath value="f:DeviceObservationReport/f:virtualDevice/f:channel/f:metric/f:observation"/>
       </searchParam>
       <searchParam>
         <name value="source"/>
-        <source value="http://hl7.org/fhir/DeviceData/search#source"/>
+        <source value="http://hl7.org/fhir/DeviceObservationReport/search#source"/>
         <type value="reference"/>
         <documentation value="Identifies/describes where the data came from"/>
-        <xpath value="f:DeviceData/f:source"/>
+        <xpath value="f:DeviceObservationReport/f:source"/>
       </searchParam>
       <searchParam>
         <name value="_id"/>
-        <source value="http://hl7.org/fhir/DeviceData/search#_id"/>
+        <source value="http://hl7.org/fhir/DeviceObservationReport/search#_id"/>
         <type value="token"/>
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
       <searchParam>
         <name value="subject"/>
-        <source value="http://hl7.org/fhir/DeviceData/search#subject"/>
+        <source value="http://hl7.org/fhir/DeviceObservationReport/search#subject"/>
         <type value="reference"/>
         <documentation value="Subject of the measurement"/>
-        <xpath value="f:DeviceData/f:subject"/>
+        <xpath value="f:DeviceObservationReport/f:subject"/>
       </searchParam>
       <searchParam>
         <name value="code"/>
-        <source value="http://hl7.org/fhir/DeviceData/search#code"/>
+        <source value="http://hl7.org/fhir/DeviceObservationReport/search#code"/>
         <type value="token"/>
         <documentation value="The compatment code"/>
-        <xpath value="f:DeviceData/f:virtualDevice/f:code"/>
+        <xpath value="f:DeviceObservationReport/f:virtualDevice/f:code"/>
       </searchParam>
       <searchParam>
         <name value="channel"/>
-        <source value="http://hl7.org/fhir/DeviceData/search#channel"/>
+        <source value="http://hl7.org/fhir/DeviceObservationReport/search#channel"/>
         <type value="token"/>
         <documentation value="The channel code"/>
-        <xpath value="f:DeviceData/f:virtualDevice/f:channel/f:code"/>
-      </searchParam>
-    </resource>
-    <resource>
-      <type value="DeviceLog"/>
-      <profile>
-        <reference value="http://hl7.org/fhir/DeviceLog"/>
-      </profile>
-      <operation>
-        <code value="read"/>
-      </operation>
-      <operation>
-        <code value="vread"/>
-      </operation>
-      <operation>
-        <code value="update"/>
-      </operation>
-      <operation>
-        <code value="delete"/>
-      </operation>
-      <operation>
-        <code value="history-instance"/>
-      </operation>
-      <operation>
-        <code value="validate"/>
-      </operation>
-      <operation>
-        <code value="history-type"/>
-      </operation>
-      <operation>
-        <code value="create"/>
-      </operation>
-      <operation>
-        <code value="search-type"/>
-      </operation>
-      <searchParam>
-        <name value="flag"/>
-        <source value="http://hl7.org/fhir/DeviceLog/search#flag"/>
-        <type value="token"/>
-        <documentation value="Information about the quality of the data etc"/>
-        <xpath value="f:DeviceLog/f:item/f:flag"/>
-      </searchParam>
-      <searchParam>
-        <name value="_id"/>
-        <source value="http://hl7.org/fhir/DeviceLog/search#_id"/>
-        <type value="token"/>
-        <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
-      </searchParam>
-      <searchParam>
-        <name value="subject"/>
-        <source value="http://hl7.org/fhir/DeviceLog/search#subject"/>
-        <type value="reference"/>
-        <documentation value="Subject of the measurement"/>
-        <xpath value="f:DeviceLog/f:subject"/>
-      </searchParam>
-      <searchParam>
-        <name value="value"/>
-        <source value="http://hl7.org/fhir/DeviceLog/search#value"/>
-        <type value="token"/>
-        <documentation value="The value of the data item, if available"/>
-        <xpath value="f:DeviceLog/f:item/f:value"/>
-      </searchParam>
-      <searchParam>
-        <name value="capabilities"/>
-        <source value="http://hl7.org/fhir/DeviceLog/search#capabilities"/>
-        <type value="reference"/>
-        <documentation value="Explicit reference to the capabilities"/>
-        <xpath value="f:DeviceLog/f:capabilities"/>
-      </searchParam>
-      <searchParam>
-        <name value="instant"/>
-        <source value="http://hl7.org/fhir/DeviceLog/search#instant"/>
-        <type value="date"/>
-        <documentation value="When the data values are reported"/>
-        <xpath value="f:DeviceLog/f:instant"/>
-      </searchParam>
-      <searchParam>
-        <name value="key"/>
-        <source value="http://hl7.org/fhir/DeviceLog/search#key"/>
-        <type value="token"/>
-        <documentation value="Reference to device capabilities declaration"/>
-        <xpath value="f:DeviceLog/f:item/f:key"/>
-      </searchParam>
-    </resource>
-    <resource>
-      <type value="DeviceObservation"/>
-      <profile>
-        <reference value="http://hl7.org/fhir/DeviceObservation"/>
-      </profile>
-      <operation>
-        <code value="read"/>
-      </operation>
-      <operation>
-        <code value="vread"/>
-      </operation>
-      <operation>
-        <code value="update"/>
-      </operation>
-      <operation>
-        <code value="delete"/>
-      </operation>
-      <operation>
-        <code value="history-instance"/>
-      </operation>
-      <operation>
-        <code value="validate"/>
-      </operation>
-      <operation>
-        <code value="history-type"/>
-      </operation>
-      <operation>
-        <code value="create"/>
-      </operation>
-      <operation>
-        <code value="search-type"/>
-      </operation>
-      <searchParam>
-        <name value="_id"/>
-        <source value="http://hl7.org/fhir/DeviceObservation/search#_id"/>
-        <type value="token"/>
-        <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
-      </searchParam>
-      <searchParam>
-        <name value="subject"/>
-        <source value="http://hl7.org/fhir/DeviceObservation/search#subject"/>
-        <type value="reference"/>
-        <documentation value="The subject of the measurements"/>
-        <xpath value="f:DeviceObservation/f:subject"/>
-      </searchParam>
-      <searchParam>
-        <name value="issued"/>
-        <source value="http://hl7.org/fhir/DeviceObservation/search#issued"/>
-        <type value="date"/>
-        <documentation value="Date the measurements were made"/>
-        <xpath value="f:DeviceObservation/f:issued"/>
-      </searchParam>
-      <searchParam>
-        <name value="device"/>
-        <source value="http://hl7.org/fhir/DeviceObservation/search#device"/>
-        <type value="reference"/>
-        <documentation value="Device that produced the results"/>
-        <xpath value="f:DeviceObservation/f:device"/>
-      </searchParam>
-      <searchParam>
-        <name value="code"/>
-        <source value="http://hl7.org/fhir/DeviceObservation/search#code"/>
-        <type value="token"/>
-        <documentation value="Type of device observation"/>
-        <xpath value="f:DeviceObservation/f:code"/>
-      </searchParam>
-      <searchParam>
-        <name value="identifier"/>
-        <source value="http://hl7.org/fhir/DeviceObservation/search#identifier"/>
-        <type value="token"/>
-        <documentation value="Identifiers assigned to this observation"/>
-        <xpath value="f:DeviceObservation/f:identifier"/>
-      </searchParam>
-      <searchParam>
-        <name value="measurement"/>
-        <source value="http://hl7.org/fhir/DeviceObservation/search#measurement"/>
-        <type value="reference"/>
-        <documentation value="Actual measurements"/>
-        <xpath value="f:DeviceObservation/f:measurement"/>
+        <xpath value="f:DeviceObservationReport/f:virtualDevice/f:channel/f:code"/>
       </searchParam>
     </resource>
     <resource>
@@ -1933,25 +1765,11 @@
         <xpath value="f:DiagnosticOrder/f:orderer"/>
       </searchParam>
       <searchParam>
-        <name value="past-status"/>
-        <source value="http://hl7.org/fhir/DiagnosticOrder/search#past-status"/>
-        <type value="token"/>
-        <documentation value="requested | received | accepted | inprogress | review | complete | suspended | rejected | failed"/>
-        <xpath value="f:DiagnosticOrder/f:event/f:status"/>
-      </searchParam>
-      <searchParam>
         <name value="status"/>
         <source value="http://hl7.org/fhir/DiagnosticOrder/search#status"/>
         <type value="token"/>
-        <documentation value="requested | received | accepted | inprogress | review | complete | suspended | rejected | failed"/>
+        <documentation value="requested | received | accepted | in progress | review | completed | suspended | rejected | failed"/>
         <xpath value="f:DiagnosticOrder/f:status"/>
-      </searchParam>
-      <searchParam>
-        <name value="item-status"/>
-        <source value="http://hl7.org/fhir/DiagnosticOrder/search#item-status"/>
-        <type value="token"/>
-        <documentation value="requested | received | accepted | inprogress | review | complete | suspended | rejected | failed"/>
-        <xpath value="f:DiagnosticOrder/f:item/f:status"/>
       </searchParam>
       <searchParam>
         <name value="subject"/>
@@ -1961,18 +1779,18 @@
         <xpath value="f:DiagnosticOrder/f:subject"/>
       </searchParam>
       <searchParam>
-        <name value="item-past-status"/>
-        <source value="http://hl7.org/fhir/DiagnosticOrder/search#item-past-status"/>
+        <name value="item-status"/>
+        <source value="http://hl7.org/fhir/DiagnosticOrder/search#item-status"/>
         <type value="token"/>
-        <documentation value="requested | received | accepted | inprogress | review | complete | suspended | rejected | failed"/>
-        <xpath value="f:DiagnosticOrder/f:item/f:event/f:status"/>
+        <documentation value="requested | received | accepted | in progress | review | completed | suspended | rejected | failed"/>
+        <xpath value="f:DiagnosticOrder/f:item/f:status"/>
       </searchParam>
       <searchParam>
-        <name value="encounter"/>
-        <source value="http://hl7.org/fhir/DiagnosticOrder/search#encounter"/>
-        <type value="reference"/>
-        <documentation value="The encounter that this diagnostic order is associated with"/>
-        <xpath value="f:DiagnosticOrder/f:encounter"/>
+        <name value="event-status"/>
+        <source value="http://hl7.org/fhir/DiagnosticOrder/search#event-status"/>
+        <type value="token"/>
+        <documentation value="requested | received | accepted | in progress | review | completed | suspended | rejected | failed"/>
+        <xpath value="f:DiagnosticOrder/f:event/f:status"/>
       </searchParam>
       <searchParam>
         <name value="actor"/>
@@ -1984,21 +1802,22 @@
         <name value="code"/>
         <source value="http://hl7.org/fhir/DiagnosticOrder/search#code"/>
         <type value="token"/>
-        <documentation value="Code for this item"/>
+        <documentation value="Code to indicate the item (test or panel) being ordered"/>
         <xpath value="f:DiagnosticOrder/f:item/f:code"/>
       </searchParam>
       <searchParam>
-        <name value="date"/>
-        <source value="http://hl7.org/fhir/DiagnosticOrder/search#date"/>
-        <type value="date"/>
-        <documentation value="The date at which the event happened"/>
-        <xpath value="f:DiagnosticOrder/f:event/f:date"/>
+        <name value="encounter"/>
+        <source value="http://hl7.org/fhir/DiagnosticOrder/search#encounter"/>
+        <type value="reference"/>
+        <documentation value="The encounter that this diagnostic order is associated with"/>
+        <xpath value="f:DiagnosticOrder/f:encounter"/>
       </searchParam>
       <searchParam>
-        <name value="status-date"/>
-        <source value="http://hl7.org/fhir/DiagnosticOrder/search#status-date"/>
-        <type value="composite"/>
-        <documentation value="A combination of past-status and date"/>
+        <name value="item-past-status"/>
+        <source value="http://hl7.org/fhir/DiagnosticOrder/search#item-past-status"/>
+        <type value="token"/>
+        <documentation value="requested | received | accepted | in progress | review | completed | suspended | rejected | failed"/>
+        <xpath value="f:DiagnosticOrder/f:item/f:event/f:status"/>
       </searchParam>
       <searchParam>
         <name value="_id"/>
@@ -2018,7 +1837,7 @@
         <source value="http://hl7.org/fhir/DiagnosticOrder/search#item-date"/>
         <type value="date"/>
         <documentation value="The date at which the event happened"/>
-        <xpath value="f:DiagnosticOrder/f:item/f:event/f:date"/>
+        <xpath value="f:DiagnosticOrder/f:item/f:event/f:dateTime"/>
       </searchParam>
       <searchParam>
         <name value="specimen"/>
@@ -2027,10 +1846,17 @@
         <documentation value="If the whole order relates to specific specimens"/>
       </searchParam>
       <searchParam>
-        <name value="item-status-date"/>
-        <source value="http://hl7.org/fhir/DiagnosticOrder/search#item-status-date"/>
+        <name value="event-status-date"/>
+        <source value="http://hl7.org/fhir/DiagnosticOrder/search#event-status-date"/>
         <type value="composite"/>
-        <documentation value="A combination of item-past-status and item-date"/>
+        <documentation value="A combination of past-status and date"/>
+      </searchParam>
+      <searchParam>
+        <name value="event-date"/>
+        <source value="http://hl7.org/fhir/DiagnosticOrder/search#event-date"/>
+        <type value="date"/>
+        <documentation value="The date at which the event happened"/>
+        <xpath value="f:DiagnosticOrder/f:event/f:dateTime"/>
       </searchParam>
       <searchParam>
         <name value="identifier"/>
@@ -2038,6 +1864,12 @@
         <type value="token"/>
         <documentation value="Identifiers assigned to this order"/>
         <xpath value="f:DiagnosticOrder/f:identifier"/>
+      </searchParam>
+      <searchParam>
+        <name value="item-status-date"/>
+        <source value="http://hl7.org/fhir/DiagnosticOrder/search#item-status-date"/>
+        <type value="composite"/>
+        <documentation value="A combination of item-past-status and item-date"/>
       </searchParam>
     </resource>
     <resource>
@@ -2079,25 +1911,11 @@
         <documentation value="Link to an atomic result (observation resource)"/>
       </searchParam>
       <searchParam>
-        <name value="requester"/>
-        <source value="http://hl7.org/fhir/DiagnosticReport/search#requester"/>
-        <type value="reference"/>
-        <documentation value="Who made a request that lead to the report"/>
-        <xpath value="f:DiagnosticReport/f:requestDetail/f:requester"/>
-      </searchParam>
-      <searchParam>
         <name value="status"/>
         <source value="http://hl7.org/fhir/DiagnosticReport/search#status"/>
         <type value="token"/>
         <documentation value="The status of the report"/>
         <xpath value="f:DiagnosticReport/f:status"/>
-      </searchParam>
-      <searchParam>
-        <name value="test"/>
-        <source value="http://hl7.org/fhir/DiagnosticReport/search#test"/>
-        <type value="token"/>
-        <documentation value="A test requested that the report is in response to"/>
-        <xpath value="f:DiagnosticReport/f:requestDetail/f:requestTest"/>
       </searchParam>
       <searchParam>
         <name value="subject"/>
@@ -2114,11 +1932,18 @@
         <xpath value="f:DiagnosticReport/f:issued"/>
       </searchParam>
       <searchParam>
-        <name value="code"/>
-        <source value="http://hl7.org/fhir/DiagnosticReport/search#code"/>
+        <name value="diagnosis"/>
+        <source value="http://hl7.org/fhir/DiagnosticReport/search#diagnosis"/>
         <type value="token"/>
         <documentation value="A coded diagnosis on the report"/>
         <xpath value="f:DiagnosticReport/f:codedDiagnosis"/>
+      </searchParam>
+      <searchParam>
+        <name value="image"/>
+        <source value="http://hl7.org/fhir/DiagnosticReport/search#image"/>
+        <type value="reference"/>
+        <documentation value="Reference to the image source"/>
+        <xpath value="f:DiagnosticReport/f:image/f:link"/>
       </searchParam>
       <searchParam>
         <name value="date"/>
@@ -2134,6 +1959,13 @@
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
       <searchParam>
+        <name value="request"/>
+        <source value="http://hl7.org/fhir/DiagnosticReport/search#request"/>
+        <type value="reference"/>
+        <documentation value="What was requested"/>
+        <xpath value="f:DiagnosticReport/f:requestDetail"/>
+      </searchParam>
+      <searchParam>
         <name value="specimen"/>
         <source value="http://hl7.org/fhir/DiagnosticReport/search#specimen"/>
         <type value="reference"/>
@@ -2143,7 +1975,7 @@
         <name value="name"/>
         <source value="http://hl7.org/fhir/DiagnosticReport/search#name"/>
         <type value="token"/>
-        <documentation value="The name/code of the report"/>
+        <documentation value="The name of the report (e.g. the code for the report as a whole, as opposed to codes for the atomic results, which are the names on the observation resource referred to from the result)"/>
         <xpath value="f:DiagnosticReport/f:results/f:name"/>
       </searchParam>
       <searchParam>
@@ -2171,116 +2003,7 @@
         <source value="http://hl7.org/fhir/DiagnosticReport/search#identifier"/>
         <type value="token"/>
         <documentation value="An identifier for the report"/>
-        <xpath value="f:DiagnosticReport/f:reportId"/>
-      </searchParam>
-    </resource>
-    <resource>
-      <type value="Document"/>
-      <profile>
-        <reference value="http://hl7.org/fhir/Document"/>
-      </profile>
-      <operation>
-        <code value="read"/>
-      </operation>
-      <operation>
-        <code value="vread"/>
-      </operation>
-      <operation>
-        <code value="update"/>
-      </operation>
-      <operation>
-        <code value="delete"/>
-      </operation>
-      <operation>
-        <code value="history-instance"/>
-      </operation>
-      <operation>
-        <code value="validate"/>
-      </operation>
-      <operation>
-        <code value="history-type"/>
-      </operation>
-      <operation>
-        <code value="create"/>
-      </operation>
-      <operation>
-        <code value="search-type"/>
-      </operation>
-      <searchParam>
-        <name value="author"/>
-        <source value="http://hl7.org/fhir/Document/search#author"/>
-        <type value="reference"/>
-        <documentation value="Author of the document"/>
-        <xpath value="f:Document/f:author"/>
-      </searchParam>
-      <searchParam>
-        <name value="_id"/>
-        <source value="http://hl7.org/fhir/Document/search#_id"/>
-        <type value="token"/>
-        <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
-      </searchParam>
-      <searchParam>
-        <name value="attester"/>
-        <source value="http://hl7.org/fhir/Document/search#attester"/>
-        <type value="reference"/>
-        <documentation value="Attester of the document"/>
-        <xpath value="f:Document/f:attester/f:party"/>
-      </searchParam>
-      <searchParam>
-        <name value="subject"/>
-        <source value="http://hl7.org/fhir/Document/search#subject"/>
-        <type value="reference"/>
-        <documentation value="Subject of the document"/>
-        <xpath value="f:Document/f:subject"/>
-      </searchParam>
-      <searchParam>
-        <name value="section-content"/>
-        <source value="http://hl7.org/fhir/Document/search#section-content"/>
-        <type value="reference"/>
-        <documentation value="Content resource of the section"/>
-        <xpath value="f:Document/f:section/f:content"/>
-      </searchParam>
-      <searchParam>
-        <name value="context"/>
-        <source value="http://hl7.org/fhir/Document/search#context"/>
-        <type value="token"/>
-        <documentation value="Context of the document"/>
-        <xpath value="f:Document/f:event/f:code"/>
-      </searchParam>
-      <searchParam>
-        <name value="section-type"/>
-        <source value="http://hl7.org/fhir/Document/search#section-type"/>
-        <type value="token"/>
-        <documentation value="Code of the document"/>
-        <xpath value="f:Document/f:section/f:code"/>
-      </searchParam>
-      <searchParam>
-        <name value="date"/>
-        <source value="http://hl7.org/fhir/Document/search#date"/>
-        <type value="date"/>
-        <documentation value="The document creation time"/>
-        <xpath value="f:Document/f:created"/>
-      </searchParam>
-      <searchParam>
-        <name value="type"/>
-        <source value="http://hl7.org/fhir/Document/search#type"/>
-        <type value="token"/>
-        <documentation value="The type of the document"/>
-        <xpath value="f:Document/f:type"/>
-      </searchParam>
-      <searchParam>
-        <name value="identifier"/>
-        <source value="http://hl7.org/fhir/Document/search#identifier"/>
-        <type value="token"/>
-        <documentation value="Logical identifier for document (version-independent)"/>
-        <xpath value="f:Document/f:identifier"/>
-      </searchParam>
-      <searchParam>
-        <name value="version"/>
-        <source value="http://hl7.org/fhir/Document/search#version"/>
-        <type value="token"/>
-        <documentation value="Version-specific identifier for document"/>
-        <xpath value="f:Document/f:versionIdentifier"/>
+        <xpath value="f:DiagnosticReport/f:identifier"/>
       </searchParam>
     </resource>
     <resource>
@@ -2346,7 +2069,7 @@
         <name value="status"/>
         <source value="http://hl7.org/fhir/DocumentManifest/search#status"/>
         <type value="token"/>
-        <documentation value="current | superseded | error"/>
+        <documentation value="current | superceded | entered in error"/>
         <xpath value="f:DocumentManifest/f:status"/>
       </searchParam>
       <searchParam>
@@ -2381,7 +2104,7 @@
         <name value="type"/>
         <source value="http://hl7.org/fhir/DocumentManifest/search#type"/>
         <type value="token"/>
-        <documentation value="What kind of document set this is (LOINC if possible)"/>
+        <documentation value="What kind of document set this is"/>
         <xpath value="f:DocumentManifest/f:type"/>
       </searchParam>
       <searchParam>
@@ -2389,7 +2112,6 @@
         <source value="http://hl7.org/fhir/DocumentManifest/search#identifier"/>
         <type value="token"/>
         <documentation value="Unique Identifier for the set of documents"/>
-        <xpath value="f:DocumentManifest/f:identifier"/>
       </searchParam>
       <searchParam>
         <name value="recipient"/>
@@ -2432,13 +2154,6 @@
         <code value="search-type"/>
       </operation>
       <searchParam>
-        <name value="supersedes"/>
-        <source value="http://hl7.org/fhir/DocumentReference/search#supersedes"/>
-        <type value="reference"/>
-        <documentation value="If this document replaces another"/>
-        <xpath value="f:DocumentReference/f:supercedes"/>
-      </searchParam>
-      <searchParam>
         <name value="location"/>
         <source value="http://hl7.org/fhir/DocumentReference/search#location"/>
         <type value="string"/>
@@ -2456,21 +2171,42 @@
         <name value="status"/>
         <source value="http://hl7.org/fhir/DocumentReference/search#status"/>
         <type value="token"/>
-        <documentation value="current | superseded | error"/>
+        <documentation value="current | superceded | entered in error"/>
         <xpath value="f:DocumentReference/f:status"/>
       </searchParam>
       <searchParam>
         <name value="subject"/>
         <source value="http://hl7.org/fhir/DocumentReference/search#subject"/>
         <type value="reference"/>
-        <documentation value="The subject of the document"/>
+        <documentation value="Who|what is the subject of the document"/>
         <xpath value="f:DocumentReference/f:subject"/>
+      </searchParam>
+      <searchParam>
+        <name value="relatesto"/>
+        <source value="http://hl7.org/fhir/DocumentReference/search#relatesto"/>
+        <type value="reference"/>
+        <documentation value="Target of the relationship"/>
+        <xpath value="f:DocumentReference/f:relatesTo/f:target"/>
+      </searchParam>
+      <searchParam>
+        <name value="relation"/>
+        <source value="http://hl7.org/fhir/DocumentReference/search#relation"/>
+        <type value="token"/>
+        <documentation value="replaces | transforms | signs | appends"/>
+        <xpath value="f:DocumentReference/f:relatesTo/f:code"/>
+      </searchParam>
+      <searchParam>
+        <name value="class"/>
+        <source value="http://hl7.org/fhir/DocumentReference/search#class"/>
+        <type value="token"/>
+        <documentation value="Categorisation of Document"/>
+        <xpath value="f:DocumentReference/f:class"/>
       </searchParam>
       <searchParam>
         <name value="format"/>
         <source value="http://hl7.org/fhir/DocumentReference/search#format"/>
         <type value="token"/>
-        <documentation value="Format of the document"/>
+        <documentation value="Format/content rules for the document"/>
         <xpath value="f:DocumentReference/f:format"/>
       </searchParam>
       <searchParam>
@@ -2491,7 +2227,7 @@
         <name value="authenticator"/>
         <source value="http://hl7.org/fhir/DocumentReference/search#authenticator"/>
         <type value="reference"/>
-        <documentation value="Who authenticated the document"/>
+        <documentation value="Who/What authenticated the document"/>
         <xpath value="f:DocumentReference/f:authenticator"/>
       </searchParam>
       <searchParam>
@@ -2500,6 +2236,12 @@
         <type value="number"/>
         <documentation value="Size of the document in bytes"/>
         <xpath value="f:DocumentReference/f:size"/>
+      </searchParam>
+      <searchParam>
+        <name value="relationship"/>
+        <source value="http://hl7.org/fhir/DocumentReference/search#relationship"/>
+        <type value="composite"/>
+        <documentation value="Combination of relation and relatesTo"/>
       </searchParam>
       <searchParam>
         <name value="author"/>
@@ -2539,8 +2281,8 @@
         <name value="event"/>
         <source value="http://hl7.org/fhir/DocumentReference/search#event"/>
         <type value="token"/>
-        <documentation value="Type of context (i.e. type of event)"/>
-        <xpath value="f:DocumentReference/f:context/f:code"/>
+        <documentation value="Main Clinical Acts Documented"/>
+        <xpath value="f:DocumentReference/f:context/f:event"/>
       </searchParam>
       <searchParam>
         <name value="confidentiality"/>
@@ -2557,25 +2299,17 @@
         <xpath value="f:DocumentReference/f:description"/>
       </searchParam>
       <searchParam>
-        <name value="subtype"/>
-        <source value="http://hl7.org/fhir/DocumentReference/search#subtype"/>
-        <type value="token"/>
-        <documentation value="More detail about the document type"/>
-        <xpath value="f:DocumentReference/f:subtype"/>
-      </searchParam>
-      <searchParam>
         <name value="language"/>
         <source value="http://hl7.org/fhir/DocumentReference/search#language"/>
         <type value="token"/>
-        <documentation value="Primary language of the document"/>
+        <documentation value="The marked primary language for the document"/>
         <xpath value="f:DocumentReference/f:primaryLanguage"/>
       </searchParam>
       <searchParam>
         <name value="identifier"/>
         <source value="http://hl7.org/fhir/DocumentReference/search#identifier"/>
         <type value="token"/>
-        <documentation value="Other identifiers for the document"/>
-        <xpath value="f:DocumentReference/f:identifier"/>
+        <documentation value="Master Version Specific Identifier"/>
       </searchParam>
     </resource>
     <resource>
@@ -2617,25 +2351,18 @@
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
       <searchParam>
-        <name value="start"/>
-        <source value="http://hl7.org/fhir/Encounter/search#start"/>
-        <type value="date"/>
-        <documentation value="The date and time the encounter starts"/>
-        <xpath value="f:Encounter/f:start"/>
+        <name value="location"/>
+        <source value="http://hl7.org/fhir/Encounter/search#location"/>
+        <type value="reference"/>
+        <documentation value="The location the encounter takes place"/>
+        <xpath value="f:Encounter/f:location/f:location"/>
       </searchParam>
       <searchParam>
         <name value="status"/>
         <source value="http://hl7.org/fhir/Encounter/search#status"/>
         <type value="token"/>
-        <documentation value="E.g. active, aborted, finished"/>
+        <documentation value="planned | in progress | onleave | finished | cancelled"/>
         <xpath value="f:Encounter/f:status"/>
-      </searchParam>
-      <searchParam>
-        <name value="fulfills"/>
-        <source value="http://hl7.org/fhir/Encounter/search#fulfills"/>
-        <type value="reference"/>
-        <documentation value="The appointment that scheduled this encounter"/>
-        <xpath value="f:Encounter/f:fulfills"/>
       </searchParam>
       <searchParam>
         <name value="subject"/>
@@ -2648,7 +2375,7 @@
         <name value="indication"/>
         <source value="http://hl7.org/fhir/Encounter/search#indication"/>
         <type value="reference"/>
-        <documentation value="Reason the encounter takes place"/>
+        <documentation value="Reason the encounter takes place (resource)"/>
         <xpath value="f:Encounter/f:indication"/>
       </searchParam>
       <searchParam>
@@ -2659,11 +2386,25 @@
         <xpath value="f:Encounter/f:length"/>
       </searchParam>
       <searchParam>
+        <name value="date"/>
+        <source value="http://hl7.org/fhir/Encounter/search#date"/>
+        <type value="date"/>
+        <documentation value="A date within the period the Encounter lasted"/>
+        <xpath value="f:Encounter/f:period"/>
+      </searchParam>
+      <searchParam>
         <name value="identifier"/>
         <source value="http://hl7.org/fhir/Encounter/search#identifier"/>
         <type value="token"/>
         <documentation value="Identifier(s) by which this encounter is known"/>
         <xpath value="f:Encounter/f:identifier"/>
+      </searchParam>
+      <searchParam>
+        <name value="location-period"/>
+        <source value="http://hl7.org/fhir/Encounter/search#location-period"/>
+        <type value="date"/>
+        <documentation value="Time period during which the patient was present at the location"/>
+        <xpath value="f:Encounter/f:location/f:period"/>
       </searchParam>
     </resource>
     <resource>
@@ -2758,17 +2499,10 @@
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
       <searchParam>
-        <name value="group-type"/>
-        <source value="http://hl7.org/fhir/Group/search#group-type"/>
-        <type value="token"/>
-        <documentation value="The type of resources the group contains"/>
-        <xpath value="f:Group/f:type"/>
-      </searchParam>
-      <searchParam>
-        <name value="type-value"/>
-        <source value="http://hl7.org/fhir/Group/search#type-value"/>
+        <name value="characteristic-value"/>
+        <source value="http://hl7.org/fhir/Group/search#characteristic-value"/>
         <type value="composite"/>
-        <documentation value="A composite of both type and value"/>
+        <documentation value="A composite of both characteristic and value"/>
       </searchParam>
       <searchParam>
         <name value="value"/>
@@ -2799,11 +2533,18 @@
         <xpath value="f:Group/f:code"/>
       </searchParam>
       <searchParam>
+        <name value="characteristic"/>
+        <source value="http://hl7.org/fhir/Group/search#characteristic"/>
+        <type value="token"/>
+        <documentation value="Kind of characteristic"/>
+        <xpath value="f:Group/f:characteristic/f:code"/>
+      </searchParam>
+      <searchParam>
         <name value="type"/>
         <source value="http://hl7.org/fhir/Group/search#type"/>
         <type value="token"/>
-        <documentation value="Kind of characteristic"/>
-        <xpath value="f:Group/f:characteristic/f:type"/>
+        <documentation value="The type of resources the group contains"/>
+        <xpath value="f:Group/f:type"/>
       </searchParam>
       <searchParam>
         <name value="identifier"/>
@@ -2954,6 +2695,13 @@
         <code value="search-type"/>
       </operation>
       <searchParam>
+        <name value="reaction"/>
+        <source value="http://hl7.org/fhir/Immunization/search#reaction"/>
+        <type value="reference"/>
+        <documentation value="Additional information on reaction"/>
+        <xpath value="f:Immunization/f:reaction/f:detail"/>
+      </searchParam>
+      <searchParam>
         <name value="requester"/>
         <source value="http://hl7.org/fhir/Immunization/search#requester"/>
         <type value="reference"/>
@@ -2961,11 +2709,11 @@
         <xpath value="f:Immunization/f:requester"/>
       </searchParam>
       <searchParam>
-        <name value="lot-number"/>
-        <source value="http://hl7.org/fhir/Immunization/search#lot-number"/>
-        <type value="string"/>
-        <documentation value="Vaccine Lot Number"/>
-        <xpath value="f:Immunization/f:lotNumber"/>
+        <name value="dose-sequence"/>
+        <source value="http://hl7.org/fhir/Immunization/search#dose-sequence"/>
+        <type value="number"/>
+        <documentation value="What dose number within series?"/>
+        <xpath value="f:Immunization/f:vaccinationProtocol/f:doseSequence"/>
       </searchParam>
       <searchParam>
         <name value="vaccine-type"/>
@@ -2975,12 +2723,6 @@
         <xpath value="f:Immunization/f:vaccineType"/>
       </searchParam>
       <searchParam>
-        <name value="_id"/>
-        <source value="http://hl7.org/fhir/Immunization/search#_id"/>
-        <type value="token"/>
-        <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
-      </searchParam>
-      <searchParam>
         <name value="location"/>
         <source value="http://hl7.org/fhir/Immunization/search#location"/>
         <type value="reference"/>
@@ -2988,11 +2730,45 @@
         <xpath value="f:Immunization/f:location"/>
       </searchParam>
       <searchParam>
+        <name value="reason"/>
+        <source value="http://hl7.org/fhir/Immunization/search#reason"/>
+        <type value="token"/>
+        <documentation value="Why immunization occurred"/>
+        <xpath value="f:Immunization/f:explanation/f:reason"/>
+      </searchParam>
+      <searchParam>
         <name value="subject"/>
         <source value="http://hl7.org/fhir/Immunization/search#subject"/>
         <type value="reference"/>
         <documentation value="The subject of the vaccination event / refusal"/>
         <xpath value="f:Immunization/f:subject"/>
+      </searchParam>
+      <searchParam>
+        <name value="reaction-date"/>
+        <source value="http://hl7.org/fhir/Immunization/search#reaction-date"/>
+        <type value="date"/>
+        <documentation value="When did reaction start?"/>
+        <xpath value="f:Immunization/f:reaction/f:date"/>
+      </searchParam>
+      <searchParam>
+        <name value="date"/>
+        <source value="http://hl7.org/fhir/Immunization/search#date"/>
+        <type value="date"/>
+        <documentation value="Vaccination  Administration / Refusal Date"/>
+        <xpath value="f:Immunization/f:date"/>
+      </searchParam>
+      <searchParam>
+        <name value="lot-number"/>
+        <source value="http://hl7.org/fhir/Immunization/search#lot-number"/>
+        <type value="string"/>
+        <documentation value="Vaccine Lot Number"/>
+        <xpath value="f:Immunization/f:lotNumber"/>
+      </searchParam>
+      <searchParam>
+        <name value="_id"/>
+        <source value="http://hl7.org/fhir/Immunization/search#_id"/>
+        <type value="token"/>
+        <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
       <searchParam>
         <name value="manufacturer"/>
@@ -3016,11 +2792,18 @@
         <xpath value="f:Immunization/f:explanation/f:refusalReason"/>
       </searchParam>
       <searchParam>
-        <name value="date"/>
-        <source value="http://hl7.org/fhir/Immunization/search#date"/>
-        <type value="date"/>
-        <documentation value="Vaccination  Administration / Refusal Date"/>
-        <xpath value="f:Immunization/f:date"/>
+        <name value="refused"/>
+        <source value="http://hl7.org/fhir/Immunization/search#refused"/>
+        <type value="token"/>
+        <documentation value="Was immunization refused?"/>
+        <xpath value="f:Immunization/f:refusedIndicator"/>
+      </searchParam>
+      <searchParam>
+        <name value="identifier"/>
+        <source value="http://hl7.org/fhir/Immunization/search#identifier"/>
+        <type value="token"/>
+        <documentation value="Business identifier"/>
+        <xpath value="f:Immunization/f:identifier"/>
       </searchParam>
     </resource>
     <resource>
@@ -3056,10 +2839,31 @@
         <code value="search-type"/>
       </operation>
       <searchParam>
+        <name value="information"/>
+        <source value="http://hl7.org/fhir/ImmunizationRecommendation/search#information"/>
+        <type value="reference"/>
+        <documentation value="Patient observations supporting recommendation"/>
+        <xpath value="f:ImmunizationRecommendation/f:recommendation/f:supportingPatientInformation"/>
+      </searchParam>
+      <searchParam>
+        <name value="dose-sequence"/>
+        <source value="http://hl7.org/fhir/ImmunizationRecommendation/search#dose-sequence"/>
+        <type value="token"/>
+        <documentation value="Number of dose within sequence"/>
+        <xpath value="f:ImmunizationRecommendation/f:recommendation/f:protocol/f:doseSequence"/>
+      </searchParam>
+      <searchParam>
+        <name value="support"/>
+        <source value="http://hl7.org/fhir/ImmunizationRecommendation/search#support"/>
+        <type value="reference"/>
+        <documentation value="Past immunizations supporting recommendation"/>
+        <xpath value="f:ImmunizationRecommendation/f:recommendation/f:supportingImmunization"/>
+      </searchParam>
+      <searchParam>
         <name value="vaccine-type"/>
         <source value="http://hl7.org/fhir/ImmunizationRecommendation/search#vaccine-type"/>
         <type value="token"/>
-        <documentation value="Vaccine that pertains to the recommendation"/>
+        <documentation value="Vaccine recommendation applies to"/>
         <xpath value="f:ImmunizationRecommendation/f:recommendation/f:vaccineType"/>
       </searchParam>
       <searchParam>
@@ -3069,11 +2873,39 @@
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
       <searchParam>
+        <name value="status"/>
+        <source value="http://hl7.org/fhir/ImmunizationRecommendation/search#status"/>
+        <type value="token"/>
+        <documentation value="Vaccine administration status"/>
+        <xpath value="f:ImmunizationRecommendation/f:recommendation/f:forecastStatus"/>
+      </searchParam>
+      <searchParam>
+        <name value="dose-number"/>
+        <source value="http://hl7.org/fhir/ImmunizationRecommendation/search#dose-number"/>
+        <type value="number"/>
+        <documentation value="Recommended dose number"/>
+        <xpath value="f:ImmunizationRecommendation/f:recommendation/f:doseNumber"/>
+      </searchParam>
+      <searchParam>
         <name value="subject"/>
         <source value="http://hl7.org/fhir/ImmunizationRecommendation/search#subject"/>
         <type value="reference"/>
         <documentation value="Who this profile is for"/>
         <xpath value="f:ImmunizationRecommendation/f:subject"/>
+      </searchParam>
+      <searchParam>
+        <name value="date"/>
+        <source value="http://hl7.org/fhir/ImmunizationRecommendation/search#date"/>
+        <type value="date"/>
+        <documentation value="Date recommendation created"/>
+        <xpath value="f:ImmunizationRecommendation/f:recommendation/f:date"/>
+      </searchParam>
+      <searchParam>
+        <name value="identifier"/>
+        <source value="http://hl7.org/fhir/ImmunizationRecommendation/search#identifier"/>
+        <type value="token"/>
+        <documentation value="Business identifier"/>
+        <xpath value="f:ImmunizationRecommendation/f:identifier"/>
       </searchParam>
     </resource>
     <resource>
@@ -3112,7 +2944,7 @@
         <name value="source"/>
         <source value="http://hl7.org/fhir/List/search#source"/>
         <type value="reference"/>
-        <documentation value="Source of the list"/>
+        <documentation value="Who/what defined the list contents"/>
         <xpath value="f:List/f:source"/>
       </searchParam>
       <searchParam>
@@ -3209,6 +3041,13 @@
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
       <searchParam>
+        <name value="status"/>
+        <source value="http://hl7.org/fhir/Location/search#status"/>
+        <type value="token"/>
+        <documentation value="Searches for locations with a specific kind of status"/>
+        <xpath value="f:Location/f:status"/>
+      </searchParam>
+      <searchParam>
         <name value="address"/>
         <source value="http://hl7.org/fhir/Location/search#address"/>
         <type value="string"/>
@@ -3223,13 +3062,6 @@
         <xpath value="f:Location/f:name"/>
       </searchParam>
       <searchParam>
-        <name value="active"/>
-        <source value="http://hl7.org/fhir/Location/search#active"/>
-        <type value="token"/>
-        <documentation value="Whether to search for active or inactive locations"/>
-        <xpath value="f:Location/f:active"/>
-      </searchParam>
-      <searchParam>
         <name value="near-distance"/>
         <source value="http://hl7.org/fhir/Location/search#near-distance"/>
         <type value="token"/>
@@ -3241,6 +3073,13 @@
         <type value="token"/>
         <documentation value="A code for the type of location"/>
         <xpath value="f:Location/f:type"/>
+      </searchParam>
+      <searchParam>
+        <name value="identifier"/>
+        <source value="http://hl7.org/fhir/Location/search#identifier"/>
+        <type value="token"/>
+        <documentation value="Unique code or number identifying the location to its users"/>
+        <xpath value="f:Location/f:identifier"/>
       </searchParam>
     </resource>
     <resource>
@@ -3313,7 +3152,7 @@
         <name value="type"/>
         <source value="http://hl7.org/fhir/Media/search#type"/>
         <type value="token"/>
-        <documentation value="photo | audio | video"/>
+        <documentation value="photo | video | audio"/>
         <xpath value="f:Media/f:type"/>
       </searchParam>
       <searchParam>
@@ -3374,7 +3213,7 @@
         <name value="form"/>
         <source value="http://hl7.org/fhir/Medication/search#form"/>
         <type value="token"/>
-        <documentation value="Powder | tablets | carton etc"/>
+        <documentation value="powder | tablets | carton +"/>
         <xpath value="f:Medication/f:product/f:form"/>
       </searchParam>
       <searchParam>
@@ -3387,7 +3226,7 @@
         <name value="container"/>
         <source value="http://hl7.org/fhir/Medication/search#container"/>
         <type value="token"/>
-        <documentation value="Kind of container"/>
+        <documentation value="E.g. box, vial, blister-pack"/>
         <xpath value="f:Medication/f:package/f:container"/>
       </searchParam>
       <searchParam>
@@ -3408,14 +3247,14 @@
         <name value="ingredient"/>
         <source value="http://hl7.org/fhir/Medication/search#ingredient"/>
         <type value="reference"/>
-        <documentation value="Ingredient"/>
+        <documentation value="The product contained"/>
         <xpath value="f:Medication/f:product/f:ingredient/f:item"/>
       </searchParam>
       <searchParam>
         <name value="code"/>
         <source value="http://hl7.org/fhir/Medication/search#code"/>
         <type value="token"/>
-        <documentation value="References to std. medication terminologies"/>
+        <documentation value="Codes that identify this medication"/>
         <xpath value="f:Medication/f:code"/>
       </searchParam>
     </resource>
@@ -3466,13 +3305,6 @@
         <xpath value="f:MedicationAdministration/f:patient"/>
       </searchParam>
       <searchParam>
-        <name value="administrationdevice"/>
-        <source value="http://hl7.org/fhir/MedicationAdministration/search#administrationdevice"/>
-        <type value="reference"/>
-        <documentation value="Return administrations with this administration device identity"/>
-        <xpath value="f:MedicationAdministration/f:administrationDevice"/>
-      </searchParam>
-      <searchParam>
         <name value="_id"/>
         <source value="http://hl7.org/fhir/MedicationAdministration/search#_id"/>
         <type value="token"/>
@@ -3491,6 +3323,13 @@
         <type value="reference"/>
         <documentation value="The identity of a prescription to list administrations from"/>
         <xpath value="f:MedicationAdministration/f:prescription"/>
+      </searchParam>
+      <searchParam>
+        <name value="device"/>
+        <source value="http://hl7.org/fhir/MedicationAdministration/search#device"/>
+        <type value="reference"/>
+        <documentation value="Return administrations with this administration device identity"/>
+        <xpath value="f:MedicationAdministration/f:device"/>
       </searchParam>
       <searchParam>
         <name value="notgiven"/>
@@ -3765,17 +3604,17 @@
         <xpath value="f:MedicationStatement/f:patient"/>
       </searchParam>
       <searchParam>
-        <name value="administrationdevice"/>
-        <source value="http://hl7.org/fhir/MedicationStatement/search#administrationdevice"/>
-        <type value="reference"/>
-        <documentation value="Return administrations with this administration device identity"/>
-        <xpath value="f:MedicationStatement/f:administrationDevice"/>
-      </searchParam>
-      <searchParam>
         <name value="_id"/>
         <source value="http://hl7.org/fhir/MedicationStatement/search#_id"/>
         <type value="token"/>
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
+      </searchParam>
+      <searchParam>
+        <name value="device"/>
+        <source value="http://hl7.org/fhir/MedicationStatement/search#device"/>
+        <type value="reference"/>
+        <documentation value="Return administrations with this administration device identity"/>
+        <xpath value="f:MedicationStatement/f:device"/>
       </searchParam>
       <searchParam>
         <name value="when-given"/>
@@ -3793,9 +3632,9 @@
       </searchParam>
     </resource>
     <resource>
-      <type value="Message"/>
+      <type value="MessageHeader"/>
       <profile>
-        <reference value="http://hl7.org/fhir/Message"/>
+        <reference value="http://hl7.org/fhir/MessageHeader"/>
       </profile>
       <operation>
         <code value="read"/>
@@ -3826,7 +3665,7 @@
       </operation>
       <searchParam>
         <name value="_id"/>
-        <source value="http://hl7.org/fhir/Message/search#_id"/>
+        <source value="http://hl7.org/fhir/MessageHeader/search#_id"/>
         <type value="token"/>
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
@@ -3884,10 +3723,17 @@
         <xpath value="f:Observation/f:subject"/>
       </searchParam>
       <searchParam>
+        <name value="specimen"/>
+        <source value="http://hl7.org/fhir/Observation/search#specimen"/>
+        <type value="reference"/>
+        <documentation value="Specimen used for this observation"/>
+        <xpath value="f:Observation/f:specimen"/>
+      </searchParam>
+      <searchParam>
         <name value="name"/>
         <source value="http://hl7.org/fhir/Observation/search#name"/>
         <type value="token"/>
-        <documentation value="The name of the observation type or component type"/>
+        <documentation value="The name of the observation type"/>
         <xpath value="f:Observation/f:name"/>
       </searchParam>
       <searchParam>
@@ -4092,13 +3938,6 @@
         <code value="search-type"/>
       </operation>
       <searchParam>
-        <name value="authority"/>
-        <source value="http://hl7.org/fhir/OrderResponse/search#authority"/>
-        <type value="reference"/>
-        <documentation value="If required by policy"/>
-        <xpath value="f:OrderResponse/f:authority"/>
-      </searchParam>
-      <searchParam>
         <name value="_id"/>
         <source value="http://hl7.org/fhir/OrderResponse/search#_id"/>
         <type value="token"/>
@@ -4122,7 +3961,7 @@
         <name value="code"/>
         <source value="http://hl7.org/fhir/OrderResponse/search#code"/>
         <type value="token"/>
-        <documentation value="The status of the response"/>
+        <documentation value="pending | review | rejected | error | accepted | cancelled | replaced | aborted | complete"/>
         <xpath value="f:OrderResponse/f:code"/>
       </searchParam>
       <searchParam>
@@ -4131,13 +3970,6 @@
         <type value="date"/>
         <documentation value="When the response was made"/>
         <xpath value="f:OrderResponse/f:date"/>
-      </searchParam>
-      <searchParam>
-        <name value="cost"/>
-        <source value="http://hl7.org/fhir/OrderResponse/search#cost"/>
-        <type value="number"/>
-        <documentation value="How much the request will/did cost"/>
-        <xpath value="f:OrderResponse/f:cost"/>
       </searchParam>
       <searchParam>
         <name value="who"/>
@@ -4333,11 +4165,18 @@
         <documentation value="A portion of either family or given name using some kind of phonetic matching algorithm"/>
       </searchParam>
       <searchParam>
+        <name value="link"/>
+        <source value="http://hl7.org/fhir/Patient/search#link"/>
+        <type value="reference"/>
+        <documentation value="All patients linked to the given patient"/>
+        <xpath value="f:Patient/f:link/f:other"/>
+      </searchParam>
+      <searchParam>
         <name value="provider"/>
         <source value="http://hl7.org/fhir/Patient/search#provider"/>
         <type value="reference"/>
-        <documentation value="The identity of the organization at which this person is a patient"/>
-        <xpath value="f:Patient/f:provider"/>
+        <documentation value="The organization at which this person is a patient"/>
+        <xpath value="f:Patient/f:managingOrganization"/>
       </searchParam>
       <searchParam>
         <name value="animal-species"/>
@@ -4395,18 +4234,18 @@
         <xpath value="f:Patient/f:birthDate"/>
       </searchParam>
       <searchParam>
-        <name value="active"/>
-        <source value="http://hl7.org/fhir/Patient/search#active"/>
-        <type value="token"/>
-        <documentation value="Whether the patient record is active"/>
-        <xpath value="f:Patient/f:active"/>
-      </searchParam>
-      <searchParam>
         <name value="gender"/>
         <source value="http://hl7.org/fhir/Patient/search#gender"/>
         <type value="token"/>
         <documentation value="Gender of the patient"/>
         <xpath value="f:Patient/f:gender"/>
+      </searchParam>
+      <searchParam>
+        <name value="active"/>
+        <source value="http://hl7.org/fhir/Patient/search#active"/>
+        <type value="token"/>
+        <documentation value="Whether the patient record is active"/>
+        <xpath value="f:Patient/f:active"/>
       </searchParam>
       <searchParam>
         <name value="language"/>
@@ -4750,14 +4589,14 @@
         <name value="start"/>
         <source value="http://hl7.org/fhir/Provenance/search#start"/>
         <type value="date"/>
-        <documentation value="The start of the period"/>
+        <documentation value="Starting time with inclusive boundary"/>
         <xpath value="f:Provenance/f:period/f:start"/>
       </searchParam>
       <searchParam>
         <name value="partytype"/>
         <source value="http://hl7.org/fhir/Provenance/search#partytype"/>
         <type value="token"/>
-        <documentation value="Resource | Person | Application | Record | Document +"/>
+        <documentation value="e.g. Resource | Person | Application | Record | Document +"/>
         <xpath value="f:Provenance/f:agent/f:type"/>
       </searchParam>
       <searchParam>
@@ -4778,7 +4617,7 @@
         <name value="end"/>
         <source value="http://hl7.org/fhir/Provenance/search#end"/>
         <type value="date"/>
-        <documentation value="The end of the period, if not ongoing"/>
+        <documentation value="End time with inclusive boundary, if not ongoing"/>
         <xpath value="f:Provenance/f:period/f:end"/>
       </searchParam>
     </resource>
@@ -5060,7 +4899,7 @@
         <name value="type"/>
         <source value="http://hl7.org/fhir/SecurityEvent/search#type"/>
         <type value="token"/>
-        <documentation value="Type of event"/>
+        <documentation value="Type/identifier of event"/>
         <xpath value="f:SecurityEvent/f:event/f:type"/>
       </searchParam>
       <searchParam>
@@ -5078,18 +4917,18 @@
         <xpath value="f:SecurityEvent/f:object/f:reference"/>
       </searchParam>
       <searchParam>
-        <name value="authid"/>
-        <source value="http://hl7.org/fhir/SecurityEvent/search#authid"/>
-        <type value="token"/>
-        <documentation value="User id used by authentication system"/>
-        <xpath value="f:SecurityEvent/f:participant/f:authId"/>
-      </searchParam>
-      <searchParam>
         <name value="identity"/>
         <source value="http://hl7.org/fhir/SecurityEvent/search#identity"/>
         <type value="token"/>
         <documentation value="Specific instance of object (e.g. versioned)"/>
         <xpath value="f:SecurityEvent/f:object/f:identifier"/>
+      </searchParam>
+      <searchParam>
+        <name value="altid"/>
+        <source value="http://hl7.org/fhir/SecurityEvent/search#altid"/>
+        <type value="token"/>
+        <documentation value="Alternative User id e.g. authentication"/>
+        <xpath value="f:SecurityEvent/f:participant/f:altId"/>
       </searchParam>
       <searchParam>
         <name value="patientid"/>
@@ -5121,7 +4960,7 @@
         <name value="subtype"/>
         <source value="http://hl7.org/fhir/SecurityEvent/search#subtype"/>
         <type value="token"/>
-        <documentation value="Sub-type of event"/>
+        <documentation value="More specific type/id for the event"/>
         <xpath value="f:SecurityEvent/f:event/f:subtype"/>
       </searchParam>
       <searchParam>
@@ -5232,17 +5071,24 @@
         <code value="search-type"/>
       </operation>
       <searchParam>
+        <name value="substance"/>
+        <source value="http://hl7.org/fhir/Substance/search#substance"/>
+        <type value="reference"/>
+        <documentation value="A component of the substance"/>
+        <xpath value="f:Substance/f:ingredient/f:substance"/>
+      </searchParam>
+      <searchParam>
         <name value="_id"/>
         <source value="http://hl7.org/fhir/Substance/search#_id"/>
         <type value="token"/>
         <documentation value="The logical resource id associated with the resource (must be supported by all servers)"/>
       </searchParam>
       <searchParam>
-        <name value="name"/>
-        <source value="http://hl7.org/fhir/Substance/search#name"/>
-        <type value="token"/>
-        <documentation value="The name of the substance"/>
-        <xpath value="f:Substance/f:name"/>
+        <name value="quantity"/>
+        <source value="http://hl7.org/fhir/Substance/search#quantity"/>
+        <type value="number"/>
+        <documentation value="Amount of substance in the package"/>
+        <xpath value="f:Substance/f:instance/f:quantity"/>
       </searchParam>
       <searchParam>
         <name value="type"/>
@@ -5250,6 +5096,20 @@
         <type value="token"/>
         <documentation value="The type of the substance"/>
         <xpath value="f:Substance/f:type"/>
+      </searchParam>
+      <searchParam>
+        <name value="identifier"/>
+        <source value="http://hl7.org/fhir/Substance/search#identifier"/>
+        <type value="token"/>
+        <documentation value="Identifier of the package/container"/>
+        <xpath value="f:Substance/f:instance/f:identifier"/>
+      </searchParam>
+      <searchParam>
+        <name value="expiry"/>
+        <source value="http://hl7.org/fhir/Substance/search#expiry"/>
+        <type value="date"/>
+        <documentation value="When no longer valid to use"/>
+        <xpath value="f:Substance/f:instance/f:expiry"/>
       </searchParam>
     </resource>
     <resource>
@@ -5288,7 +5148,7 @@
         <name value="patient"/>
         <source value="http://hl7.org/fhir/Supply/search#patient"/>
         <type value="reference"/>
-        <documentation value="Patient"/>
+        <documentation value="Patient for whom the item is supplied"/>
         <xpath value="f:Supply/f:patient"/>
       </searchParam>
       <searchParam>
@@ -5301,15 +5161,8 @@
         <name value="status"/>
         <source value="http://hl7.org/fhir/Supply/search#status"/>
         <type value="token"/>
-        <documentation value="Dispensed|Received|Requested"/>
+        <documentation value="requested | dispensed | received | failed | cancelled"/>
         <xpath value="f:Supply/f:status"/>
-      </searchParam>
-      <searchParam>
-        <name value="name"/>
-        <source value="http://hl7.org/fhir/Supply/search#name"/>
-        <type value="token"/>
-        <documentation value="The kind of supply (central, non-stock, etc)"/>
-        <xpath value="f:Supply/f:name"/>
       </searchParam>
       <searchParam>
         <name value="dispenseid"/>
@@ -5333,10 +5186,17 @@
         <xpath value="f:Supply/f:dispense/f:supplier"/>
       </searchParam>
       <searchParam>
+        <name value="kind"/>
+        <source value="http://hl7.org/fhir/Supply/search#kind"/>
+        <type value="token"/>
+        <documentation value="The kind of supply (central, non-stock, etc)"/>
+        <xpath value="f:Supply/f:kind"/>
+      </searchParam>
+      <searchParam>
         <name value="dispensestatus"/>
         <source value="http://hl7.org/fhir/Supply/search#dispensestatus"/>
         <type value="token"/>
-        <documentation value="Active/Completed/Aborted"/>
+        <documentation value="in progress | dispensed | abandoned"/>
         <xpath value="f:Supply/f:dispense/f:status"/>
       </searchParam>
     </resource>

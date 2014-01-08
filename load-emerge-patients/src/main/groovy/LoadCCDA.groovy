@@ -6,6 +6,7 @@ import org.hl7.fhir.instance.model.Period
 import org.hl7.fhir.instance.model.CodeableConcept
 import org.hl7.fhir.instance.model.Coding
 import org.hl7.fhir.instance.model.DocumentReference
+import org.hl7.fhir.instance.model.DateAndTime
 import org.hl7.fhir.instance.model.Identifier
 import org.hl7.fhir.instance.model.ResourceReference
 import org.hl7.fhir.instance.formats.XmlParser
@@ -121,8 +122,8 @@ def processOneFile(File file, String pid) {
        	   def end = dateParser.parseDateTime(x.documentationOf.serviceEvent.effectiveTime.high[0].@value[0..7])
 			 
 		   // lie about the start time because EMERGE has a patient's birthdate here by mistake
-		   period.startSimple = dateFormatter.print(end.minus(24 * 60 * 60  * 1000));
-		   period.endSimple = dateFormatter.print(end);
+		   period.startSimple = new DateAndTime(dateFormatter.print(end.minus(24 * 60 * 60  * 1000)));
+		   period.endSimple = new DateAndTime(dateFormatter.print(end));
 		   return period 
 	   }()
 	   return c
@@ -152,19 +153,6 @@ def processOneFile(File file, String pid) {
       }())
    }
 
-
-
-   doc.format = {
-      def format = new CodeableConcept();
-      format.coding = [{
-       def c = new Coding();
-       c.codeSimple="CCDA";
-       c.displaySimple = "Consolidated CDA"
-	   return c
-      }()]
-	  return format
-   }()
-
    def contained =  [];
    x.author.assignedAuthor.assignedPerson.each {
       def author = new ResourceReference()
@@ -176,7 +164,7 @@ def processOneFile(File file, String pid) {
 
    }
 
-   doc.indexedSimple = Calendar.instance;
+   doc.indexedSimple = DateAndTime.now();
    doc.statusSimple = DocumentReference.DocumentReferenceStatus.current;
    doc.author.collect{it.displaySimple};
 
@@ -187,7 +175,7 @@ def processOneFile(File file, String pid) {
    rawResource.setContent(bytes);
    rawResource.setContentType(doc.mimeTypeSimple);
    println "making closure";
-   Calendar now = Calendar.instance;
+   def now = DateAndTime.now();
 
    AtomFeed feed = new AtomFeed();
 /*

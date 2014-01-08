@@ -1,7 +1,5 @@
 package fhir;
 
-import java.text.SimpleDateFormat
-
 import javax.annotation.PostConstruct
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
@@ -17,6 +15,7 @@ import org.hl7.fhir.instance.model.Conformance.ConformanceRestOperationComponent
 import org.hl7.fhir.instance.model.Conformance.SystemRestfulOperation;
 import org.hl7.fhir.instance.model.Conformance.TypeRestfulOperation;
 import org.hl7.fhir.instance.model.Conformance.SearchParamType;
+import org.hl7.fhir.instance.model.DateAndTime
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceComponent
@@ -68,8 +67,7 @@ class SearchIndexService{
 		conformance.descriptionSimple = "Describes capabilities of this SMART on FHIR server"
 		conformance.telecom[0].valueSimple = urlService.fhirBase
 
-		def format = new SimpleDateFormat("yyyy-MM-dd")
-		conformance.dateSimple = format.format(new Date())
+		conformance.dateSimple = DateAndTime.now()
 
 		List supportedOps = [
 			TypeRestfulOperation.read,
