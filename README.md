@@ -16,7 +16,7 @@ Still highly experimental, but has limited support for:
 
 ### Prerequisites
 * Download and install [Grails 2.2.4](http://grails.org/download)
-* Install Postgres (locally or use a remote service)
+* Install Postgres 9.1+ (locally or use a remote service)
 
 ###  Run it (using default config)
 ```
