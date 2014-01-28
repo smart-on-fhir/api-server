@@ -16,7 +16,7 @@ Still highly experimental, but has limited support for:
 
 ### Prerequisites
 * Download and install [Grails 2.2.4](http://grails.org/download)
-* Install MongoDB (locally or use a remote service)
+* Install Postgres (locally or use a remote service)
 
 ###  Run it (using default config)
 ```
@@ -33,7 +33,7 @@ Key settings files are:
 * Configure authentication with `fhir.oauth`
 
 #### grails-app/conf/DataSource.groovy
-* Configure your MongoDB location with `grails.mongo`
+* Configure your Postgres `dataSource`
 
 ## Using
 Add new data to the server via HTTP PUT or POST.  For example, with default
