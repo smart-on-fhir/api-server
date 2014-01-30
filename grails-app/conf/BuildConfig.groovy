@@ -39,8 +39,7 @@ grails.project.dependency.resolution = {
 
         //runtime 'xpp3:xpp3:1.1.3.4.O'
         //runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
-        //runtime 'org.json:json:20131018'
-        compile 'me.fhir:fhir-0.12:0.5-SNAPSHOT'
+        compile 'me.fhir:fhir-0.12:r2220-SNAPSHOT'
     }
 
     plugins {

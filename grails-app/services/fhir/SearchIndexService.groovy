@@ -57,9 +57,7 @@ class SearchIndexService{
 
 		Conformance conformance = resourceFromFile "profile.xml"
 
-		conformance.text.div = new XhtmlNode();
-		conformance.text.div.nodeType = NodeType.Element
-		conformance.text.div.name = "div"
+		conformance.text.div = new XhtmlNode(NodeType.Element, "div");
 		conformance.text.div.addText("Generated Conformance Statement -- see structured representation.")
 		conformance.identifierSimple = urlService.fhirBase + '/conformance'
 		conformance.publisherSimple = "SMART on FHIR"
@@ -218,7 +216,7 @@ class SearchIndexService{
 	private List<String> splitOne(String str, String c){
 		if  (str.indexOf(c) != -1) {
 			List<String> parts = str.split(Pattern.quote(c))
-			if (parts.size == 1)
+			if (parts.size() == 1)
 				return [parts[0], ""]
 			return [parts[0], parts[1..-1].join(c)]
 		}
@@ -237,6 +235,32 @@ class SearchIndexService{
 		return parts
 	}
 
+
+	/*	Take a raw Grails query params map, and returns a tree of SearchedValues.
+
+		Each SearchedValue has a SearchParamHandler, modifier, and value. So for example, a
+		query that looked like /Patient?identifier=123,456 would return a list with a single
+		SearchedValue like:
+			handler=(the TokenSearchParamHandler for Patient.identifier), 
+			modifier=null
+			values="123,456"
+
+		The fun begins with chained queries. In this case, the results includes
+		a sub-list for each chained parameter. The sub-list is preceded by an unbound
+		match for the reference search param. For example a query like
+		/Condition?subject:Patient.identifer=123 would return a tree like:
+
+		0. SearchedValue
+			     handler=(ReferenceSearchParamHandler for Condition.subject)
+			     modifier=null,
+			     values=null
+		1. [
+		     0. SearchedValue
+			          handler=(TokenSearchParamHandler for for Patient.identifier)
+			          modifier=null,
+			          values="123"
+		]
+	*/
 	public List<SearchedValue> queryToHandlerTree (Map params) {
 		List<SearchedValue> ret = []
 		Map indexerFor = indexerFor(params.resource)
@@ -261,7 +285,6 @@ class SearchIndexService{
 						ret += new SearchedValue( handler: indexer, modifier: resourceName)
 						ret += [queryToHandlerTree([ resource: resourceName, (afterChain): searchValue ])]
 					} else {
-						println("Unchained add ret: $indexer $modifier $searchValue")
 						ret += new SearchedValue( handler: indexer, modifier: modifier, values: searchValue)
 					}
 				}
@@ -303,6 +326,9 @@ class SearchIndexService{
 				def orFields = clause.handler.joinOn(clause)
 				List orClauses =[]
 				
+                                params += [('field_'+clauseNum): clause.handler.searchParamName]
+                                params += [('type_'+clauseNum): clause.handler.resourceName]
+
 				orFields.each { orf ->
 										int phraseNum=orClauses.size()
 
@@ -313,16 +339,14 @@ class SearchIndexService{
                                                [('value_'+clauseNum+'_'+phraseNum+'_'+f.name): f.value] 
                                         }
 
-                                        params += [('field_'+clauseNum): clause.handler.searchParamName]
-                                        params += [('type_'+clauseNum): clause.handler.resourceName]
 				}
 
 				query +=  " SELECT fhir_type, fhir_id from resource_index_term where " + 
 					"fhir_type = :type_${clauseNum} AND " + 
 					(clause.handler instanceof IdSearchParamHandler ? "" : """
-					search_param = :field_${clauseNum} AND 
+					search_param = :field_${clauseNum} 
 					""") + 
-				    """( ${orClauses.join(" OR \n") } )"""
+				    (orClauses.size() == 0 ? "" :  (" AND " + """( ${orClauses.join(" OR \n") } )"""))
 			}
 		}
 

@@ -40,6 +40,7 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 	}
 
 	def joinOn(SearchedValue v) {
+		if (v.values == null) return []
 		v.values.split(",").collect {
 			List fields = []
 			if (it){

@@ -4,12 +4,15 @@ import fhir.ResourceDeletedException
 
 class UrlMappings {
 
+	static excludes = ['/css/*','/images/*', '/js/*', '/favicon.ico']
 	static mappings = {
 
 		name base: "/" {
 			controller="Api"
 			action=[GET: "welcome", OPTIONS: "conformance", POST: "transaction", DELETE: "delete"]
 		}
+
+		name 
 
 		name metadata: "/metadata"(controller: "Api") {
 			action = [GET: "conformance"]
