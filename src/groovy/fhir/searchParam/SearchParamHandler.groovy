@@ -69,9 +69,7 @@ public abstract class SearchParamHandler {
     urlService = urlServiceIn;
   }
 
-  protected void init(){
-
-  }
+  protected void init(){ }
 
   protected abstract void processMatchingXpaths(List<Node> nodes, org.w3c.dom.Document r, List<IndexedValue> index);
 
@@ -111,38 +109,4 @@ public abstract class SearchParamHandler {
     return index;
   }
 
-  /**
-   * @param param is a single search param (map with keys: key, modifier, value)
-   * @return a list of derived search params, in vase the value has a comma 
-   * 		   or other notion of disjunction built-in.
-   */
-  protected List<Map> orClausesFor(Map param){
-    println("oring: " + param + param.value + param.class)
-    List<String> alternatives = param.value.split(',')
-    return alternatives.collect {
-      [
-        key: param.key,
-        modifier: param.modifier,
-        value: it
-      ]
-    }
-  }
-
-
-  static BasicDBObject orList(Collection<DBObject> clauses){
-    onList(clauses, '$or')
-  }
-
-  static BasicDBObject andList (Collection<DBObject> clauses){
-    onList(clauses, '$and')
-  }
-
-  static private BasicDBObject onList(Collection<DBObject> clauses, String operation) {
-    def nonempty = clauses.findAll {it && it.size() > 0}
-    if (nonempty.size() == 0) return [:]
-    if (nonempty.size() == 1) return nonempty
-    return [(operation): nonempty]
-  }
-
-  abstract BasicDBObject searchClause(Map searchedFor)
 }

@@ -40,6 +40,17 @@ class SqlService{
     return ret[0]
   }
 
+  ResourceVersion getFhirVersion(String fhir_type, String fhir_id, Long version_id) {
+    def ret = rows("""
+				  select * from resource_version v  where 
+                 	  v.fhir_id=:fhir_id and 
+			       	  v.fhir_type=:fhir_type and
+                      v.version_id=:version_id
+			      	 limit 1 """, [fhir_id: fhir_id, fhir_type: fhir_type, version_id: version_id])
+    if (ret.size() == 0) return null
+    return ret[0]
+  }
+
   Resource getLatestSummary(Authorization a) {
 
     def q = """select min(content) as content from resource_version where (fhir_type, fhir_id) in (

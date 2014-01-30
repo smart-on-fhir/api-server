@@ -348,7 +348,7 @@ class ApiController {
   }
 
   def vread() {
-    ResourceVersion h = ResourceVersion.getFhirVersion(params.id, params.vid)
+    ResourceVersion h = sqlService.getFhirVersion(params.resource, params.id, Long.parseLong(params.vid))
     readService(h)
   }
 
@@ -397,7 +397,7 @@ class ApiController {
         " offset ${paging._skip}"
 
     def entries = sqlService.rows(rawSqlQuery, clauses.params).collectEntries {
-      [(it.fhir_type+'/'+it.fhir_id): it.content.decodeFhirJson()]
+      [(it.fhir_type+'/'+it.fhir_id+'/_history/'+it.version_id): it.content.decodeFhirJson()]
     }
     time("got entries")
 
