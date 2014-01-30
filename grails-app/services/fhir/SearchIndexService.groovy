@@ -37,419 +37,416 @@ import fhir.searchParam.SearchedValue
 
 class SearchIndexService{
 
-	static def transactional = false
-	static def lazyInit = false
+  static def transactional = false
+  static def lazyInit = false
 
-	static GrailsApplication grailsApplication
-	static XPath xpathEvaluator = XPathFactory.newInstance().newXPath();
-	static SimpleNamespaceContext nsContext
-	static UrlService urlService
-	static Conformance conformance
-	static XmlParser parser = new XmlParser()
+  static GrailsApplication grailsApplication
+  static XPath xpathEvaluator = XPathFactory.newInstance().newXPath();
+  static SimpleNamespaceContext nsContext
+  static UrlService urlService
+  static Conformance conformance
+  static XmlParser parser = new XmlParser()
 
-	static Map<Class<Resource>,Collection> indexersByResource = [:]
-	static Map<String, String> xpathsMissingFromFhir;
-	static IdSearchParamHandler idIndexer;
+  static Map<Class<Resource>,Collection> indexersByResource = [:]
+  static Map<String, String> xpathsMissingFromFhir;
+  static IdSearchParamHandler idIndexer;
 
-	@PostConstruct
-	void init() {
-		configureXpathSettings();
+  @PostConstruct
+  void init() {
+    configureXpathSettings();
 
-		Conformance conformance = resourceFromFile "profile.xml"
+    Conformance conformance = resourceFromFile "profile.xml"
 
-		conformance.text.div = new XhtmlNode(NodeType.Element, "div");
-		conformance.text.div.addText("Generated Conformance Statement -- see structured representation.")
-		conformance.identifierSimple = urlService.fhirBase + '/conformance'
-		conformance.publisherSimple = "SMART on FHIR"
-		conformance.nameSimple =  "SMART on FHIR Conformance Statement"
-		conformance.descriptionSimple = "Describes capabilities of this SMART on FHIR server"
-		conformance.telecom[0].valueSimple = urlService.fhirBase
+    conformance.text.div = new XhtmlNode(NodeType.Element, "div");
+    conformance.text.div.addText("Generated Conformance Statement -- see structured representation.")
+    conformance.identifierSimple = urlService.fhirBase + '/conformance'
+    conformance.publisherSimple = "SMART on FHIR"
+    conformance.nameSimple =  "SMART on FHIR Conformance Statement"
+    conformance.descriptionSimple = "Describes capabilities of this SMART on FHIR server"
+    conformance.telecom[0].valueSimple = urlService.fhirBase
 
-		conformance.dateSimple = DateAndTime.now()
+    conformance.dateSimple = DateAndTime.now()
 
-		List supportedOps = [
-			TypeRestfulOperation.read,
-			TypeRestfulOperation.vread,
-			TypeRestfulOperation.update,
-			TypeRestfulOperation.searchtype,
-			TypeRestfulOperation.create,
-			TypeRestfulOperation.historytype,
-			TypeRestfulOperation.historyinstance,
-			SystemRestfulOperation.transaction,
-			SystemRestfulOperation.historysystem
-		]
+    List supportedOps = [
+      TypeRestfulOperation.read,
+      TypeRestfulOperation.vread,
+      TypeRestfulOperation.update,
+      TypeRestfulOperation.searchtype,
+      TypeRestfulOperation.create,
+      TypeRestfulOperation.historytype,
+      TypeRestfulOperation.historyinstance,
+      SystemRestfulOperation.transaction,
+      SystemRestfulOperation.historysystem
+    ]
 
-		conformance.rest.each { ConformanceRestComponent r  ->
-			r.operation = r.operation.findAll { ConformanceRestOperationComponent o ->
-				o.codeSimple in supportedOps
-			}
-			r.resource.each { ConformanceRestResourceComponent rc ->
-				rc.operation = rc.operation.findAll { ConformanceRestResourceOperationComponent o ->
-					o.codeSimple in supportedOps
-				}
-			}
-		}
+    conformance.rest.each { ConformanceRestComponent r  ->
+      r.operation = r.operation.findAll { ConformanceRestOperationComponent o ->
+        o.codeSimple in supportedOps
+      }
+      r.resource.each { ConformanceRestResourceComponent rc ->
+        rc.operation = rc.operation.findAll { ConformanceRestResourceOperationComponent o ->
+          o.codeSimple in supportedOps
+        }
+      }
+    }
 
-		setConformance(conformance)
-	}
+    setConformance(conformance)
+  }
 
-	private configureXpathSettings() {
-		nsContext = new SimpleNamespaceContext();
-		grailsApplication.config.fhir.namespaces.each {
-			prefix, uri -> nsContext.bindNamespaceUri(prefix, uri)
-		}
-		xpathEvaluator.setNamespaceContext(nsContext)
+  private configureXpathSettings() {
+    nsContext = new SimpleNamespaceContext();
+    grailsApplication.config.fhir.namespaces.each { prefix, uri ->
+      nsContext.bindNamespaceUri(prefix, uri)
+    }
+    xpathEvaluator.setNamespaceContext(nsContext)
 
-		SearchParamHandler.injectXpathEvaluator(xpathEvaluator)
-		SearchParamHandler.injectUrlService(urlService)
+    SearchParamHandler.injectXpathEvaluator(xpathEvaluator)
+    SearchParamHandler.injectUrlService(urlService)
 
-		def xpathFixes = ImmutableMap.<String, String> builder();
-		grailsApplication.config.fhir.searchParam.spotFixes.each {
-			uri, xpath -> xpathFixes.put(uri, xpath)
-		}
-		xpathsMissingFromFhir = xpathFixes.build()
-	}
+    def xpathFixes = ImmutableMap.<String, String> builder();
+    grailsApplication.config.fhir.searchParam.spotFixes.each { uri, xpath ->
+      xpathFixes.put(uri, xpath)
+    }
+    xpathsMissingFromFhir = xpathFixes.build()
+  }
 
-	public Class<Resource> classForModel(String modelName){
-		if(modelName.equals("String")){
-			modelName += "_";
-		}
-		if(modelName.equals("List")){
-			modelName += "_";
-		}
-		return lookupClass("org.hl7.fhir.instance.model."+modelName);
-	}
-
-
-	private static Resource resourceFromFile(String file) {
-		def stream = classLoader.getResourceAsStream(file)
-		parser.parse(stream)
-	}
-
-	public static Class lookupClass(String name){
-		Class.forName(name,	true, classLoader)
-	}
-
-	public static ClassLoader getClassLoader(){
-		Thread.currentThread().contextClassLoader
-	}
+  public Class<Resource> classForModel(String modelName){
+    if(modelName.equals("String")){
+      modelName += "_";
+    }
+    if(modelName.equals("List")){
+      modelName += "_";
+    }
+    return lookupClass("org.hl7.fhir.instance.model."+modelName);
+  }
 
 
-	public void setConformance(Conformance c) throws Exception {
-		log.debug("Setting conformance profile")
-		conformance = c
-		def restResources = c.rest[0].resource
-		restResources.each { resource ->
-			Class model = classForModel resource.typeSimple
+  private static Resource resourceFromFile(String file) {
+    def stream = classLoader.getResourceAsStream(file)
+    parser.parse(stream)
+  }
 
-			indexersByResource[model] = resource.searchParam.collect {	searchParam ->
+  public static Class lookupClass(String name){
+    Class.forName(name,	true, classLoader)
+  }
 
-				String key = searchParam.sourceSimple
-
-				// Short-circuit FHIR's built-in xpath if defined. Handles:
-				//  * missing xpaths
-				//  * broken xpaths  -- like 'f:value[x]'
-				SearchParamHandler.create(
-						searchParam.nameSimple,
-						searchParam.typeSimple,
-						resource.typeSimple,
-						xpathsMissingFromFhir[key] ?:searchParam.xpathSimple);
-			} + new IdSearchParamHandler(searchParamName: "_id", fieldType: SearchParamType.token, xpath: null, resourceName: resource.typeSimple);
-		}
-
-	}
-
-	public static org.w3c.dom.Document fromResource(Resource r) throws IOException, Exception {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setNamespaceAware(true);
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		org.w3c.dom.Document d = builder.parse(new InputSource(new StringReader(r.encodeAsFhirXml())));
-		return d;
-	}
-
-	public List<IndexedValue> indexResource(Resource rx) {
-
-		log.info("\n\nExtracting search index terms for a new " + rx.class)
-
-		Collection indexers = indexersByResource[rx.class]
-		if (!indexers){
-			return []
-		}
-
-		org.w3c.dom.Document rdoc = fromResource(rx)
-		def ret = indexers
-				.findAll{ ! (it instanceof IdSearchParamHandler )}
-				.collectMany { SearchParamHandler h -> h.execute(rdoc) }
-
-		log.info("Logged")
-		log.info(ret.each { IndexedValue p ->
-			p.dbFields.each {k,v ->
-				println("$p.paramName ($p.handler.fieldType): $k -> $v\t\t")
-			}
-		})
-
-		log.info("# index fields: " + ret.size())
-		return ret;
-	}
+  public static ClassLoader getClassLoader(){
+    Thread.currentThread().contextClassLoader
+  }
 
 
-	Map<String,SearchParamHandler> indexerFor(String resourceName){
-		def rc = classForModel(resourceName)
-		def indexers = indexersByResource[rc] ?: []
+  public void setConformance(Conformance c) throws Exception {
+    log.debug("Setting conformance profile")
+    conformance = c
+    def restResources = c.rest[0].resource
+    restResources.each { resource ->
+      Class model = classForModel resource.typeSimple
 
-		// Just the indexers for the current resource type
-		// keyed on the searchParam name (e.g. "date", "subject")
-		return indexers.collectEntries { SearchParamHandler it ->
-			[(it.searchParamName): it]
-		}
-	}
+      indexersByResource[model] = resource.searchParam.collect {	searchParam ->
 
-	List paramAsList(v) {
-		// grails turns subject._id into two params: "subject._id" and "subject" which is a map w/ id
-		if  (v == null) return []
-		if (v.class == null) return null
-		if (v instanceof String[])
-			return v as List
-		return [v]
-	}
+        String key = searchParam.sourceSimple
 
-	private List<String> splitOne(String str, String c){
-		if  (str.indexOf(c) != -1) {
-			List<String> parts = str.split(Pattern.quote(c))
-			if (parts.size() == 1)
-				return [parts[0], ""]
-			return [parts[0], parts[1..-1].join(c)]
-		}
-		return null
-	}
+        // Short-circuit FHIR's built-in xpath if defined. Handles:
+        //  * missing xpaths
+        //  * broken xpaths  -- like 'f:value[x]'
+        SearchParamHandler.create(
+            searchParam.nameSimple,
+            searchParam.typeSimple,
+            resource.typeSimple,
+            xpathsMissingFromFhir[key] ?:searchParam.xpathSimple);
+      } + new IdSearchParamHandler(searchParamName: "_id", fieldType: SearchParamType.token, xpath: null, resourceName: resource.typeSimple);
+    }
+  }
 
-	private List chainParts (String searchParam) {
-		def parts = splitOne(searchParam, '.')
-		if (parts == null) return [false, searchParam]
-		return [true] + parts
-	}
+  public static org.w3c.dom.Document fromResource(Resource r) throws IOException, Exception {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    org.w3c.dom.Document d = builder.parse(new InputSource(new StringReader(r.encodeAsFhirXml())));
+    return d;
+  }
 
-	private List paramParts (String searchParam) {
-		def parts  = splitOne(searchParam, ':')
-		if (parts == null) return [searchParam]
-		return parts
-	}
+  public List<IndexedValue> indexResource(Resource rx) {
+
+    log.info("\n\nExtracting search index terms for a new " + rx.class)
+
+    Collection indexers = indexersByResource[rx.class]
+    if (!indexers){
+      return []
+    }
+
+    org.w3c.dom.Document rdoc = fromResource(rx)
+    def ret = indexers
+        .findAll{ ! (it instanceof IdSearchParamHandler )}
+        .collectMany { SearchParamHandler h -> h.execute(rdoc) }
+
+    log.info("Logged")
+    log.info(ret.each { IndexedValue p ->
+      p.dbFields.each {k,v ->
+        println("$p.paramName ($p.handler.fieldType): $k -> $v\t\t")
+      }
+    })
+
+    log.info("# index fields: " + ret.size())
+    return ret;
+  }
 
 
-	/*	Take a raw Grails query params map, and returns a tree of SearchedValues.
+  Map<String,SearchParamHandler> indexerFor(String resourceName){
+    def rc = classForModel(resourceName)
+    def indexers = indexersByResource[rc] ?: []
 
-		Each SearchedValue has a SearchParamHandler, modifier, and value. So for example, a
-		query that looked like /Patient?identifier=123,456 would return a list with a single
-		SearchedValue like:
-			handler=(the TokenSearchParamHandler for Patient.identifier), 
-			modifier=null
-			values="123,456"
+    // Just the indexers for the current resource type
+    // keyed on the searchParam name (e.g. "date", "subject")
+    return indexers.collectEntries { SearchParamHandler it ->
+      [(it.searchParamName): it]
+    }
+  }
 
-		The fun begins with chained queries. In this case, the results includes
-		a sub-list for each chained parameter. The sub-list is preceded by an unbound
-		match for the reference search param. For example a query like
-		/Condition?subject:Patient.identifer=123 would return a tree like:
+  List paramAsList(v) {
+    // grails turns subject._id into two params: "subject._id" and "subject" which is a map w/ id
+    if  (v == null) return []
+    if (v.class == null) return null
+    if (v instanceof String[])
+      return v as List
+    return [v]
+  }
 
-		0. SearchedValue
-			     handler=(ReferenceSearchParamHandler for Condition.subject)
-			     modifier=null,
-			     values=null
-		1. [
-		     0. SearchedValue
-			          handler=(TokenSearchParamHandler for for Patient.identifier)
-			          modifier=null,
-			          values="123"
-		]
-	*/
-	public List<SearchedValue> queryToHandlerTree (Map params) {
-		List<SearchedValue> ret = []
-		Map indexerFor = indexerFor(params.resource)
+  private List<String> splitOne(String str, String c){
+    if  (str.indexOf(c) != -1) {
+      List<String> parts = str.split(Pattern.quote(c))
+      if (parts.size() == 1)
+        return [parts[0], ""]
+      return [
+        parts[0],
+        parts[1..-1].join(c)
+      ]
+    }
+    return null
+  }
 
-		// Represent each term in the query a
-		// key, modifier, and value
-		// e.g. [key: "date", modifier: "after", value: "2010"]
-		params.each { String searchParam, searchValues ->
+  private List chainParts (String searchParam) {
+    def parts = splitOne(searchParam, '.')
+    if (parts == null) return [false, searchParam]
+    return [true]+ parts
+  }
 
-			searchValues = paramAsList(searchValues)
-			if (!searchValues || searchValues[0]=="") { return }
-			println("SearchVals $searchParam: $searchValues")
+  private List paramParts (String searchParam) {
+    def parts  = splitOne(searchParam, ':')
+    if (parts == null) return [searchParam]
+    return parts
+  }
 
-			def (isChained, beforeChain, afterChain) = chainParts(searchParam)
-			def (paramName, modifier) = paramParts(beforeChain)
 
-			SearchParamHandler indexer = indexerFor[paramName]
-			if (!indexer) return
-				searchValues.each { String searchValue ->
-					if (isChained) { // a chaining query -- need to recurse
-						def resourceName = modifier
-						ret += new SearchedValue( handler: indexer, modifier: resourceName)
-						ret += [queryToHandlerTree([ resource: resourceName, (afterChain): searchValue ])]
-					} else {
-						ret += new SearchedValue( handler: indexer, modifier: modifier, values: searchValue)
-					}
-				}
-		}
+  /*	Take a raw Grails query params map, and returns a tree of SearchedValues.
+   Each SearchedValue has a SearchParamHandler, modifier, and value. So for example, a
+   query that looked like /Patient?identifier=123,456 would return a list with a single
+   SearchedValue like:
+   handler=(the TokenSearchParamHandler for Patient.identifier), 
+   modifier=null
+   values="123,456"
+   The fun begins with chained queries. In this case, the results includes
+   a sub-list for each chained parameter. The sub-list is preceded by an unbound
+   match for the reference search param. For example a query like
+   /Condition?subject:Patient.identifer=123 would return a tree like:
+   0. SearchedValue
+   handler=(ReferenceSearchParamHandler for Condition.subject)
+   modifier=null,
+   values=null
+   1. [
+   0. SearchedValue
+   handler=(TokenSearchParamHandler for for Patient.identifier)
+   modifier=null,
+   values="123"
+   ]
+   */
+  public List<SearchedValue> queryToHandlerTree (Map params) {
+    List<SearchedValue> ret = []
+    Map indexerFor = indexerFor(params.resource)
 
-		log.error("returning Params: $ret")
-		return ret
-	}
+    // Represent each term in the query a
+    // key, modifier, and value
+    // e.g. [key: "date", modifier: "after", value: "2010"]
+    params.each { String searchParam, searchValues ->
 
-	private String fieldSnippet(int clauseNum, int phraseNum, Map field) {
-		String lowerCaseOp = field.operation ? field.operation.toString().toLowerCase() : null
+      searchValues = paramAsList(searchValues)
+      if (!searchValues || searchValues[0]=="") { return }
+      println("SearchVals $searchParam: $searchValues")
 
-		if (lowerCaseOp == 'is null') {
-			return "${field.name} is null"
-		}
-		if (lowerCaseOp == 'is not null') {
-			return "${field.name} is not null"
-		}
-		
-		return field.name+" "+(field.operation ?: '=')+' :value_'+clauseNum+'_'+phraseNum+'_'+field.name
-	}
+      def (isChained, beforeChain, afterChain) = chainParts(searchParam)
+      def (paramName, modifier) = paramParts(beforeChain)
 
-	int clauseNum=0
-	def joinClauses(List clauseTree, String resourceName, Authorization a) {
+      SearchParamHandler indexer = indexerFor[paramName]
+      if (!indexer) return
+        searchValues.each { String searchValue ->
+          if (isChained) { // a chaining query -- need to recurse
+            def resourceName = modifier
+            ret += new SearchedValue( handler: indexer, modifier: resourceName)
+            ret += [
+              queryToHandlerTree([ resource: resourceName, (afterChain): searchValue ])
+            ]
+          } else {
+            ret += new SearchedValue( handler: indexer, modifier: modifier, values: searchValue)
+          }
+        }
+    }
 
-		List<String> query = []
-		Map params = [:]
+    log.error("returning Params: $ret")
+    return ret
+  }
 
-		clauseTree.each { clause ->
-			clauseNum++
-			Map remaining
+  private String fieldSnippet(int clauseNum, int phraseNum, Map field) {
+    String lowerCaseOp = field.operation ? field.operation.toString().toLowerCase() : null
 
-			if (clause instanceof List) {
-				remaining =  joinClauses(clause, null, a)
-				query[-1] += " AND (reference_type, reference_id) in (\n" + remaining.query.join("\nINTERSECT\n") + "\n)"
-				params += remaining.params
-			} else {
+    if (lowerCaseOp == 'is null') {
+      return "${field.name} is null"
+    }
+    if (lowerCaseOp == 'is not null') {
+      return "${field.name} is not null"
+    }
 
-				def orFields = clause.handler.joinOn(clause)
-				List orClauses =[]
-				
-                                params += [('field_'+clauseNum): clause.handler.searchParamName]
-                                params += [('type_'+clauseNum): clause.handler.resourceName]
+    return field.name+" "+(field.operation ?: '=')+' :value_'+clauseNum+'_'+phraseNum+'_'+field.name
+  }
 
-				orFields.each { orf ->
-										int phraseNum=orClauses.size()
+  int clauseNum=0
+  def joinClauses(List clauseTree, String resourceName, Authorization a) {
 
-                                        def fieldStrings = orf.collect { fieldSnippet(clauseNum,phraseNum, it) }
-										orClauses.add(fieldStrings.join(" AND "))
+    List<String> query = []
+    Map params = [:]
 
-                                        params += orf.collectEntries { f ->
-                                               [('value_'+clauseNum+'_'+phraseNum+'_'+f.name): f.value] 
-                                        }
+    clauseTree.each { clause ->
+      clauseNum++
+      Map remaining
 
-				}
+      if (clause instanceof List) {
+        remaining =  joinClauses(clause, null, a)
+        query[-1] += " AND (reference_type, reference_id) in (\n" + remaining.query.join("\nINTERSECT\n") + "\n)"
+        params += remaining.params
+      } else {
 
-				query +=  " SELECT fhir_type, fhir_id from resource_index_term where " + 
-					"fhir_type = :type_${clauseNum} AND " + 
-					(clause.handler instanceof IdSearchParamHandler ? "" : """
+        def orFields = clause.handler.joinOn(clause)
+        List orClauses =[]
+
+        params += [('field_'+clauseNum): clause.handler.searchParamName]
+        params += [('type_'+clauseNum): clause.handler.resourceName]
+
+        orFields.each { orf ->
+          int phraseNum=orClauses.size()
+
+          def fieldStrings = orf.collect { fieldSnippet(clauseNum,phraseNum, it) }
+          orClauses.add(fieldStrings.join(" AND "))
+
+          params += orf.collectEntries { f ->
+            [('value_'+clauseNum+'_'+phraseNum+'_'+f.name): f.value]
+          }
+
+        }
+
+        query +=  " SELECT fhir_type, fhir_id from resource_index_term where " +
+            "fhir_type = :type_${clauseNum} AND " +
+            (clause.handler instanceof IdSearchParamHandler ? "" : """
 					search_param = :field_${clauseNum} 
-					""") + 
-				    (orClauses.size() == 0 ? "" :  (" AND " + """( ${orClauses.join(" OR \n") } )"""))
-			}
-		}
+					""") +
+            (orClauses.size() == 0 ? "" :  (" AND " + """( ${orClauses.join(" OR \n") } )"""))
+      }
+    }
 
-		if (query.size() == 0) {
-			clauseNum++;
-			query  += " select fhir_type, fhir_id from resource_index_term where fhir_type = :type_${clauseNum} "
-			params += [('type_'+clauseNum): resourceName]
-		}
-		
-		if (a.accessIsRestricted && resourceName != null) {
-			//TODO remove resourceName != null restriction to enforce compartment permissions on joined resources
-			//TODO interpolate arrays into queries to prevent SQL injection
-            query  += "select fhir_type, fhir_id from resource_compartment where compartments  &&  ${a.compartmentsSql}"
-		}
+    if (query.size() == 0) {
+      clauseNum++;
+      query  += " select fhir_type, fhir_id from resource_index_term where fhir_type = :type_${clauseNum} "
+      params += [('type_'+clauseNum): resourceName]
+    }
 
-		return [query: [query.join("\nINTERSECT\n")], params: params]
+    if (a.accessIsRestricted && resourceName != null) {
+      //TODO remove resourceName != null restriction to enforce compartment permissions on joined resources
+      //TODO interpolate arrays into queries to prevent SQL injection
+      query  += "select fhir_type, fhir_id from resource_compartment where compartments  &&  ${a.compartmentsSql}"
+    }
 
-	}
+    return [query: [query.join("\nINTERSECT\n")], params: params]
 
-	Map  sorts = [
-		asc: [
-			fn: "min",
-			dir: "asc"
-		], desc: [
-			fn: "max",
-			dir: "desc"
-		]
-	]
+  }
 
-	private Map sortDirection(String sort) {
-		if (sort.indexOf(":") == -1) sorts.asc
-		return sorts[sort.split(":")[1]]
-	}
+  Map  sorts = [
+    asc: [
+      fn: "min",
+      dir: "asc"
+    ], desc: [
+      fn: "max",
+      dir: "desc"
+    ]
+  ]
 
-	private fullOrderClause(List<Map> orderBy) {
-		(orderBy.collect{Map o ->
-			"""
+  private Map sortDirection(String sort) {
+    if (sort.indexOf(":") == -1) sorts.asc
+    return sorts[sort.split(":")[1]]
+  }
+
+  private fullOrderClause(List<Map> orderBy) {
+    (orderBy.collect{Map o -> """
 			(select ${o.sortDirection.fn}(${o.column}) from resource_index_term t where 
 				t.search_param=:${o.searchParamName} and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) ${o.sortDirection.dir}
-			"""
-		} + """
+			""" } + """
 			s.version_id asc
 		""").join(", ")
-	}
-	
-	
-	/*
-	 * 
-More efficient: row_number() and join to content 12ms instead of 80
+  }
 
-select v.content, v.fhir_id, v.fhir_Type, v.version_id, sortv from resource_Version v join ( SELECT s.version_id,
-row_number() over (order by
-(select min(string_value) from resource_index_term t where 
-				t.search_param='family' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) asc,
-				
-(select min(string_value) from resource_index_term t where 
-				t.search_param='given' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) desc, s.version_id asc) as sortv
-			
-from resource_index_term s 
-                        where
-                        (s.fhir_type, s.fhir_id) in 
-                        ( select fhir_type, fhir_id from resource_index_term where fhir_type = 'Patient' )
-                        group by s.version_id, s.fhir_type, s.fhir_id
-                        ORDER BY  
-			(select min(string_value) from resource_index_term t where 
-				t.search_param='family' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) asc
-			, 
-			(select min(string_value) from resource_index_term t where 
-				t.search_param='given' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) desc
-			, 
-			s.version_id asc
-			 limit 5 offset 0) o on v.version_id=o.version_id order by sortv
-	 */
 
-	private sortClauses(params, cs){
+  /*
+   * 
+   More efficient: row_number() and join to content 12ms instead of 80
+   select v.content, v.fhir_id, v.fhir_Type, v.version_id, sortv from resource_Version v join ( SELECT s.version_id,
+   row_number() over (order by
+   (select min(string_value) from resource_index_term t where 
+   t.search_param='family' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) asc,
+   (select min(string_value) from resource_index_term t where 
+   t.search_param='given' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) desc, s.version_id asc) as sortv
+   from resource_index_term s 
+   where
+   (s.fhir_type, s.fhir_id) in 
+   ( select fhir_type, fhir_id from resource_index_term where fhir_type = 'Patient' )
+   group by s.version_id, s.fhir_type, s.fhir_id
+   ORDER BY  
+   (select min(string_value) from resource_index_term t where 
+   t.search_param='family' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) asc
+   , 
+   (select min(string_value) from resource_index_term t where 
+   t.search_param='given' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) desc
+   , 
+   s.version_id asc
+   limit 5 offset 0) o on v.version_id=o.version_id order by sortv
+   */
 
-		Map indexerFor = indexerFor(params.resource)
+  private sortClauses(params, cs){
 
-		List<Map> orderBy =  []
+    Map indexerFor = indexerFor(params.resource)
 
-		def _sort = [
-			asc: paramAsList(params._sort) + paramAsList(params.'_sort:asc'),
-			desc: paramAsList(params['_sort:desc'])
-		]
+    List<Map> orderBy =  []
 
-		def applySort = { Map sortDirection, String sortParam ->
-			String sp = "sort_param_"+orderBy.size()
-			orderBy +=  [
-				sortDirection: sortDirection,
-				column: indexerFor[sortParam].orderByColumn,
-				searchParamName:  sp
-			]
-			cs.params += [
-				(sp): indexerFor[sortParam].searchParamName
-			]
-		}
+    def _sort = [
+      asc: paramAsList(params._sort) + paramAsList(params.'_sort:asc'),
+      desc: paramAsList(params['_sort:desc'])
+    ]
 
-		_sort.asc.each {it -> applySort(sorts.asc, it)}
-		_sort.desc.each {it -> applySort(sorts.desc, it)}
+    def applySort = { Map sortDirection, String sortParam ->
+      String sp = "sort_param_"+orderBy.size()
+      orderBy +=  [
+        sortDirection: sortDirection,
+        column: indexerFor[sortParam].orderByColumn,
+        searchParamName:  sp
+      ]
+      cs.params += [
+        (sp): indexerFor[sortParam].searchParamName
+      ]
+    }
 
-		return [
+    _sort.asc.each {it -> applySort(sorts.asc, it)}
+    _sort.desc.each {it -> applySort(sorts.desc, it)}
 
-			query: ["""
+    return [
+
+      query: [
+        """
                         select v.content, v.fhir_id, v.fhir_Type, v.version_id from resource_Version v join ( SELECT s.version_id,
                         row_number() over (ORDER BY ${fullOrderClause(orderBy)} ) as sortv
                                                 
@@ -460,40 +457,43 @@ from resource_index_term s
                         group by s.version_id, s.fhir_type, s.fhir_id
                         ORDER BY  ${fullOrderClause(orderBy)} 
                         ) o on v.version_id=o.version_id order by sortv
-			"""],
-			params: cs.params
-		]
-	}
+			"""
+      ],
+      params: cs.params
+    ]
+  }
 
-	public BasicDBObject searchParamsToSql(Map params, Authorization a, paging){
+  public BasicDBObject searchParamsToSql(Map params, Authorization a, paging){
 
-		List<SearchedValue> clauseTree = queryToHandlerTree(params)
-		def clauses = joinClauses(clauseTree, params.resource, a)
-		
+    List<SearchedValue> clauseTree = queryToHandlerTree(params)
+    def clauses = joinClauses(clauseTree, params.resource, a)
 
-		if (clauses.query[0] == "") {
-			println "RESCUE empty query"
-			clauses.query = ["select fhir_type, fhir_id from resource_index_term where fhir_type = :type"]
-			clauses.params = [type: params.resource]
-		}
-		
-		println "CLAUSE Q " + clauses.query + "||"
-		println "CLAUSE P " + clauses.params
 
-		def sorted = sortClauses(params, clauses)
-		def unsorted = sortClauses([resource: params.resource], clauses)
+    if (clauses.query[0] == "") {
+      println "RESCUE empty query"
+      clauses.query = [
+        "select fhir_type, fhir_id from resource_index_term where fhir_type = :type"
+      ]
+      clauses.params = [type: params.resource]
+    }
 
-		def countQuery  = """
+    println "CLAUSE Q " + clauses.query + "||"
+    println "CLAUSE P " + clauses.params
+
+    def sorted = sortClauses(params, clauses)
+    def unsorted = sortClauses([resource: params.resource], clauses)
+
+    def countQuery  = """
 					select count(distinct version_id) as count 
 					from resource_index_term c where (fhir_type, fhir_id) in (${clauses.query[0]})
 					"""
-	
-		println(countQuery)
 
-		sorted.count = countQuery
-		sorted.content = sorted.query[0] + " limit ${paging._count}" + " offset ${paging._skip}"
-		sorted.uncontent = unsorted.query[0] + " limit ${paging._count}" + " offset ${paging._skip}"
+    println(countQuery)
 
-		return sorted
-	}
+    sorted.count = countQuery
+    sorted.content = sorted.query[0] + " limit ${paging._count}" + " offset ${paging._skip}"
+    sorted.uncontent = unsorted.query[0] + " limit ${paging._count}" + " offset ${paging._skip}"
+
+    return sorted
+  }
 }

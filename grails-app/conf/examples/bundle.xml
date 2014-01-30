@@ -1,155 +1,155 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>New bundle for transactional posting</title>
-  <id>urn:uuid:8bbfa2ec-1cdb-4a6c-ad27-3b5fcaf1fb</id>
-  <updated>2013-08-28T02:47:25Z</updated>
-  <entry xmlns="http://www.w3.org/2005/Atom">
-    <title>Patient "106" Version "1"</title>
-    <id>cid:patient-106</id>
-    <updated>2013-08-26T01:26:51Z</updated>
-    <published>2013-08-28T02:51:39Z</published>
-    <author>
-      <name>110.143.187.242</name>
-    </author>
-    <content type="text/xml">
-      <Patient xmlns="http://hl7.org/fhir">
-        <text>
-          <status value="generated"/>
-          <div xmlns="http://www.w3.org/1999/xhtml">West, James. MRN:&#x0A;            577425</div>
-        </text>
-        <identifier>
-          <label value="SSN"/>
-          <system value="https://github.com/projectcypress/cypress/patient"/>
-          <key value="577425"/>
-        </identifier>
-        <name>
-          <use value="official"/>
-          <family value="West"/>
-          <given value="James"/>
-        </name>
-        <gender>
-          <coding>
-            <system value="http://hl7.org/fhir/v3/AdministrativeGender"/>
-            <code value="M"/>
-            <display value="Male"/>
-          </coding>
-        </gender>
-        <birthDate value="1946-06-08"/>
-        <provider>
-          <type value="Organization"/>
-          <reference value="organization/@1"/>
-        </provider>
-        <active value="true"/>
-      </Patient>
-    </content>
-    <summary type="xhtml">
-      <div xmlns="http://www.w3.org/1999/xhtml">West, James. MRN:&#x0A;            577425</div>
-    </summary>
-  </entry>
-  <entry xmlns="http://www.w3.org/2005/Atom">
-    <title>Condition "example" Version "1"</title>
-    <id>cid:condition-1</id>
-    <updated>2013-08-26T01:26:11Z</updated>
-    <published>2013-08-28T02:47:25Z</published>
-    <author>
-      <name>110.143.187.242</name>
-    </author>
-    <content type="text/xml">
-      <Condition xmlns="http://hl7.org/fhir">
-        <text>
-          <status value="generated"/>
-          <div xmlns="http://www.w3.org/1999/xhtml">Severe burn of left ear (Date: 24-May 2012)</div>
-        </text>
-        <subject>
-          <type value="Patient"/>
-          <reference value="cid:patient-106"/>
-        </subject>
-        <code>
-          <coding>
-            <system value="http://snomed.info/id"/>
-            <code value="39065001"/>
-            <display value="Burn of ear"/>
-          </coding>
-          <text value="Burnt Ear"/>
-        </code>
-        <category>
-          <coding>
-            <system value="http://hl7.org/fhir/condition-category"/>
-            <code value="diagnosis"/>
-            <display value="Diagnosis"/>
-          </coding>
-          <coding>
-            <system value="http://snomed.info/id"/>
-            <code value="439401001"/>
-            <display value="Diagnosis"/>
-          </coding>
-        </category>
-        <status value="confirmed"/>
-        <severity>
-          <coding>
-            <system value="http://snomed.info/id"/>
-            <code value="24484000"/>
-            <display value="Severe"/>
-          </coding>
-        </severity>
-        <onsetDate value="2012-05-24"/>
-        <location>
-          <code>
-            <coding>
-              <system value="http://snomed.info/id"/>
-              <code value="49521004"/>
-              <display value="Left external ear structure"/>
-            </coding>
-            <text value="Left Ear"/>
-          </code>
-        </location>
-      </Condition>
-    </content>
-    <summary type="xhtml">
-      <div xmlns="http://www.w3.org/1999/xhtml">Severe burn of left ear (Date: 24-May 2012)</div>
-    </summary>
-  </entry>
-  <entry xmlns="http://www.w3.org/2005/Atom">
-    <title>Condition "example2" Version "1"</title>
-    <id>cid:condition-2</id>
-    <updated>2013-08-26T01:26:12Z</updated>
-    <published>2013-08-28T02:47:25Z</published>
-    <author>
-      <name>110.143.187.242</name>
-    </author>
-    <content type="text/xml">
-      <Condition xmlns="http://hl7.org/fhir">
-        <text>
-          <status value="generated"/>
-          <div xmlns="http://www.w3.org/1999/xhtml">Mild Asthma (Date: 21-Nov 2012)</div>
-        </text>
-        <subject>
-          <type value="Patient"/>
-          <reference value="cid:patient-106"/>
-        </subject>
-        <code>
-          <text value="Asthma"/>
-        </code>
-        <category>
-          <coding>
-            <system value="http://hl7.org/fhir/condition-category"/>
-            <code value="finding"/>
-            <display value="Finding"/>
-          </coding>
-        </category>
-        <status value="confirmed"/>
-        <severity>
-          <coding>
-            <system value="http://snomed.info/id"/>
-            <code value="255604002"/>
-            <display value="Mild"/>
-          </coding>
-        </severity>
-        <onsetDate value="2012-11-12"/>
-      </Condition>
-    </content>
-    <summary type="xhtml">
-      <div xmlns="http://www.w3.org/1999/xhtml">Mild Asthma (Date: 21-Nov 2012)</div>
-    </summary>
-  </entry>
+	<title>New bundle for transactional posting</title>
+	<id>urn:uuid:8bbfa2ec-1cdb-4a6c-ad27-3b5fcaf1fb</id>
+	<updated>2013-08-28T02:47:25Z</updated>
+	<entry xmlns="http://www.w3.org/2005/Atom">
+		<title>Patient "106" Version "1"</title>
+		<id>cid:patient-106</id>
+		<updated>2013-08-26T01:26:51Z</updated>
+		<published>2013-08-28T02:51:39Z</published>
+		<author>
+			<name>110.143.187.242</name>
+		</author>
+		<content type="text/xml">
+			<Patient xmlns="http://hl7.org/fhir">
+				<text>
+					<status value="generated" />
+					<div xmlns="http://www.w3.org/1999/xhtml">West, James. MRN:&#x0A; 577425</div>
+				</text>
+				<identifier>
+					<label value="SSN" />
+					<system value="https://github.com/projectcypress/cypress/patient" />
+					<key value="577425" />
+				</identifier>
+				<name>
+					<use value="official" />
+					<family value="West" />
+					<given value="James" />
+				</name>
+				<gender>
+					<coding>
+						<system value="http://hl7.org/fhir/v3/AdministrativeGender" />
+						<code value="M" />
+						<display value="Male" />
+					</coding>
+				</gender>
+				<birthDate value="1946-06-08" />
+				<provider>
+					<type value="Organization" />
+					<reference value="organization/@1" />
+				</provider>
+				<active value="true" />
+			</Patient>
+		</content>
+		<summary type="xhtml">
+			<div xmlns="http://www.w3.org/1999/xhtml">West, James. MRN:&#x0A; 577425</div>
+		</summary>
+	</entry>
+	<entry xmlns="http://www.w3.org/2005/Atom">
+		<title>Condition "example" Version "1"</title>
+		<id>cid:condition-1</id>
+		<updated>2013-08-26T01:26:11Z</updated>
+		<published>2013-08-28T02:47:25Z</published>
+		<author>
+			<name>110.143.187.242</name>
+		</author>
+		<content type="text/xml">
+			<Condition xmlns="http://hl7.org/fhir">
+				<text>
+					<status value="generated" />
+					<div xmlns="http://www.w3.org/1999/xhtml">Severe burn of left ear (Date: 24-May 2012)</div>
+				</text>
+				<subject>
+					<type value="Patient" />
+					<reference value="cid:patient-106" />
+				</subject>
+				<code>
+					<coding>
+						<system value="http://snomed.info/id" />
+						<code value="39065001" />
+						<display value="Burn of ear" />
+					</coding>
+					<text value="Burnt Ear" />
+				</code>
+				<category>
+					<coding>
+						<system value="http://hl7.org/fhir/condition-category" />
+						<code value="diagnosis" />
+						<display value="Diagnosis" />
+					</coding>
+					<coding>
+						<system value="http://snomed.info/id" />
+						<code value="439401001" />
+						<display value="Diagnosis" />
+					</coding>
+				</category>
+				<status value="confirmed" />
+				<severity>
+					<coding>
+						<system value="http://snomed.info/id" />
+						<code value="24484000" />
+						<display value="Severe" />
+					</coding>
+				</severity>
+				<onsetDate value="2012-05-24" />
+				<location>
+					<code>
+						<coding>
+							<system value="http://snomed.info/id" />
+							<code value="49521004" />
+							<display value="Left external ear structure" />
+						</coding>
+						<text value="Left Ear" />
+					</code>
+				</location>
+			</Condition>
+		</content>
+		<summary type="xhtml">
+			<div xmlns="http://www.w3.org/1999/xhtml">Severe burn of left ear (Date: 24-May 2012)</div>
+		</summary>
+	</entry>
+	<entry xmlns="http://www.w3.org/2005/Atom">
+		<title>Condition "example2" Version "1"</title>
+		<id>cid:condition-2</id>
+		<updated>2013-08-26T01:26:12Z</updated>
+		<published>2013-08-28T02:47:25Z</published>
+		<author>
+			<name>110.143.187.242</name>
+		</author>
+		<content type="text/xml">
+			<Condition xmlns="http://hl7.org/fhir">
+				<text>
+					<status value="generated" />
+					<div xmlns="http://www.w3.org/1999/xhtml">Mild Asthma (Date: 21-Nov 2012)</div>
+				</text>
+				<subject>
+					<type value="Patient" />
+					<reference value="cid:patient-106" />
+				</subject>
+				<code>
+					<text value="Asthma" />
+				</code>
+				<category>
+					<coding>
+						<system value="http://hl7.org/fhir/condition-category" />
+						<code value="finding" />
+						<display value="Finding" />
+					</coding>
+				</category>
+				<status value="confirmed" />
+				<severity>
+					<coding>
+						<system value="http://snomed.info/id" />
+						<code value="255604002" />
+						<display value="Mild" />
+					</coding>
+				</severity>
+				<onsetDate value="2012-11-12" />
+			</Condition>
+		</content>
+		<summary type="xhtml">
+			<div xmlns="http://www.w3.org/1999/xhtml">Mild Asthma (Date: 21-Nov 2012)</div>
+		</summary>
+	</entry>
 </feed>

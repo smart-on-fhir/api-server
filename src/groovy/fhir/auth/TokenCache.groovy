@@ -7,22 +7,21 @@ import com.google.common.cache.Cache
 
 import org.springframework.beans.factory.InitializingBean
 
-@Log4j 
+@Log4j
 class TokenCache implements InitializingBean {
 
-	String spec;
-	Cache cache;
-	
-	void setSpecification(String inSpec) {
-		spec = inSpec
-	}
+  String spec;
+  Cache cache;
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		log.debug("Initialized token cache")
-		cache = CacheBuilder
-				.from(spec)
-				.build();		
-	}
-	
+  void setSpecification(String inSpec) {
+    spec = inSpec
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    log.debug("Initialized token cache")
+    cache = CacheBuilder
+        .from(spec)
+        .build();
+  }
 }

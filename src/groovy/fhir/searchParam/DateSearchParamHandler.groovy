@@ -47,8 +47,8 @@ public class DateSearchParamHandler extends SearchParamHandler {
 			
 			Map m = [:]
 			if (low) m.date_min = toSqlDate(precisionInterval(low).start)
-			if (high) m.date_max = toSqlDate(precisionInterval(high).end)
-			if (m.size()) index.add(value(m))
+      if (high) m.date_max = toSqlDate(precisionInterval(high).end)
+      if (m.size()) index.add(value(m))
 		}
 	}
 

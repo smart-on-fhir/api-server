@@ -1,47 +1,47 @@
 package fhir
 
 class RequestFilters {
-	def authorizationService
-	def grailsApplication
+  def authorizationService
+  def grailsApplication
 
-	def filters = {
+  def filters = {
 
-		authorizeRequest(controller: 'api', action: '*') {
-			before = {
+    authorizeRequest(controller: 'api', action: '*') {
+      before = {
 
-				if(params.action[request.method] in ['welcome', 'conformance']){
-					return true
-				}
-					
-				if (!authorizationService.evaluate(request)) {
-					forward controller: 'error', action: 'status401'
-					return false
-				}
-				request.t0 = new Date().getTime()
-				return true
-			}			
-		}
+        if(params.action[request.method] in ['welcome', 'conformance']){
+          return true
+        }
 
-		parseResourceBody(controller: 'api', action: '*') {
-			before = {
+        if (!authorizationService.evaluate(request)) {
+          forward controller: 'error', action: 'status401'
+          return false
+        }
+        request.t0 = new Date().getTime()
+        return true
+      }
+    }
 
-				def providingFormat = request.getHeaders('content-type')*.toLowerCase() + params._format
-				def acceptableFormat = request.getHeaders('accept')*.toLowerCase() + params._format
+    parseResourceBody(controller: 'api', action: '*') {
+      before = {
 
-				if (acceptableFormat.any {it =~ /json/}) {
-					request.acceptableFormat = "json"
-				} else {
-					request.acceptableFormat = "xml"
-				}
-	
-				if (providingFormat.any {it =~ /json/}) {
-					request.providingFormat = "json"
-				} else {
-					request.providingFormat = "xml"
-				}
-				println("Formats: ${request.acceptableFormat} + ${request.providingFormat}")
-				return true
-			}	
-		}
-	}
+        def providingFormat = request.getHeaders('content-type')*.toLowerCase() + params._format
+        def acceptableFormat = request.getHeaders('accept')*.toLowerCase() + params._format
+
+        if (acceptableFormat.any {it =~ /json/}) {
+          request.acceptableFormat = "json"
+        } else {
+          request.acceptableFormat = "xml"
+        }
+
+        if (providingFormat.any {it =~ /json/}) {
+          request.providingFormat = "json"
+        } else {
+          request.providingFormat = "xml"
+        }
+        println("Formats: ${request.acceptableFormat} + ${request.providingFormat}")
+        return true
+      }
+    }
+  }
 }

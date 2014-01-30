@@ -11,7 +11,7 @@ import org.junit.*
 @TestFor(ApiController)
 class ApiControllerTests {
 
-    void testSomething() {
-       fail "Implement me"
-    }
+  void testSomething() {
+    fail "Implement me"
+  }
 }
