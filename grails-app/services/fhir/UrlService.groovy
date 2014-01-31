@@ -7,14 +7,14 @@ class UrlService{
   def grailsLinkGenerator
   def regex = /([^\/]+)\/([^\/]+)(?:\/_history\/([^\/]+))?/
 
-  private String fhirCombinedId(String p) {
+  String fhirCombinedId(String p) {
     String ret = null
     Map parts = fhirUrlParts(p)
     if (parts.size() == 0) return ret
     return "${parts.type}/${parts.id}"
   }
 
-  private Map fhirUrlParts(String p) {
+  Map fhirUrlParts(String p) {
     Map ret = [:]
     def m = (p =~ regex)
     if (m.size()) {

@@ -93,6 +93,11 @@ class SearchCommand {
     def clauses = searchIndexService.searchParamsToSql(params, request.authorization, paging)
     return clauses
   }
+  
+  Map<String,String> includesFor(Map<String, Resource> entries){
+    def ret = searchIndexService.includesFor(params, entries, request.authorization)
+    return ret
+  }
 
   def bind(params, request) {
     this.params = params
@@ -355,6 +360,14 @@ class ApiController {
   def time(label) {
     log.debug("T $label: " + (new Date().getTime() - request.t0))
   }
+  
+  
+  private def toEntryMap(Map sqlQuery) {
+    def entries = sqlService.rows(sqlQuery.content, sqlQuery.params).collectEntries {
+      [(it.fhir_type+'/'+it.fhir_id): it.content.decodeFhirJson()]
+    }    
+    return entries
+  }
 
   def search(SearchCommand query) {
     request.t0 = new Date().time
@@ -364,10 +377,13 @@ class ApiController {
     time("precount")
 
     query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
-    def entries = sqlService.rows(sqlQuery.content, sqlQuery.params).collectEntries {
-      [(it.fhir_type+'/'+it.fhir_id): it.content.decodeFhirJson()]
-    }
+    def entries = toEntryMap(sqlQuery)
     time("got entries")
+    
+    def includes = query.includesFor(entries)
+    if (includes) {
+      entries += toEntryMap(includes)
+    }
 
     AtomFeed feed = bundleService.atomFeed([
       entries: entries,

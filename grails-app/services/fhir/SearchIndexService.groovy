@@ -5,6 +5,7 @@ import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathFactory
+import javax.xml.xpath.XPathConstants
 
 import java.util.regex.Pattern
 
@@ -271,7 +272,6 @@ class SearchIndexService{
 
       searchValues = paramAsList(searchValues)
       if (!searchValues || searchValues[0]=="") { return }
-      println("SearchVals $searchParam: $searchValues")
 
       def (isChained, beforeChain, afterChain) = chainParts(searchParam)
       def (paramName, modifier) = paramParts(beforeChain)
@@ -343,9 +343,9 @@ class SearchIndexService{
         }
 
         query +=  " SELECT fhir_type, fhir_id from resource_index_term where " +
-            "fhir_type = :type_${clauseNum} AND " +
+            "fhir_type = :type_${clauseNum} " +
             (clause.handler instanceof IdSearchParamHandler ? "" : """
-					search_param = :field_${clauseNum} 
+					AND search_param = :field_${clauseNum} 
 					""") +
             (orClauses.size() == 0 ? "" :  (" AND " + """( ${orClauses.join(" OR \n") } )"""))
       }
@@ -390,32 +390,6 @@ class SearchIndexService{
 			s.version_id asc
 		""").join(", ")
   }
-
-
-  /*
-   * 
-   More efficient: row_number() and join to content 12ms instead of 80
-   select v.content, v.fhir_id, v.fhir_Type, v.version_id, sortv from resource_Version v join ( SELECT s.version_id,
-   row_number() over (order by
-   (select min(string_value) from resource_index_term t where 
-   t.search_param='family' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) asc,
-   (select min(string_value) from resource_index_term t where 
-   t.search_param='given' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) desc, s.version_id asc) as sortv
-   from resource_index_term s 
-   where
-   (s.fhir_type, s.fhir_id) in 
-   ( select fhir_type, fhir_id from resource_index_term where fhir_type = 'Patient' )
-   group by s.version_id, s.fhir_type, s.fhir_id
-   ORDER BY  
-   (select min(string_value) from resource_index_term t where 
-   t.search_param='family' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) asc
-   , 
-   (select min(string_value) from resource_index_term t where 
-   t.search_param='given' and t.fhir_type=s.fhir_type and t.fhir_id=s.fhir_id) desc
-   , 
-   s.version_id asc
-   limit 5 offset 0) o on v.version_id=o.version_id order by sortv
-   */
 
   private sortClauses(params, cs){
 
@@ -463,14 +437,12 @@ class SearchIndexService{
     ]
   }
 
-  public BasicDBObject searchParamsToSql(Map params, Authorization a, paging){
+  public Map<String,String> searchParamsToSql(Map params, Authorization a, paging){
 
     List<SearchedValue> clauseTree = queryToHandlerTree(params)
     def clauses = joinClauses(clauseTree, params.resource, a)
 
-
     if (clauses.query[0] == "") {
-      println "RESCUE empty query"
       clauses.query = [
         "select fhir_type, fhir_id from resource_index_term where fhir_type = :type"
       ]
@@ -496,4 +468,74 @@ class SearchIndexService{
 
     return sorted
   }
+
+  private def toXml(String s){
+    def builder     = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+    def inputStream = new ByteArrayInputStream(s.bytes)
+    return builder.parse(inputStream).documentElement
+  }
+
+  private def includeProcessor(List<String> includes) {
+    return { String doc ->
+
+      def d = toXml(doc)
+      def includePathsAsXpath = includes.collect{ p->
+        '//' + p.split('\\.').collect { "f:"+it }.join('/')
+      }
+
+      return includePathsAsXpath.collectMany { xp ->
+        println ("Evaluating $xp against doc")
+        xpathEvaluator.evaluate(xp, d, XPathConstants.NODESET).collect{
+          xpathEvaluator.evaluate("./f:reference/@value",it)
+        }.grep { it != null}
+      }
+    }
+  }
+
+  
+  //TODO: support versioned references and determine access control rules
+  public  Map<String,String> includesFor(Map params, Map<String,Resource> entries, Authorization a){
+
+    List<Map> resourceIds = getResourceIds(params, entries)
+    if (resourceIds.size() == 0) return null
+    
+    def vals = []
+    Map p = [:]
+    resourceIds.eachWithIndex { r, index ->
+      vals += "(:fhir_type_${index}, :fhir_id_${index})"
+      p["fhir_type_${index}"] = r.type
+      p["fhir_id_${index}"] = r.id
+    }
+    
+    String q = """select v.content, v.fhir_id, v.fhir_type, v.version_id from resource_version v where version_id in (
+                    select max(version_id) from resource_version v where (fhir_type, fhir_id) in (""" + 
+                      vals.join(",") + 
+               """) group by fhir_id, fhir_type)""" 
+
+    if (a.accessIsRestricted) {
+      q  += "and (fhir_type, fhir_id) in (select fhir_type, fhir_id from resource_compartment where compartments  &&  ${a.compartmentsSql})"
+    }
+     
+    return [
+      content: q,
+      params: p  
+    ]
+
+  }
+
+  private List getResourceIds(Map params, Map entries) {
+    List<String> includePaths = paramAsList(params._include)
+    def includes = includeProcessor(includePaths)
+
+    def resourcesToInclude = entries.collectMany {
+      String uri, Resource r -> includes(r.encodeAsFhirXml())
+    } as Set
+
+    List<Map> resourceIds = resourcesToInclude.collect {
+      urlService.fhirUrlParts(it)
+    }
+
+    return resourceIds
+  }
+
 }
