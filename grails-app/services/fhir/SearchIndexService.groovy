@@ -97,6 +97,7 @@ class SearchIndexService{
   private configureXpathSettings() {
     nsContext = new SimpleNamespaceContext();
     grailsApplication.config.fhir.namespaces.each { prefix, uri ->
+      println("Confugring xpath $prefix -> $uri")
       nsContext.bindNamespaceUri(prefix, uri)
     }
     xpathEvaluator.setNamespaceContext(nsContext)
@@ -469,16 +470,10 @@ class SearchIndexService{
     return sorted
   }
 
-  private def toXml(String s){
-    def builder     = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-    def inputStream = new ByteArrayInputStream(s.bytes)
-    return builder.parse(inputStream).documentElement
-  }
-
   private def includeProcessor(List<String> includes) {
-    return { String doc ->
+    return { Resource r ->
 
-      def d = toXml(doc)
+      def d = fromResource(r)
       def includePathsAsXpath = includes.collect{ p->
         '//' + p.split('\\.').collect { "f:"+it }.join('/')
       }
@@ -528,7 +523,7 @@ class SearchIndexService{
     def includes = includeProcessor(includePaths)
 
     def resourcesToInclude = entries.collectMany {
-      String uri, Resource r -> includes(r.encodeAsFhirXml())
+      String uri, Resource r -> includes(r)
     } as Set
 
     List<Map> resourceIds = resourcesToInclude.collect {
