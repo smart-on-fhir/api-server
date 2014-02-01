@@ -12,4 +12,5 @@ class SearchedValue{
   public SearchParamHandler handler;
   public String modifier;
   public String values;
+  public SearchedValue chained;
 }
