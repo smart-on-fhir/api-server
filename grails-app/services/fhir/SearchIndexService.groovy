@@ -276,7 +276,6 @@ class SearchIndexService{
           (orClauses.size() == 0 ? "" :
           " AND (" + orClauses.join(" OR \n") +")")
 
-      println("Check a chianed $clause.chained")
       if (clause.chained) {
         Map subClauses = joinClauses([clause.chained], null, a)
 
@@ -294,7 +293,6 @@ class SearchIndexService{
 
     if (a.accessIsRestricted && resourceName != null) {
       //TODO remove resourceName != null restriction to enforce compartment permissions on joined resources
-      //TODO interpolate arrays into queries to prevent SQL injection
       query  += "select fhir_type, fhir_id from resource_compartment where compartments  &&  ${a.compartmentsSql}"
     }
 
