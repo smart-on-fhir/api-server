@@ -150,30 +150,6 @@ SELECT pg_catalog.setval('hibernate_sequence', 1219157, true);
 
 
 --
--- Data for Name: resource_compartment; Type: TABLE DATA; Schema: public; Owner: fhir
---
-
-COPY resource_compartment (fhir_type, fhir_id, compartments) FROM stdin;
-\.
-
-
---
--- Data for Name: resource_index_term; Type: TABLE DATA; Schema: public; Owner: fhir
---
-
-COPY resource_index_term (id, fhir_id, fhir_type, search_param, version_id, class, string_value, composite_value, date_max, date_min, token_code, token_namespace, token_text, reference_id, reference_is_external, reference_type, reference_version, number_max, number_min) FROM stdin;
-\.
-
-
---
--- Data for Name: resource_version; Type: TABLE DATA; Schema: public; Owner: fhir
---
-
-COPY resource_version (version_id, content, fhir_id, fhir_type, rest_date, rest_operation) FROM stdin;
-\.
-
-
---
 -- Name: seq_resource_compartment; Type: SEQUENCE SET; Schema: public; Owner: fhir
 --
 

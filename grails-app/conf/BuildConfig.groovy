@@ -44,8 +44,9 @@ grails.project.dependency.resolution = {
 
     plugins {
         compile ":rest-client-builder:1.0.2"
-
-        build ':tomcat:7.0.50'
+    	if (System.getProperty("noTomcat") == null) {
+            build ':tomcat:7.0.50'
+        }
         runtime ':hibernate:3.6.10.7'
         runtime ":resources:1.2.1"
         runtime ":cors:1.1.2"

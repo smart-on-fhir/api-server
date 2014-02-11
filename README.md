@@ -18,14 +18,23 @@ Still highly experimental, but has limited support for:
 * Download and install [Grails 2.3.5](http://grails.org/download)
 * Install Postgres 9.1+ (locally or use a remote service)
 
-###  Run it (using default config)
+###  Get it
 ```
 $ git clone https://github.com/jmandel/smart-on-fhir
 $ cd smart-on-fhir
+```
+
+### Initialize the DB (see config below as needed)
+```
+$ grails -DnoTomcat=true run-script scripts/CreateDatabase.groovy
+```
+
+### Run it
+```
 $ grails run-app
 ```
 
-### Configuring
+## Configuring
 Key settings files are:
 
 #### grails-app/conf/Config.groovy

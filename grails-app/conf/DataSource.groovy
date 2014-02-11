@@ -9,7 +9,7 @@ dataSource {
     url = "jdbc:postgresql://localhost/fhir"
     username = "fhir"
     password = "fhir"
-	dbCreate = "update"
+    //dbCreate = "update"
 }
 
 
