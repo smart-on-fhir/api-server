@@ -24,7 +24,7 @@ class XmlService {
     nsContext = new SimpleNamespaceContext();
 
     grailsApplication.config.fhir.namespaces.each { prefix, uri ->
-      println("Confugring xpath $prefix -> $uri")
+      println("Configuring xpath $prefix -> $uri")
       nsContext.bindNamespaceUri(prefix, uri)
     }
     xpathEvaluator.setNamespaceContext(nsContext)
