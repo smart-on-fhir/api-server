@@ -59,7 +59,7 @@ curl 'http://localhost:8080/DiagnosticOrder/example' \
 And then you can retrieve a feed of diagnostic orders via:
 
 ```
-curl 'http://localhost:8080/DiagnosticOorder' \
+curl 'http://localhost:8080/DiagnosticOrder' \
      -H 'Authorization: Basic Y2xpZW50OnNlY3JldA=='
 ```
 
