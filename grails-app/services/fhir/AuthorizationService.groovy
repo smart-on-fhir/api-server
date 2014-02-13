@@ -3,6 +3,7 @@ package fhir;
 import com.mongodb.BasicDBObject
 import grails.plugins.rest.client.RestBuilder
 import fhir.searchParam.SearchParamHandler
+import org.hl7.fhir.instance.model.Patient
 
 import javax.annotation.PostConstruct
 class AuthorizationException extends Exception {
@@ -128,12 +129,21 @@ class AuthorizationService{
       p.compartments.every{ String c -> c in compartments }
     }
 
-    void require(p) {
+    void assertAccessAny(p) {
+      if (isAdmin) return
+        println(" P's compartments" + p.compartments.properties)
+
+        if (!(p.compartments as List).any {it in compartments})
+          throw new AuthorizationException("Unauthorized:  Need any one of ${p.compartments} but you only have " + compartments)
+    }
+
+    void assertAccessEvery(p) {
       if (isAdmin) return
 
-        if (!compartments.any {it in p.resource.compartments})
+        if (!(p.compartments as List).every {it in compartments})
           throw new AuthorizationException("Unauthorized:  you only have access to " + compartments + "not $p")
     }
+
 
     String getCompartmentsSql() {
       return "'{"+compartments.join(",")+"}'"
@@ -152,9 +162,12 @@ class AuthorizationService{
   }
 
   def evaluate(request){
+    println("Evaluating request $request with " + request.params)
     // If auth is disabled, treat everyone as an admin
     if (!grailsApplication.config.fhir.oauth.enabled) {
       request.authorization = new Authorization(isAdmin: true)
+      //request.authorization = new Authorization(isAdmin: false)
+      //request.authorization.compartments = ['Patient/123']
       return true
     }
 

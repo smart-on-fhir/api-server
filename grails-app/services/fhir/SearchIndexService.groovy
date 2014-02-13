@@ -64,6 +64,10 @@ class SearchIndexService{
     }
   }
 
+  public String modelForClass(Resource r) {
+      return r.class.toString().split('\\.')[-1].replace("_", "")
+  }
+
   public Class<Resource> classForModel(String modelName){
     if(modelName.equals("String")){
       modelName += "_";

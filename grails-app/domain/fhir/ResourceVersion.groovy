@@ -24,4 +24,5 @@ class ResourceVersion {
     id name: 'version_id'
     version false
   }
+
 }
