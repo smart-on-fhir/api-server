@@ -12,8 +12,6 @@ class UrlMappings {
 			action=[GET: "welcome", OPTIONS: "conformance", POST: "transaction", DELETE: "delete"]
 		}
 
-		name 
-
 		name metadata: "/metadata"(controller: "Api") {
 			action = [GET: "conformance"]
 		}

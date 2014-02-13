@@ -28,12 +28,24 @@ class SqlService{
     new Sql(dataSource)
   }
 
+def generator = { String alphabet, int n ->
+  new Random().with {
+    (1..n).collect { alphabet[ nextInt( alphabet.length() ) ] }.join()
+  }
+}
+
   List<GroovyRowResult> rows(String q, Map params) {
-    println("Params $params " + params.size())
+    def label = generator( (('A'..'Z')+('0'..'9')).join(), 9 )
+ 
+    //println("Params $params " + params.size())
     if (params.size() == 0) {
       return sql.rows(q)
     }
-    sql.rows(q, params)
+    def ret = sql.rows(q, params)
+    println label + " q: " + q
+    println label + " p: " + params
+    println label + " s: " + ret.size()
+    return ret
   }
 
 

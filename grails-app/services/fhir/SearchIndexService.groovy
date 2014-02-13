@@ -244,8 +244,10 @@ class SearchIndexService{
     return field.name+" "+(field.operation ?: '=')+' :value_'+clauseNum+'_'+phraseNum+'_'+field.name
   }
 
-  int clauseNum=0
   def joinClauses(List<SearchedValue> clauseTree, String resourceName, Authorization a) {
+    joinClauses(clauseTree, resourceName, a, 0)
+  }
+  def joinClauses(List<SearchedValue> clauseTree, String resourceName, Authorization a, clauseNum) {
 
     List<String> query = []
     Map params = [:]
@@ -281,7 +283,7 @@ class SearchIndexService{
           " AND (" + orClauses.join(" OR \n") +")")
 
       if (clause.chained) {
-        Map subClauses = joinClauses([clause.chained], null, a)
+        Map subClauses = joinClauses([clause.chained], null, a, clauseNum)
 
         query[-1] += " AND (reference_type, reference_id) in (\n" + subClauses.query + "\n)"
         params += subClauses.params
