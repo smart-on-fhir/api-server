@@ -25,7 +25,22 @@ $ cd smart-on-fhir
 ```
 
 ### Initialize the DB (see config below as needed)
+Ensure that `/etc/postgresql/9.1/main/pg_hba.conf` contains a line like:
+
 ```
+local   all         all                               md5
+```
+(If you have `local all all peer`, for excample, `peer` with `md5`.)
+
+
+
+```
+$ sudo -u postgres -i
+postgres@$ createuser -R  -P -S  -D fhir
+           [at password prompt: fhir]
+postgres@$ createuser -R  -P -S  -D fhir
+postgres@$ createdb -O fhir fhir
+postgres@$ logout
 $ grails -DnoTomcat=true run-script scripts/CreateDatabase.groovy
 ```
 
