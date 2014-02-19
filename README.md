@@ -96,8 +96,8 @@ $ sudo apt-get install python-jinja2
 $ git clone --recursive https://github.com/chb/smart_sample_patients
 $ cd smart_sample_patients/bin
 $ git checkout fhir
-$ python generate.py --write-fhir ../generated
-$ ls ../generated # a bunch of XML files
+$ python generate.py --write-fhir ../generated-data
+$ ls ../generated-data # a bunch of XML files
 ```
 
 ### Loading these files into your system
