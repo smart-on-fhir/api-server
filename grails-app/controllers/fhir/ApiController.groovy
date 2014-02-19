@@ -26,6 +26,7 @@ class ApiController {
   static scope = "singleton"
   SearchIndexService searchIndexService
   AuthorizationService authorizationService
+  ConformanceService conformanceService
   SqlService sqlService
   BundleService bundleService
   UrlService urlService
@@ -47,7 +48,7 @@ class ApiController {
   }
 
   def conformance(){
-    request.resourceToRender = searchIndexService.conformance
+    request.resourceToRender = conformanceService.conformance
   }
 
   @Transactional
