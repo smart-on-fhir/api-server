@@ -17,6 +17,7 @@ Still highly experimental, but has limited support for:
 ### Prerequisites
 * Download and install [Grails 2.3.5](http://grails.org/download)
 * Install Postgres 9.1+ (locally or use a remote service)
+* Oracle Java 7 JDK (not JRE)
 
 ###  Get it
 ```
@@ -41,6 +42,7 @@ postgres@$ createuser -R  -P -S  -D fhir
 postgres@$ createuser -R  -P -S  -D fhir
 postgres@$ createdb -O fhir fhir
 postgres@$ logout
+$ grails compile
 $ grails -DnoTomcat=true run-script scripts/CreateDatabase.groovy
 ```
 
