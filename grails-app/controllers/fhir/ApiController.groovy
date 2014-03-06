@@ -153,7 +153,7 @@ class ApiController {
   }
 
   def vread() {
-    Map h = sqlService.getFhirVersion(params.resource, params.id, Long.parseLong(params.vid))
+    ResourceVersion h = sqlService.getFhirVersion(params.resource, params.id, Long.parseLong(params.vid))
     readService(h)
   }
 

@@ -89,7 +89,7 @@ curl 'http://localhost:8080/DiagnosticOrder/example' \
 ```
 
 ## Getting more sample data
-You can load sample data from SMART's [Sample Patietns](https://github.com/chb/smart_sample_patients/tree/fhir):
+You can load sample data from SMART's [Sample Patients](https://github.com/chb/smart_sample_patients/tree/fhir):
 
 ```
 $ sudo apt-get install python-jinja2
