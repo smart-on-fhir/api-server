@@ -1,8 +1,10 @@
 package fhir
+import org.apache.commons.io.IOUtils
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.hl7.fhir.instance.formats.XmlParser
 import org.hl7.fhir.instance.model.Conformance
 import org.hl7.fhir.instance.model.DateAndTime
+import org.hl7.fhir.instance.model.Profile
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestOperationComponent
@@ -20,7 +22,7 @@ class ConformanceService {
   static XmlService xmlService
   static GrailsApplication grailsApplication
   static Conformance conformance
-  static Map<String, String> xpathsMissingFromFhir
+  static Map<String, String> searchParamXpaths
   static XmlParser parser = new XmlParser()
   static UrlService urlService
 
@@ -37,13 +39,15 @@ class ConformanceService {
 
   def generateConformance(){
     def xpathFixes = ImmutableMap.<String, String> builder()
-    grailsApplication.config.fhir.searchParam.spotFixes.each { uri, xpath ->
+    Map spotFixes = grailsApplication.config.fhir.searchParam.spotFixes
+    spotFixes.each { uri, xpath ->
       xpathFixes.put(uri, xpath)
     }
-    xpathsMissingFromFhir = xpathFixes.build()
 
+    Profile patient = resourceFromFile "resources/patient.profile.xml"
 
-    conformance = resourceFromFile "profile.xml"
+    println("Read patient profile" + patient)
+    conformance = resourceFromFile "resources/conformance-base.xml"
 
     conformance.text.div = new XhtmlNode(NodeType.Element, "div");
     conformance.text.div.addText("Generated Conformance Statement -- see structured representation.")
@@ -72,10 +76,28 @@ class ConformanceService {
         o.codeSimple in supportedOps
       }
       r.resource.each { ConformanceRestResourceComponent rc ->
+
+        String resourceName = rc.typeSimple
+        String profile = "resources/${resourceName}.profile.xml".toLowerCase()
+        Profile p = resourceFromFile(profile) 
+        def paramDefs = p.structure.collect{it.searchParam}.flatten()
+
+        rc.searchParam.each { searchParam ->
+          String paramName = searchParam.nameSimple
+          String key = resourceName + '.' + paramName
+          String xpath = paramDefs.find{it.nameSimple == paramName}.xpathSimple
+
+          // If we don't have a spot fix already loaded for this searchParam
+          // then use the xapth we discovered in the default Profile (if any)
+          if (xpath && !spotFixes[key]) xpathFixes.put(key, xpath)
+        }
+
         rc.operation = rc.operation.findAll { ConformanceRestResourceOperationComponent o ->
           o.codeSimple in supportedOps
         }
       }
     }
+
+    searchParamXpaths = xpathFixes.build()
   }
 }

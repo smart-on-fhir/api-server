@@ -18,29 +18,29 @@ fhir.namespaces = [
 ]
 
 fhir.searchParam.spotFixes = [
-	"http://hl7.org/fhir/Condition/search#onset":
+	"Condition.onset":
 	"f:Condition/f:onsetAge | f:Condition/f:onsetDate",
-	"http://hl7.org/fhir/Group/search#value":
+	"Group.value":
 	"f:Condition/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
-	"http://hl7.org/fhir/Observation/search#name": 
+	"Observation.name": 
        "f:Observation/f:name | f:Observation/f:component/f:name",
-	"http://hl7.org/fhir/Observation/search#value":
+	"Observation.value":
 	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
-	"http://hl7.org/fhir/Observation/search#date":
+	"Observation.date":
 	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'applies')]",
-	"http://hl7.org/fhir/Group/search#type-value":
+	"Group.type-value":
 	'f:Group/f:characteristic$'+
 	'f:type$' +
 	'*[namespace-uri()="http://hl7.org/fhir" and starts-with(local-name(),"value")]',
-	"http://hl7.org/fhir/DiagnosticOrder/search#status-date":
+	"DiagnosticOrder.status-date":
 	'f:DiagnosticOrder/f:event$'+
 	'f:status$' +
 	'f:date',
-	"http://hl7.org/fhir/DiagnosticOrder/search#item-status-date":
+	"DiagnosticOrder.item-status-date":
 	'f:DiagnosticOrder/f:item$'+
 	'f:status$' +
 	"f:date",
-	"http://hl7.org/fhir/Observation/search#name-value":
+	"Observation.name-value":
 	'f:Observation/f:component | f:Observation$' +
 	'f:name$' +
 	'*[namespace-uri()="http://hl7.org/fhir" and starts-with(local-name(),"value")]'

@@ -113,22 +113,37 @@ public class DateSearchParamHandler extends SearchParamHandler {
 
 	@Override
 	def joinOn(SearchedValue v) {
-		v.values.split(",").collect {
-			Interval precision = precisionInterval(v.values)
+		v.values.split(",").collect { value ->
+                        boolean before = false
+                        boolean after = false
+
+                        def inequality = (value =~ /(>=|>|<=|<)(.*)/)
+                        if (inequality.matches()){
+                          String op = inequality[0][1]
+                          if (op.startsWith(">")) after = true
+                          if (op.startsWith("<")) before = true
+                          value = inequality[0][2]
+                        }
+         
+			Interval precision = precisionInterval(value)
 			List fields = []
 
-			if (v.modifier == null){
-				fields += [
-					name: 'date_min',
-					value:  toSqlDate(precision.start),
-					operation: '>='
-				]
-				fields += [
-					name: 'date_max',
-					value:  toSqlDate(precision.end),
-					operation: '<='
-				]
-			}
+                        if (before == false) {
+                                fields += [
+                                        name: 'date_min',
+                                        value:  toSqlDate(precision.start),
+                                        operation: '>='
+                                ]
+                        }
+                        
+                        if (after == false) {
+                                fields += [
+                                        name: 'date_max',
+                                        value:  toSqlDate(precision.end),
+                                        operation: '<='
+                                ]
+                        }
+
 			return fields
 		}
 	}

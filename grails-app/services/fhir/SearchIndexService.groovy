@@ -6,6 +6,7 @@ import javax.annotation.PostConstruct
 import javax.xml.xpath.XPathConstants
 
 import org.hl7.fhir.instance.model.Conformance
+import org.hl7.fhir.instance.model.Profile
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
@@ -45,9 +46,15 @@ class SearchIndexService{
     conformanceService.conformance.rest[0].resource.each { resource ->
       Class model = classForModel resource.typeSimple
 
+      String resourceName = resource.typeSimple
       indexersByResource[model] = resource.searchParam.collect { searchParam ->
 
-        String key = searchParam.sourceSimple
+
+        // join search param declaration in Conformance against search param definition
+        // in individual profiles. This is only necessary to extract the xpath...
+        // (Since all other properties of the searchParams are repeated in Conformance)
+        String paramName = searchParam.nameSimple
+        String key = resourceName + '.' + paramName
 
         // Short-circuit FHIR's built-in xpath if defined. Handles:
         //  * missing xpaths
@@ -56,11 +63,11 @@ class SearchIndexService{
             searchParam.nameSimple,
             searchParam.typeSimple,
             resource.typeSimple,
-            conformanceService.xpathsMissingFromFhir[key] ?: searchParam.xpathSimple);
+            conformanceService.searchParamXpaths[key]);
       } + new IdSearchParamHandler( searchParamName: "_id",
       fieldType: SearchParamType.token,
       xpath: null,
-      resourceName: resource.typeSimple);
+      resourceName: resourceName);
     }
   }
 
