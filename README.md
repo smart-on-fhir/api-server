@@ -102,10 +102,10 @@ $ ls ../generated-data # a bunch of XML files
 ### Loading these files into your system
 
 ```
-cd ../generated
+cd ../generated-data
 for i in *.xml; do 
-   curl 'http://localhost:8080/?' 
-        -H 'Content-Type: text/xml'
+   curl 'http://localhost:8080/?' \
+        -H 'Content-Type: text/xml' \
         --data-binary @$i; 
 done
 ```
