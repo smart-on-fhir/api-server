@@ -39,7 +39,6 @@ local   all         all                               md5
 $ sudo -u postgres -i
 postgres@$ createuser -R  -P -S  -D fhir
            [at password prompt: fhir]
-postgres@$ createuser -R  -P -S  -D fhir
 postgres@$ createdb -O fhir fhir
 postgres@$ logout
 $ grails compile
