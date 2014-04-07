@@ -63,7 +63,8 @@ class SearchIndexService{
             searchParam.nameSimple,
             searchParam.typeSimple,
             resource.typeSimple,
-            conformanceService.searchParamXpaths[key]);
+            conformanceService.searchParamXpaths[key],
+            conformanceService.searchParamReferenceTypes[key]);
       } + new IdSearchParamHandler( searchParamName: "_id",
       fieldType: SearchParamType.token,
       xpath: null,
@@ -224,7 +225,18 @@ class SearchIndexService{
       searchValues.each { String searchValue ->
         def chainedSearchValue = null
         if (isChained) { // a chaining query -- need to recurse
-          chainedSearchValue = queryToHandlerTree([resource: modifier, (afterChain): searchValue])[0]
+          def chainedResource = modifier
+          if (!chainedResource) {
+            if (indexer.referenceTypes.size() == 1) {
+              chainedResource = indexer.referenceTypes[0]
+            }
+            else {
+              throw new Exception("The search param '$paramName' can match ${indexer.referenceTypes.size()} types. Please specify further by providing one of: " + 
+                indexer.referenceTypes.collect {"$paramName:$it="}.join(" or "));
+            }
+          }
+            // infer type if there is no ambiguity
+          chainedSearchValue = queryToHandlerTree([resource: chainedResource, (afterChain): searchValue])[0]
           searchValue = null
         }
         ret += new SearchedValue(

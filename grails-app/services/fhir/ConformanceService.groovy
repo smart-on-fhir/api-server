@@ -23,6 +23,7 @@ class ConformanceService {
   static GrailsApplication grailsApplication
   static Conformance conformance
   static Map<String, String> searchParamXpaths
+  static Map<String, List<String>> searchParamReferenceTypes
   static XmlParser parser = new XmlParser()
   static UrlService urlService
 
@@ -36,9 +37,14 @@ class ConformanceService {
     parser.parse(stream)
   }
 
+  def xpathToFhirPath(String xp){
+    return xp.replace("/f:",".")[2..-1]
+  }
 
   def generateConformance(){
     def xpathFixes = ImmutableMap.<String, String> builder()
+    def xpathReferenceTypes = ImmutableMap.<String, List<String>> builder()
+
     Map spotFixes = grailsApplication.config.fhir.searchParam.spotFixes
     spotFixes.each { uri, xpath ->
       xpathFixes.put(uri, xpath)
@@ -79,13 +85,26 @@ class ConformanceService {
 
         String resourceName = rc.typeSimple
         String profile = "resources/${resourceName}.profile.xml".toLowerCase()
+
         Profile p = resourceFromFile(profile) 
         def paramDefs = p.structure.collect{it.searchParam}.flatten()
 
+        def typesForParam = p.structure.collect({it.element}).flatten().collectEntries {
+          [(it.pathSimple) : it.definition.type.findAll({it.profileSimple }).collect{
+            it.profileSimple.split("/")[-1]
+          }]
+        }
+ 
         rc.searchParam.each { searchParam ->
           String paramName = searchParam.nameSimple
           String key = resourceName + '.' + paramName
           String xpath = paramDefs.find{it.nameSimple == paramName}.xpathSimple
+	  if (xpath) {
+            def types = typesForParam[xpathToFhirPath(xpath)]
+            if (types) {
+              xpathReferenceTypes.put(key, types);
+            }
+          }
 
           // If we don't have a spot fix already loaded for this searchParam
           // then use the xapth we discovered in the default Profile (if any)
@@ -99,5 +118,6 @@ class ConformanceService {
     }
 
     searchParamXpaths = xpathFixes.build()
+    searchParamReferenceTypes = xpathReferenceTypes.build()
   }
 }

@@ -37,11 +37,13 @@ public abstract class SearchParamHandler {
   String xpath;
   String orderByColumn;
   String resourceName;
+  List<String> referenceTypes;
 
   public static SearchParamHandler create(String searchParamName,
       SearchParamType fieldType,
       String resourceName,
-      String xpath) {
+      String xpath,
+      List<String> referenceTypes) {
 
     String ft = fieldType.toString().capitalize();
     String className = SearchParamHandler.class.canonicalName.replace(
@@ -56,7 +58,8 @@ public abstract class SearchParamHandler {
         searchParamName: searchParamName,
         fieldType: fieldType,
         xpath: xpath,
-        resourceName: resourceName
+        resourceName: resourceName,
+        referenceTypes: referenceTypes
         );
     ret.init();
     return ret;
