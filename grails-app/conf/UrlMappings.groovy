@@ -30,6 +30,10 @@ class UrlMappings {
 			action = [GET: "vread"]
 		}
 
+		name resourceSearch: "/$resource/_search"(controller: "Api") {
+			action = [GET: "search", POST: "search"]
+		}
+
 		name resourceClass: "/$resource"(controller: "Api") {
 			action = [GET: "search", POST: "create"]
 		}
