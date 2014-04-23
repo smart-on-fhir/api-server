@@ -87,7 +87,7 @@ class AuthorizationService{
       ]
 
       status = mappedStatus
-      log.debug("STatus: $status")
+      log.debug("Status: $status")
 
       if (!status.active) return null;
       Date exp = org.joda.time.format.ISODateTimeFormat.dateTimeParser()
