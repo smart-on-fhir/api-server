@@ -13,7 +13,7 @@
 	rel='stylesheet' type='text/css'>
 <style type="text/css" media="screen">
 html {
-	background: url(images/fire-shot.jpg) no-repeat center center fixed;
+	background: url(static/images/fire-shot.jpg) no-repeat center center fixed;
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	-o-background-size: cover;
