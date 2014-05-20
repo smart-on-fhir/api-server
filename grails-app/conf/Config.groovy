@@ -101,11 +101,14 @@ environments {
 		grails.logging.jul.usebridge = true
 		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8001"
 		fhir.oauth = [
-			enabled: false,
+			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : false,
 			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
-			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8080/openid-connect-server-webapp/introspect?token={token}',
-			clientId: 'client',
-			clientSecret: 'secret'
+			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8001/openid-connect-server-webapp/introspect?token={token}',
+			clientId: System.env.CLIENT_ID ?: 'client',
+			clientSecret: System.env.CLIENT_SECRET ?: 'secret',
+			registerUri: System.env.REGISTER_URI ?: 'http://localhost:8001/openid-connect-server-webapp/register',
+			authorizeUri: System.env.AUTHORIZE_URI ?: 'http://localhost:8001/openid-connect-server-webapp/authorize',
+			tokenUri: System.env.TOKEN_URI ?: 'http://localhost:8001/openid-connect-server-webapp/token'
 		]
 	}
 	production {
@@ -116,7 +119,10 @@ environments {
 			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
 			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8080/openid-connect-server-webapp/introspect?token={token}',
 			clientId: System.env.CLIENT_ID ?: 'client',
-			clientSecret: System.env.CLIENT_SECRET ?: 'secret'
+			clientSecret: System.env.CLIENT_SECRET ?: 'secret',
+			registerUri: System.env.REGISTER_URI ?: 'http://localhost:8080/openid-connect-server-webapp/register',
+			authorizeUri: System.env.AUTHORIZE_URI ?: 'http://localhost:8080/openid-connect-server-webapp/authorize',
+			tokenUri: System.env.TOKEN_URI ?: 'http://localhost:8080/openid-connect-server-webapp/token'
 		]
 	}
 }

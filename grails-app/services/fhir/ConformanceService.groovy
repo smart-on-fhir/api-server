@@ -1,15 +1,24 @@
 package fhir
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.io.IOUtils
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.hl7.fhir.instance.formats.XmlParser
+import org.hl7.fhir.instance.model.CodeableConcept
+import org.hl7.fhir.instance.model.Coding
 import org.hl7.fhir.instance.model.Conformance
 import org.hl7.fhir.instance.model.DateAndTime
+import org.hl7.fhir.instance.model.Extension
 import org.hl7.fhir.instance.model.Profile
 import org.hl7.fhir.instance.model.Resource
+import org.hl7.fhir.instance.model.Uri
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestOperationComponent
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceComponent
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestResourceOperationComponent
+import org.hl7.fhir.instance.model.Conformance.ConformanceRestSecurityComponent
 import org.hl7.fhir.instance.model.Conformance.SystemRestfulOperation
 import org.hl7.fhir.instance.model.Conformance.TypeRestfulOperation
 import org.hl7.fhir.utilities.xhtml.NodeType
@@ -19,14 +28,20 @@ import com.google.common.collect.ImmutableMap
 
 class ConformanceService {
 
+  def grailsApplication
   static XmlService xmlService
-  static GrailsApplication grailsApplication
+  //static GrailsApplication grailsApplication
   static Conformance conformance
   static Map<String, String> searchParamXpaths
   static Map<String, List<String>> searchParamReferenceTypes
   static XmlParser parser = new XmlParser()
   static UrlService urlService
-
+  Map oauth
+  
+  @PostConstruct
+  void init() {
+	oauth = grailsApplication.config.fhir.oauth
+  }
 
   public static ClassLoader getClassLoader(){
     Thread.currentThread().contextClassLoader
@@ -65,6 +80,40 @@ class ConformanceService {
 
     conformance.dateSimple = DateAndTime.now()
 
+	Extension registerUriExtension = new Extension()
+	registerUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#register")
+	Uri registerUri = new Uri()
+	registerUri.setValue(oauth.registerUri)
+	registerUriExtension.setValue(registerUri)
+	
+	Extension authorizeUriExtension = new Extension()
+	authorizeUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#authorize")
+	Uri authorizeUri = new Uri()
+	authorizeUri.setValue(oauth.authorizeUri)
+	authorizeUriExtension.setValue(authorizeUri)
+	
+	Extension tokenUriExtension = new Extension()
+	tokenUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#token")
+	Uri tokenUri = new Uri();
+	tokenUri.setValue(oauth.tokenUri)
+	tokenUriExtension.setValue(tokenUri)
+	
+	CodeableConcept newService = new CodeableConcept()
+	Coding newCoding = new Coding()
+	newCoding.setSystemSimple("http://hl7.org/fhir/vs/restful-security-service")
+	newCoding.setCodeSimple("OAuth2")
+	newService.getCoding().add(newCoding)
+	newService.setTextSimple("OAuth version 2 (see oauth.net).")
+	List<Extension> extensions = newService.getExtensions()
+	extensions.add(registerUriExtension)
+	extensions.add(authorizeUriExtension)
+	extensions.add(tokenUriExtension)
+	
+	ConformanceRestSecurityComponent newSecurity = new ConformanceRestSecurityComponent()
+	newSecurity.setDescriptionSimple("SMART on FHIR uses OAuth2 for authorization")
+	newSecurity.getService().add(newService)
+	conformance.getRest().get(0).setSecurity(newSecurity)
+	
     List supportedOps = [
       TypeRestfulOperation.read,
       TypeRestfulOperation.vread,
@@ -76,7 +125,7 @@ class ConformanceService {
       SystemRestfulOperation.transaction,
       SystemRestfulOperation.historysystem
     ]
-
+	
     conformance.rest.each { ConformanceRestComponent r  ->
       r.operation = r.operation.findAll { ConformanceRestOperationComponent o ->
         o.codeSimple in supportedOps
