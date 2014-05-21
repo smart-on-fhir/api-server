@@ -104,14 +104,16 @@ class ConformanceService {
 	newCoding.setCodeSimple("OAuth2")
 	newService.getCoding().add(newCoding)
 	newService.setTextSimple("OAuth version 2 (see oauth.net).")
-	List<Extension> extensions = newService.getExtensions()
-	extensions.add(registerUriExtension)
-	extensions.add(authorizeUriExtension)
-	extensions.add(tokenUriExtension)
 	
 	ConformanceRestSecurityComponent newSecurity = new ConformanceRestSecurityComponent()
 	newSecurity.setDescriptionSimple("SMART on FHIR uses OAuth2 for authorization")
 	newSecurity.getService().add(newService)
+    
+    List<Extension> extensions = newSecurity.getExtensions()
+	extensions.add(registerUriExtension)
+	extensions.add(authorizeUriExtension)
+	extensions.add(tokenUriExtension)
+    
 	conformance.getRest().get(0).setSecurity(newSecurity)
 	
     List supportedOps = [
