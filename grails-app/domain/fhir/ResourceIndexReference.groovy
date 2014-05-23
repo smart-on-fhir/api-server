@@ -6,7 +6,12 @@ class ResourceIndexReference extends ResourceIndexTerm{
   String reference_version
   String reference_is_external
 
-  static mapping = { version false }
+  static mapping = { 
+    version false
+    reference_id index: 'reference_index'
+    reference_type index: 'reference_index'    
+  }
+  
   static constraints = {
     reference_id nullable: true
     reference_type nullable: true

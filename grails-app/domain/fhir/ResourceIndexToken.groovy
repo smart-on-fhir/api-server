@@ -8,7 +8,8 @@ class ResourceIndexToken extends ResourceIndexTerm{
   static mapping = { version false }
   static constraints = {
     token_text type: 'text', nullable: true
-    token_namespace nullable: true
+    token_namespace nullable: true, index:'search_token'
+    token_code index:'search_token'
   }
 }
 

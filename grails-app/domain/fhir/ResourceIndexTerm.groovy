@@ -6,7 +6,13 @@ class ResourceIndexTerm {
   String fhir_type
   String search_param
 
-  static mapping = { version false }
+  static mapping = { 
+    version false 
+    fhir_id index: 'resource_index'
+    fhir_type index: 'resource_index,searchparam_index,search_token'
+    search_param index: 'searchparam_index,search_string_index,search_token'
+    version_id index:'version_index'
+   }
 
   GString insertStatement(versionId){
 
@@ -33,6 +39,6 @@ class ResourceIndexTerm {
         values += ", ${properties[fieldName]}"
       }
     }
-    return GString.EMPTY + " insert into resource_index_term ("+fields+") values ("+values+");"
+    return GString.EMPTY + " insert into resource_index_term (id, "+fields+") values (nextval('seq_resource_version'), "+values+");"
   }
 }

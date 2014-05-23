@@ -23,6 +23,8 @@ class ResourceVersion {
     table 'resource_version'
     id name: 'version_id'
     version false
+    fhir_type index:'logical_id_index'
+    fhir_id index:'logical_id_index'
   }
 
 }
