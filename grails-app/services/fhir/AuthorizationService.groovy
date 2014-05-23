@@ -62,7 +62,7 @@ class AuthorizationService{
       String[] decoded = new String(header[0][1].decodeBase64()).split(':')
       log.debug("try an admin access password" + decoded)
       if (decoded[0] == oauth.clientId && decoded[1] == oauth.clientSecret) {
-        def ret = new Authorization(isAdmin: true)
+        def ret = new Authorization(isAdmin: true, app: oauth.clientId)
         return ret
       }
     }
@@ -100,6 +100,8 @@ class AuthorizationService{
           app: status.client_id)
 
       if (status.scope.class == String) status.scope = [status.scope]
+      ret.scopes = status.scope
+      
       ret.compartments = status.scope.collect {
         def m = (it =~ /(summary|search):(.*)/)
         if (!m.matches()) return null
@@ -119,6 +121,7 @@ class AuthorizationService{
     Date expiration
     String username
     String app
+    List<String> scopes = []
     List<String> compartments = []
 
     boolean allows(p) {
@@ -128,7 +131,17 @@ class AuthorizationService{
 
       p.compartments.every{ String c -> c in compartments }
     }
+    
+    boolean hasScope(String s){
+      return isAdmin || scopes.contains(s);
+    }
 
+    void assertScope(String s) {
+      if (isAdmin) return
+      if (!hasScope(s))
+          throw new AuthorizationException("Unauthorized:  Need scoe $s but you only have " + scopes)
+    }
+    
     void assertAccessAny(p) {
       if (isAdmin) return
         println(" P's compartments" + p.compartments.properties)

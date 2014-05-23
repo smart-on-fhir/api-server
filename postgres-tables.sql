@@ -16,6 +16,33 @@ SET default_tablespace = '';
 
 SET default_with_oids = false;
 
+CREATE SEQUENCE seq_launch_context
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE seq_launch_context_params
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE TABLE launch_context (
+    launch_id bigint DEFAULT nextval('seq_launch_context'::regclass) NOT NULL PRIMARY KEY,
+    created_by character varying(255),
+    created_at timestamp without time zone,
+    client_id character varying(255)
+);
+
+CREATE TABLE launch_context_params (
+    id bigint DEFAULT nextval('seq_launch_context_params'::regclass) NOT NULL PRIMARY KEY,
+    launch_context bigint references launch_context(launch_id),  
+    param_name character varying(255),
+    param_value character varying(255)
+);
 
 CREATE TABLE resource_compartment (
     fhir_type character varying(255) NOT NULL,
@@ -68,7 +95,6 @@ CREATE TABLE resource_version (
 );
 
 
-
 CREATE SEQUENCE seq_resource_compartment
     START WITH 1
     INCREMENT BY 1
@@ -76,16 +102,12 @@ CREATE SEQUENCE seq_resource_compartment
     NO MAXVALUE
     CACHE 1;
 
-
-
 CREATE SEQUENCE seq_resource_version
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 
 SELECT pg_catalog.setval('hibernate_sequence', 1219157, true);
 

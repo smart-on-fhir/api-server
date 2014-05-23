@@ -95,13 +95,14 @@ grails.exceptionresolver.params.exclude = ['password']
 
 // configure auto-caching of queries by default (if false you can cache individual queries with 'cache: true')
 grails.app.context = "/"
+grails.converters.json.pretty.print = true;
 
 environments {
 	development {
 		grails.logging.jul.usebridge = true
-		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8001"
+		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8080"
 		fhir.oauth = [
-			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : false,
+			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : true,
 			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
 			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8001/openid-connect-server-webapp/introspect?token={token}',
 			clientId: System.env.CLIENT_ID ?: 'client',

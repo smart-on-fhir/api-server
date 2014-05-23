@@ -6,7 +6,7 @@ class RequestFilters {
 
   def filters = {
 
-    authorizeRequest(controller: 'api', action: '*') {
+    authorizeRequest(controllerExclude:'error', action: '*') {
       before = {
 
         if(params.action[request.method] in ['welcome', 'conformance']){
