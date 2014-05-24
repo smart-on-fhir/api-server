@@ -10,7 +10,7 @@ class LaunchContextController {
 
   def create() {
     Authorization auth = request.authorization;
-    auth.assertScope("launch");
+    auth.assertScope("orchestrate-launch");
 
     JSONObject req = request.JSON;
     req.put
@@ -28,9 +28,10 @@ class LaunchContextController {
 
   def read() {
     Authorization auth = request.authorization;
-    auth.assertScope("launch");
+    auth.assertScope("orchestrate-launch");
 
     LaunchContext c = LaunchContext.read(params.launch_id)
+    println "Resolved launch context ${c.asJson()}"
     render c.asJson()
 
   }

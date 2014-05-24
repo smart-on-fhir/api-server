@@ -57,8 +57,9 @@ class AuthorizationService{
 
   Authorization asBasicAuth(request){
     def header = request.getHeader("Authorization") =~ /^Basic (.*)$/
-    log.debug("exampine an admin access password" + header)
     if(header){
+      log.debug("exampine an admin access password")
+      
       String[] decoded = new String(header[0][1].decodeBase64()).split(':')
       log.debug("try an admin access password" + decoded)
       if (decoded[0] == oauth.clientId && decoded[1] == oauth.clientSecret) {
@@ -92,14 +93,18 @@ class AuthorizationService{
       if (!status.active) return null;
       Date exp = org.joda.time.format.ISODateTimeFormat.dateTimeParser()
           .parseDateTime(status.exp).toDate()
+
+      if (status.scope.class == String) status.scope = status.scope.split("\\s+") as List
+          
       def ret = new Authorization(
           isAdmin: "fhir-complete" in status.scope,
           isActive:status.active,
           expiration: exp,
           username: status.sub,
           app: status.client_id)
-
-      if (status.scope.class == String) status.scope = [status.scope]
+      
+      println "is admin ${ret.isAdmin} because ${status.scope} + ${status.scope.class}"
+      
       ret.scopes = status.scope
       
       ret.compartments = status.scope.collect {
