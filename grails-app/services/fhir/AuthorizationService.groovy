@@ -79,15 +79,15 @@ class AuthorizationService{
       log.debug("remapping: $status")
 
       // Token introspection param names have changed; support old + new
-      def mappedStatus = [
+     /* def mappedStatus = [
         active: status.active ?: status.valid,
         exp: status.exp ?: status.expires_at,
         sub: status.sub ?: status.subject,
         client_id: status.client_id,
         scope: status.scope
-      ]
+      ]*/
 
-      status = mappedStatus
+  //    status = mappedStatus
       log.debug("Status: $status")
 
       if (!status.active) return null;
@@ -97,7 +97,7 @@ class AuthorizationService{
       if (status.scope.class == String) status.scope = status.scope.split("\\s+") as List
           
       def ret = new Authorization(
-          isAdmin: "fhir-complete" in status.scope,
+          isAdmin: "fhir_complete" in status.scope || "user/*.*" in status.scope,
           isActive:status.active,
           expiration: exp,
           username: status.sub,
@@ -107,10 +107,14 @@ class AuthorizationService{
       
       ret.scopes = status.scope
       
-      ret.compartments = status.scope.collect {
+      ret.compartments =   status.scope.collect {
         def m = (it =~ /(summary|search):(.*)/)
         if (!m.matches()) return null
         return "Patient/" +  (m[0][2] ?: "example")
+      }.findAll { it != null}
+      
+      if (status.patient) {
+        ret.compartments += "Patient/"+status.patient
       }
 
       log.debug("Found bearer authorization for this request: $ret")
