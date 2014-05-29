@@ -22,7 +22,7 @@ class RequestFilters {
       }
     }
 
-    parseResourceBody(controller: 'api', action: '*') {
+    parseResourceBody(controllerExclude: 'error', action: '*') {
       before = {
 
         def providingFormat = request.getHeaders('content-type')*.toLowerCase() + params._format

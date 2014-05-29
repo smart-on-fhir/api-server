@@ -11,9 +11,10 @@ class LaunchContext {
   static hasMany = [params: LaunchContextParam]
 
   String created_by
+  String username
   Date created_at = new Date()
   String client_id
-
+  
   public static TimeZone tz;
   public static DateFormat df;
   
@@ -32,6 +33,7 @@ class LaunchContext {
   public JSON asJson(){
     JSONObject j = new JSONObject();
     j.put("launch_id", id.toString());
+    j.put("username", username);
     j.put("created_by", created_by);
     j.put("created_at", df.format(created_at));
 

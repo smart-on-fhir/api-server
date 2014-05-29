@@ -161,7 +161,7 @@ class ApiController {
     log.debug("T $label: " + (new Date().getTime() - request.t0))
   }
   
-  private def toEntryMap(Map sqlQuery) {
+  public Map<String,Resource> toEntryMap(Map sqlQuery) {
     def entries = sqlService.rows(sqlQuery.content, sqlQuery.params).collectEntries {
       [(it.fhir_type+'/'+it.fhir_id): it.content.decodeFhirJson()]
     }    

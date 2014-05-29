@@ -32,6 +32,7 @@ CREATE SEQUENCE seq_launch_context_params
 
 CREATE TABLE launch_context (
     launch_id bigint DEFAULT nextval('seq_launch_context'::regclass) NOT NULL PRIMARY KEY,
+    username character varying(255),
     created_by character varying(255),
     created_at timestamp without time zone,
     client_id character varying(255)

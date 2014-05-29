@@ -100,16 +100,16 @@ grails.converters.json.pretty.print = true;
 environments {
 	development {
 		grails.logging.jul.usebridge = true
-		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8080"
+		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:9080"
 		fhir.oauth = [
 			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : true,
 			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
-			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8001/openid-connect-server-webapp/introspect?token={token}',
+			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:9085/openid-connect-server-webapp/introspect?token={token}',
 			clientId: System.env.CLIENT_ID ?: 'client',
 			clientSecret: System.env.CLIENT_SECRET ?: 'secret',
-			registerUri: System.env.REGISTER_URI ?: 'http://localhost:8001/openid-connect-server-webapp/register',
-			authorizeUri: System.env.AUTHORIZE_URI ?: 'http://localhost:8001/openid-connect-server-webapp/authorize',
-			tokenUri: System.env.TOKEN_URI ?: 'http://localhost:8001/openid-connect-server-webapp/token'
+			registerUri: System.env.REGISTER_URI ?: 'http://localhost:9085/openid-connect-server-webapp/register',
+			authorizeUri: System.env.AUTHORIZE_URI ?: 'http://localhost:9085/openid-connect-server-webapp/authorize',
+			tokenUri: System.env.TOKEN_URI ?: 'http://localhost:9085/openid-connect-server-webapp/token'
 		]
 	}
 	production {
