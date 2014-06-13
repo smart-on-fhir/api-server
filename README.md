@@ -10,7 +10,7 @@ Still highly experimental, but has limited support for:
  * `transaction` (POST a bundle of resources)
  * Search resources based on FHIR's defined search params
 
-## Live demo: [API](https://api.fhir.me) | [Apps](https://apps.fhir.me)
+## Live demo: [API](https://fhir-api.smartplatforms.org) | [Apps](https://fhir.smartplatforms.org)
 
 ## Installing
 
@@ -21,8 +21,8 @@ Still highly experimental, but has limited support for:
 
 ###  Get it
 ```
-$ git clone https://github.com/jmandel/smart-on-fhir
-$ cd smart-on-fhir
+$ git clone https://github.com/smart-on-fhir/api-server
+$ cd api-server
 ```
 
 ### Initialize the DB (see config below as needed)
@@ -92,8 +92,8 @@ You can load sample data from SMART's [Sample Patients](https://github.com/chb/s
 
 ```
 $ sudo apt-get install python-jinja2
-$ git clone --recursive https://github.com/chb/smart_sample_patients
-$ cd smart_sample_patients/bin
+$ git clone --recursive https://github.com/smart-on-fhir/sample-patients
+$ cd sample-patients/bin
 $ git checkout fhir
 $ python generate.py --write-fhir ../generated-data
 $ ls ../generated-data # a bunch of XML files
