@@ -31,7 +31,7 @@ Ensure that `/etc/postgresql/9.1/main/pg_hba.conf` contains a line like:
 ```
 local   all         all                               md5
 ```
-(If you have `local all all peer`, for excample, `peer` with `md5`.)
+(If you have `local all all peer`, for example, `peer` with `md5`.)
 
 
 
