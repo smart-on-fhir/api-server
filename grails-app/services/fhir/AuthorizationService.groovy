@@ -24,11 +24,13 @@ class AuthorizationService{
   def rest = new RestBuilder(connectTimeout:2000, readTimeout:2000)
   String authHeader
   Map oauth
+  Map localAuth
 
 
   @PostConstruct
   void init() {
     oauth = grailsApplication.config.fhir.oauth
+	localAuth = grailsApplication.config.localAuth
   }
 
   /**
@@ -62,8 +64,8 @@ class AuthorizationService{
       
       String[] decoded = new String(header[0][1].decodeBase64()).split(':')
       log.debug("try an admin access password" + decoded)
-      if (decoded[0] == oauth.clientId && decoded[1] == oauth.clientSecret) {
-        def ret = new Authorization(isAdmin: true, app: oauth.clientId)
+      if (decoded[0] == localAuth.clientId && decoded[1] == localAuth.clientSecret) {
+        def ret = new Authorization(isAdmin: true, app: localAuth.clientId)
         return ret
       }
     }
