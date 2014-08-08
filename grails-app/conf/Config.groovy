@@ -11,6 +11,8 @@
 //    grails.config.locations << "file:" + System.properties["${appName}.config.location"]
 // }
 
+cors.expose.headers = 'Content-Location,Location'
+cors.enabled = true
 
 fhir.namespaces = [
 	f: "http://hl7.org/fhir",
@@ -102,7 +104,7 @@ environments {
 		grails.logging.jul.usebridge = true
 		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:9080"
 		fhir.oauth = [
-			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : true,
+			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : false,
 			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
 			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:9085/openid-connect-server-webapp/introspect?token={token}',
 			clientId: System.env.AUTH_CLIENT_ID ?: 'client',
