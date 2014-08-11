@@ -214,7 +214,9 @@ class SearchIndexService{
       [(searchParam): paramAsList(searchValues)]
     }.findAll{ searchParam, searchValues ->
       searchValues.size()>0
-    }each { String searchParam, searchValues ->
+    }.sort{ a,b ->
+      b.key.length() <=> a.key.length()
+    }.each { String searchParam, searchValues ->
 
       def (isChained, beforeChain, afterChain) = chainParts(searchParam)
       def (paramName, modifier) = paramParts(beforeChain)
@@ -274,7 +276,7 @@ class SearchIndexService{
     clauseTree.each { clause ->
       clauseNum++
 
-      println("Doing $resourceName, $clause")
+      println("Doing $resourceName, $clause $clauseNum")
       def orFields = clause.handler.joinOn(clause)
       List orClauses =[]
 
@@ -291,7 +293,6 @@ class SearchIndexService{
           [('value_'+clauseNum+'_'+phraseNum+'_'+f.name): f.value]
         }
       }
-
       query +=  """ 
           SELECT fhir_type, fhir_id 
           from resource_index_term where
@@ -301,11 +302,13 @@ class SearchIndexService{
           (orClauses.size() == 0 ? "" :
           " AND (" + orClauses.join(" OR \n") +")")
 
-      if (clause.chained) {
-        Map subClauses = joinClauses([clause.chained], null, a, clauseNum)
 
+      if (clause.chained) {
+        clauseNum++
+        Map subClauses = joinClauses([clause.chained], null, a, clauseNum)
         query[-1] += " AND (reference_type, reference_id) in (\n" + subClauses.query + "\n)"
         params += subClauses.params
+        clauseNum += subClauses.params.size()
       }
 
     }
