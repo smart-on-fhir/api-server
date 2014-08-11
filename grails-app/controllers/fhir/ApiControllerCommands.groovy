@@ -2,6 +2,7 @@ package fhir
 
 import java.util.regex.Pattern
 import javax.sql.DataSource
+import java.lang.*
 
 import org.bson.types.ObjectId
 import org.hibernate.SessionFactory
@@ -43,6 +44,9 @@ class HistoryCommand {
   //TODO restrict history by compartment
 
   def getClauses() {
+    if (params == null  || request == null) {
+      return null;
+    }
     Map params = [:]
     List restrictions = []
 
@@ -84,6 +88,7 @@ class HistoryCommand {
   }
 }
 
+@grails.validation.Validateable(nullable=true)
 class SearchCommand {
   def params
   def request
@@ -91,6 +96,11 @@ class SearchCommand {
   PagingCommand paging
 
   def getClauses() {
+    println "Got some params $params"
+    if (params == null  || request == null) {
+      return null;
+    }
+
     def clauses = searchIndexService.searchParamsToSql(params, request.authorization, paging)
     return clauses
   }
@@ -105,6 +115,7 @@ class SearchCommand {
     this.request = request
     this.paging = new PagingCommand()
     this.paging.bind(params, request)
+    println "Bound all the $params $request"
   }
 }
 

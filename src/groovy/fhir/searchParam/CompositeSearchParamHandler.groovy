@@ -75,8 +75,4 @@ public class CompositeSearchParamHandler extends SearchParamHandler {
     }
   }
 
-  @Override
-  public BasicDBObject searchClause(Map searchedFor) {
-    return [(searchParamName): searchedFor.value]
-  }
 }

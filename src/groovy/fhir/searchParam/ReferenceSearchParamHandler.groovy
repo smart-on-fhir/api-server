@@ -3,7 +3,6 @@ package fhir.searchParam
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.w3c.dom.Node
 
-import com.mongodb.BasicDBObject
 import fhir.ResourceIndexReference
 import fhir.ResourceIndexTerm
 public class ReferenceSearchParamHandler extends SearchParamHandler {
@@ -82,22 +81,6 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
   @Override
   protected String paramXpath() {
     return "//"+this.xpath;
-  }
-
-  @Override
-  BasicDBObject searchClause(Map searchedFor){
-    // FHIR spec describes a slight difference between
-    // no modifier and ":text" on a code --
-    // but we're treating them the same here
-    if (searchedFor.modifier == null){
-      return [(searchParamName):searchedFor.value]
-    }
-
-    if (searchedFor.modifier == "any"){
-      return [(searchParamName):[$regex: '/'+searchedFor.value+'$']]
-    }
-
-    throw new RuntimeException("Unknown modifier: " + searchedFor)
   }
 
 }

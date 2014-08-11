@@ -170,10 +170,11 @@ class ApiController {
 
   def search(SearchCommand query) {
     request.t0 = new Date().time
-    query.bind(params, request)
+    println "Binding some $params and some $request"
 
-    def sqlQuery = query.clauses
     time("precount")
+    query.bind(params, request)
+    def sqlQuery = query.clauses
 
     query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
     def entries = toEntryMap(sqlQuery)

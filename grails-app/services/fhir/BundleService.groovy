@@ -71,6 +71,7 @@ class BundleService{
   }
 
   String nextPageFor(String url, PagingCommand paging) {
+    url = url.replaceAll(Pattern.quote("|"), "%7C")
     URIBuilder u = new URIBuilder(url)
 
     if ('_count' in u.query) {

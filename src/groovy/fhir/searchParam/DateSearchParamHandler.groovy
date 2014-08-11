@@ -13,7 +13,6 @@ import org.joda.time.format.ISODateTimeFormat
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 
-import com.mongodb.BasicDBObject;
 import com.sun.org.apache.xerces.internal.impl.dv.xs.PrecisionDecimalDV;
 import fhir.ResourceIndexDate
 import fhir.ResourceIndexString
@@ -147,11 +146,5 @@ public class DateSearchParamHandler extends SearchParamHandler {
 			return fields
 		}
 	}
-
-	@Override
-	BasicDBObject searchClause(Map searchedFor){
-		throw new RuntimeException("Unknown modifier: " + searchedFor)
-	}
-
 
 }

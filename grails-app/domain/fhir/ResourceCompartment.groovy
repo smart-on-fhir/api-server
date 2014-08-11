@@ -1,5 +1,5 @@
 package fhir
-import net.kaleidos.hibernate.usertype.StringArrayType
+import net.kaleidos.hibernate.usertype.ArrayType
 
 class ResourceCompartment implements Serializable {
 
@@ -10,7 +10,7 @@ class ResourceCompartment implements Serializable {
   static mapping = {
     table 'resource_compartment'
     id composite: ['fhir_type', 'fhir_id']
-    compartments type:StringArrayType
+    compartments type:ArrayType, params: [type: String]
     version false
   }
 }

@@ -3,8 +3,6 @@ package fhir.searchParam
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.w3c.dom.Node
 
-import com.mongodb.BasicDBObject
-
 import fhir.ResourceIndexTerm
 import fhir.ResourceIndexToken
 
@@ -111,12 +109,4 @@ public class TokenSearchParamHandler extends SearchParamHandler {
     }
   }
 
-  @Override
-  BasicDBObject searchClause(Map searchedFor){
-    // FHIR spec describes a slight difference between
-    // no modifier and ":text" on a code --
-    // (only :text should include display fields)
-    // but we're treating them the same here
-    throw new RuntimeException("Unknown modifier: " + searchedFor)
-  }
 }

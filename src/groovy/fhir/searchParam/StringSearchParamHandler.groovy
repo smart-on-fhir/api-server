@@ -4,7 +4,6 @@ import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.w3c.dom.Node
 
-import com.mongodb.BasicDBObject
 import fhir.ResourceIndexString
 import fhir.ResourceIndexTerm
 
@@ -35,22 +34,6 @@ public class StringSearchParamHandler extends SearchParamHandler {
     ret.fhir_type = fhirType
     ret.string_value = indexedValue.dbFields.string
     return ret
-  }
-
-  @Override
-  BasicDBObject searchClause(Map searchedFor){
-
-    def val = searchedFor.value
-
-    if (searchedFor.modifier == null ||searchedFor.modifier == "partial"){
-      return [(searchParamName): [ $regex: val, $options: 'i' ]]
-    }
-
-    if (searchedFor.modifier == "exact"){
-      return [(searchParamName): [ $regex:'^'+val+'$', $options: 'i' ]]
-    }
-
-    throw new RuntimeException("Unknown modifier: " + searchedFor)
   }
 
   def joinOn(SearchedValue v) {

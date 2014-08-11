@@ -5,7 +5,6 @@ import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.w3c.dom.Node
 
-import com.mongodb.BasicDBObject
 import fhir.ResourceIndexNumber
 import fhir.ResourceIndexTerm
 
@@ -66,11 +65,6 @@ public class NumberSearchParamHandler extends SearchParamHandler {
         ret.number_min = indexedValue.dbFields.number_min
         ret.number_max = indexedValue.dbFields.number_max
         return ret
-    }
-
-    @Override
-    BasicDBObject searchClause(Map searchedFor){
-        throw new RuntimeException("Numeric search not implemented")
     }
 
 }

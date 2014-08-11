@@ -112,4 +112,10 @@ public abstract class SearchParamHandler {
     return index;
   }
 
+
+  def joinOn(SearchedValue v) {
+    throw new Exception("joinOn must be implemented in subclasses");
+  }
+  
+
 }
