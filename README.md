@@ -6,7 +6,7 @@ Open-source [FHIR](http://hl7.org/implement/standards/fhir/) Server to support p
 
 Still highly experimental, but has limited support for:
 
- * GET, POST, and PUT resources
+ * GET, POST, and PUT resourcesf
  * `transaction` (POST a bundle of resources)
  * Search resources based on FHIR's defined search params
 
@@ -15,7 +15,6 @@ Still highly experimental, but has limited support for:
 ## Installing
 
 ### Prerequisites
-* Download and install [Grails 2.3.5](http://grails.org/download)
 * Install Postgres 9.1+ (locally or use a remote service)
 * Oracle Java 7 JDK (not JRE -- and **not Java 8**)
 
@@ -41,13 +40,13 @@ postgres@$ createuser -R  -P -S  -D fhir
            [at password prompt: fhir]
 postgres@$ createdb -O fhir fhir
 postgres@$ logout
-$ grails compile
-$ grails -DnoTomcat=true run-script scripts/CreateDatabase.groovy
+$ ./grailsw compile
+$ ./grailsw -DnoTomcat=true run-script scripts/CreateDatabase.groovy
 ```
 
 ### Run it
 ```
-$ grails run-app
+$ ./grailsw run-app
 ```
 
 ## Configuring
@@ -126,7 +125,7 @@ CLIENT_ID=client \
 CLIENT_SECRET=secret \
 PATIENT_ID="1234" \
 CCDA="grails-app/conf/examples/ccda.xml"\
-grails run-script scripts/LoadCCDA.groovy
+./grailsw run-script scripts/LoadCCDA.groovy
 ```
 
 
