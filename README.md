@@ -15,7 +15,7 @@ Still highly experimental, but has limited support for:
 ## Installing
 
 ### Prerequisites
-* Download and install [Grails 2.3.5](http://grails.org/download)
+* Download and install [Grails](http://grails.org/download)
 * Install Postgres 9.1+ (locally or use a remote service)
 * Oracle Java 7 JDK (not JRE -- and **not Java 8**)
 
