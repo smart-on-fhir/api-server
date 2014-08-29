@@ -26,8 +26,14 @@ fhir.searchParam.spotFixes = [
 	"f:Condition/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
 	"Observation.name": 
        "f:Observation/f:name | f:Observation/f:component/f:name",
-	"Observation.value":
-	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'value')]",
+	"Observation.value-date":
+	"f:Observation/f:valuePeriod",
+	"Observation.value-quantity":
+	"f:Observation/f:valueQuantity",
+	"Observation.value-string":
+	"f:Observation/f:valueString",
+	"Observation.value-concept":
+	"f:Observation/f:valueCodeableConcept",
 	"Observation.date":
 	"f:Observation/*[namespace-uri()='http://hl7.org/fhir' and starts-with(local-name(),'applies')]",
 	"Group.type-value":
