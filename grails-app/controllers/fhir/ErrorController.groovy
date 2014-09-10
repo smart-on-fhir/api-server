@@ -1,4 +1,5 @@
 package fhir
+import org.hl7.fhir.instance.model.OperationOutcome
 
 class ErrorController {
 
@@ -6,13 +7,16 @@ class ErrorController {
 
   private def status(int s) {
     log.debug("Rendering a $s error")
-    def extra = ""
+    def extra = "Failed with error"
     if (request.exception) {
       extra = request.exception.message
     }
     response.status=s
-    //render(extra)
-    render("Failed" + extra)
+    def o = new OperationOutcome()
+    def i = o.addIssue()
+    i.setSeveritySimple(OperationOutcome.IssueSeverity.error)
+    i.setDetailsSimple(extra)
+    request.resourceToRender = o
   }
 
   def status401() {
