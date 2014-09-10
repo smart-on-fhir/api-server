@@ -33,10 +33,14 @@ public class QuantitySearchParamHandler extends SearchParamHandler {
             // numbers in Quantity or one of its subtypes
             query("./f:value", n).each { q ->
                 def number = query("./@value", q)
-                def comparator = query("../f:comparator/@value", q)
+		if (!number) return
 
-                def number_min = null;
-                def number_max = null;
+		number = Float.parseFloat(number[0].nodeValue)
+                def comparator = query("../f:comparator/@value", q)
+                if (comparator) comparator = comparator[0].nodeValue
+
+                def number_min = Float.NEGATIVE_INFINITY;
+                def number_max = Float.POSITIVE_INFINITY;
 
                 if (!comparator) {
                     number_min = number
@@ -62,10 +66,50 @@ public class QuantitySearchParamHandler extends SearchParamHandler {
         ret.version_id = versionId
         ret.fhir_id = fhirId
         ret.fhir_type = fhirType
-        ret.number_min = indexedValue.dbFields.number_min
-        ret.number_max = indexedValue.dbFields.number_max
+	if (indexedValue.dbFields.number_min)
+          ret.number_min = indexedValue.dbFields.number_min
+	if (indexedValue.dbFields.number_max)
+          ret.number_max = indexedValue.dbFields.number_max
         return ret
     }
 
+    def joinOn(SearchedValue v) {
+      v.values.split(",").collect { value->
+
+        List fields = []
+
+        boolean greater = false
+        boolean less = false
+
+        def inequality = (value =~ /(>=|>|<=|<)(.*)/)
+
+        if (inequality.matches()){
+          String op = inequality[0][1]
+          if (op.startsWith(">")) greater = true
+          if (op.startsWith("<")) less = true
+          value = inequality[0][2]
+        }
+
+        value = Float.parseFloat(value)
+
+        if (less == false) {
+          fields += [
+            name: 'number_max',
+            value:  value,
+            operation: '>='
+          ]
+        }
+ 
+        if (greater == false) {
+          fields += [
+            name: 'number_min',
+            value:  value,
+            operation: '<='
+          ]
+        }
+ 
+        return fields
+      }
+    }
 }
 
