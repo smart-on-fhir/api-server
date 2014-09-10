@@ -164,6 +164,7 @@ def generator = { String alphabet, int n ->
 
     def inserts = []
 
+    inserts.add ("delete from resource_index_term where fhir_type= $fhirType and fhir_id= $fhirId;" )
     inserts.add ("delete from resource_compartment where fhir_type= $fhirType and fhir_id= $fhirId;" )
     inserts.add("insert into resource_compartment (fhir_type, fhir_id, compartments) values ($fhirType, $fhirId, '{" +compartments.join(",")+"}');")
     insertIndexTerms(inserts, h.version_id, fhirType, fhirId, r)

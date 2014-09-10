@@ -22,6 +22,7 @@ import grails.transaction.Transactional
 
 class ApiControllerCommands {}
 
+@grails.validation.Validateable(nullable=true)
 class PagingCommand {
   Integer total
   Integer _count
@@ -33,6 +34,7 @@ class PagingCommand {
   }
 }
 
+@grails.validation.Validateable(nullable=true)
 class HistoryCommand {
   Date _since
   Map clauses = [:]
@@ -44,7 +46,7 @@ class HistoryCommand {
   //TODO restrict history by compartment
 
   def getClauses() {
-    if (params == null  || request == null) {
+    if (request == null) {
       return null;
     }
     Map params = [:]
@@ -96,7 +98,6 @@ class SearchCommand {
   PagingCommand paging
 
   def getClauses() {
-    println "Got some params $params"
     if (params == null  || request == null) {
       return null;
     }
@@ -115,7 +116,6 @@ class SearchCommand {
     this.request = request
     this.paging = new PagingCommand()
     this.paging.bind(params, request)
-    println "Bound all the $params $request"
   }
 }
 
