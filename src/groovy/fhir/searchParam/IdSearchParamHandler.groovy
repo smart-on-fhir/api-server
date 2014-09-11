@@ -23,7 +23,7 @@ public class IdSearchParamHandler extends SearchParamHandler {
       List fields = []
       fields += [
         name: 'fhir_id',
-        value: v.values
+        value: it
       ]
       return fields
     }
