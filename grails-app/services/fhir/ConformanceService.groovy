@@ -109,10 +109,12 @@ class ConformanceService {
 	newSecurity.setDescriptionSimple("SMART on FHIR uses OAuth2 for authorization")
 	newSecurity.getService().add(newService)
     
-    List<Extension> extensions = newSecurity.getExtensions()
-	extensions.add(registerUriExtension)
-	extensions.add(authorizeUriExtension)
-	extensions.add(tokenUriExtension)
+    if (oauth.enabled) {
+        List<Extension> extensions = newSecurity.getExtensions()
+        extensions.add(registerUriExtension)
+        extensions.add(authorizeUriExtension)
+        extensions.add(tokenUriExtension)
+    }
     
 	conformance.getRest().get(0).setSecurity(newSecurity)
 	
