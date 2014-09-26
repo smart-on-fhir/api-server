@@ -80,43 +80,42 @@ class ConformanceService {
 
     conformance.dateSimple = DateAndTime.now()
 
-	Extension registerUriExtension = new Extension()
-	registerUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#register")
-	UriType registerUri = new UriType()
-	registerUri.setValue(oauth.registerUri)
-	registerUriExtension.setValue(registerUri)
-	
-	Extension authorizeUriExtension = new Extension()
-	authorizeUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#authorize")
-	UriType authorizeUri = new UriType()
-	authorizeUri.setValue(oauth.authorizeUri)
-	authorizeUriExtension.setValue(authorizeUri)
-	
-	Extension tokenUriExtension = new Extension()
-	tokenUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#token")
-	UriType tokenUri = new UriType();
-	tokenUri.setValue(oauth.tokenUri)
-	tokenUriExtension.setValue(tokenUri)
-	
-	CodeableConcept newService = new CodeableConcept()
-	Coding newCoding = new Coding()
-	newCoding.setSystemSimple("http://hl7.org/fhir/vs/restful-security-service")
-	newCoding.setCodeSimple("OAuth2")
-	newService.getCoding().add(newCoding)
-	newService.setTextSimple("OAuth version 2 (see oauth.net).")
-	
-	ConformanceRestSecurityComponent newSecurity = new ConformanceRestSecurityComponent()
-	newSecurity.setDescriptionSimple("SMART on FHIR uses OAuth2 for authorization")
-	newSecurity.getService().add(newService)
-    
     if (oauth.enabled) {
+        Extension registerUriExtension = new Extension()
+        registerUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#register")
+        Uri registerUri = new Uri()
+        registerUri.setValue(oauth.registerUri)
+        registerUriExtension.setValue(registerUri)
+        
+        Extension authorizeUriExtension = new Extension()
+        authorizeUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#authorize")
+        Uri authorizeUri = new Uri()
+        authorizeUri.setValue(oauth.authorizeUri)
+        authorizeUriExtension.setValue(authorizeUri)
+        
+        Extension tokenUriExtension = new Extension()
+        tokenUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#token")
+        Uri tokenUri = new Uri();
+        tokenUri.setValue(oauth.tokenUri)
+        tokenUriExtension.setValue(tokenUri)
+        
+        CodeableConcept newService = new CodeableConcept()
+        Coding newCoding = new Coding()
+        newCoding.setSystemSimple("http://hl7.org/fhir/vs/restful-security-service")
+        newCoding.setCodeSimple("OAuth2")
+        newService.getCoding().add(newCoding)
+        newService.setTextSimple("OAuth version 2 (see oauth.net).")
+        
+        ConformanceRestSecurityComponent newSecurity = new ConformanceRestSecurityComponent()
+        newSecurity.setDescriptionSimple("SMART on FHIR uses OAuth2 for authorization")
+        newSecurity.getService().add(newService)
         List<Extension> extensions = newSecurity.getExtensions()
         extensions.add(registerUriExtension)
         extensions.add(authorizeUriExtension)
         extensions.add(tokenUriExtension)
-    }
     
-	conformance.getRest().get(0).setSecurity(newSecurity)
+        conformance.getRest().get(0).setSecurity(newSecurity)
+    }
 	
     List supportedOps = [
       TypeRestfulOperation.read,
