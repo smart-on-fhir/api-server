@@ -150,11 +150,11 @@ class AuthorizationService{
     void assertScope(String s) {
       if (isAdmin) return
       if (!hasScope(s))
-          throw new AuthorizationException("Unauthorized:  Need scoe $s but you only have " + scopes)
+          throw new AuthorizationException("Unauthorized:  Need scope $s but you only have " + scopes)
     }
     
     void assertAccessAny(p) {
-      if (isAdmin) return
+      if (isAdmin || p.compartments.empty) return
         println(" P's compartments" + p.compartments.properties)
 
         if (!(p.compartments as List).any {it in compartments})
@@ -162,7 +162,7 @@ class AuthorizationService{
     }
 
     void assertAccessEvery(p) {
-      if (isAdmin) return
+      if (isAdmin || p.compartments.empty) return
 
         if (!(p.compartments as List).every {it in compartments})
           throw new AuthorizationException("Unauthorized:  you only have access to " + compartments + "not $p")

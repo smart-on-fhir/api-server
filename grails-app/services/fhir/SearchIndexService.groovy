@@ -321,7 +321,7 @@ class SearchIndexService{
 
     if (a.accessIsRestricted && resourceName != null) {
       //TODO remove resourceName != null restriction to enforce compartment permissions on joined resources
-      query  += "select fhir_type, fhir_id from resource_compartment where compartments  &&  ${a.compartmentsSql}"
+      query  += "select fhir_type, fhir_id from resource_compartment where (compartments  &&  ${a.compartmentsSql}) or compartments = '{}'"
     }
 
     return [query: query.join("\nINTERSECT\n"), params: params]
@@ -449,7 +449,7 @@ class SearchIndexService{
         and (fhir_type, fhir_id) in (
           select fhir_type, fhir_id 
           from resource_compartment
-          where compartments  &&  ${a.compartmentsSql}
+          where (compartments  &&  ${a.compartmentsSql}) or compartments = '{}'
         )"""
     }
 
