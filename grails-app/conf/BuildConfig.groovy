@@ -37,9 +37,9 @@ grails.project.dependency.resolution = {
         }
 	runtime 'org.postgresql:postgresql:9.3-1100-jdbc41' 
 
-        //runtime 'xpp3:xpp3:1.1.3.4.O'
-        //runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
-        compile 'me.fhir:fhir-dstu1:0.0.82.2943'
+        runtime 'xpp3:xpp3:1.1.3.4.O'
+        runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
+      //  compile 'me.fhir:fhir-dstu1:0.0.82.2943'
     }
 
     plugins {

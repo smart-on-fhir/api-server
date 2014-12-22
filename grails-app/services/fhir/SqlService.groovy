@@ -146,11 +146,15 @@ def generator = { String alphabet, int n ->
 
     String fhirType = rjson.resourceType.asString
     String expectedType = resourceName
-
+    
     if (fhirType != expectedType){
-      response.status = 405
       log.debug("Got a request whose type didn't match: $expectedType vs. $fhirType")
-      return render("Can't post a $fhirType to the $expectedType endpoint")
+      throw new Exception("Can't post a $fhirType to the $expectedType endpoint");
+    }
+    
+    if (fhirId != r.id){
+      log.debug("Got a resource to create ids type didn't match: $r.id vs. $fhirId")
+      throw new Exception("Can't post a $fhirType with id $fhirId when content id is $r.id");
     }
 
     String versionUrl;

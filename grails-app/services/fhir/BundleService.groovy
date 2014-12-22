@@ -5,10 +5,13 @@ import groovyx.net.http.URIBuilder
 import java.util.regex.Pattern
 
 import org.bson.types.ObjectId
-import org.hl7.fhir.instance.model.AtomEntry
-import org.hl7.fhir.instance.model.AtomFeed
+import org.hl7.fhir.instance.model.Bundle
+import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.instance.model.Bundle.BundleEntryStatus;
+import org.hl7.fhir.instance.model.Bundle.BundleTypeEnumFactory;
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.DateAndTime
+import org.hl7.fhir.instance.model.Bundle.BundleType;
 
 class BundleValidationException extends Exception{
 }
@@ -19,12 +22,12 @@ class BundleService{
   def searchIndexService
   def urlService
 
-  void validateFeed(AtomFeed feed) {
+  void validateFeed(Bundle feed) {
     if (feed == null) {
       throw new BundleValidationException('Could not parse a bundle. Ensure you have set an appropriate content-type.')
     }
 
-    if (feed.entryList == null || feed.entryList.size() == 0) {
+    if (feed.entry == null || feed.entry.size() == 0) {
       throw new BundleValidationException('Did not find any resources in the posted bundle.')
       return
     }
@@ -34,33 +37,29 @@ class BundleService{
     r.class.toString().split('\\.')[-1]
   }
 
-  AtomFeed atomFeed(p) {
+  Bundle createFeed(p) {
     def feedId = p.feedId
     def entries = p.entries
     def paging = p.paging
 
-    AtomFeed feed = new AtomFeed()
-    feed.authorName = "groovy.config.atom.author-name"
-    feed.authorUri  = "groovy.config.atom.author-uri"
-    feed.id = feedId
-    feed.title = "FHIR Atom Feed"
-    feed.totalResults = paging.total
+    Bundle feed = new Bundle()
+    feed.type = BundleType.SEARCHSET;
 
-    feed.links.put("self", feed.id)
+    feed.total = paging.total
+
+    feed.addLink().setRelation("self").setUrl(feedId)
     if (paging._skip + paging._count < paging.total) {
-      def nextPageUrl = nextPageFor(feed.id, paging)
-      feed.links.put("next", nextPageUrl)
+      def nextPageUrl = nextPageFor(feedId, paging)
+      feed.addLink().setRelation("next").setUrl(nextPageUrl)
     }
 
     def now = DateAndTime.now()
-    feed.updated = now
-    feed.entryList.addAll entries.collect { id, resource ->
-      AtomEntry entry = new AtomEntry()
-      entry.id = urlService.fhirBase + '/'+ id
-      entry.updated = now
-      entry.title = id
+    feed.entry.addAll entries.collect { id, resource ->
+      BundleEntryComponent entry = new BundleEntryComponent()
+      entry.status = BundleEntryStatus.MATCH
       if (resource == null) {
-        entry.deleted = true
+        // TODO populate with version, timestamp, etc
+        entry.getDeleted().setResourceId(id);
       } else {
         entry.resource = resource
       }
@@ -87,7 +86,7 @@ class BundleService{
     return u.toString()
   }
 
-  AtomFeed assignURIs(AtomFeed f) {
+  Bundle assignURIs(Bundle f) {
 
     Map assignments = [:]
 
@@ -98,32 +97,29 @@ class BundleService{
     // For IDs that already exist in our system, rewrite them to ensure they always
     // appear as relative URIs (relative to [service-base]
 
-    f.entryList.each { AtomEntry e ->
+    f.entry.each { BundleEntryComponent e ->
+
       boolean needsAssignment = false
-      Class c = e.resource.class
-      try {
-        def asFhirCombinedId = urlService.fhirCombinedId(new URL(urlService.fhirBaseAbsolute, e.id).path)
-        if(asFhirCombinedId) {
-          assignments[e.id] = asFhirCombinedId
-        } else {
-          log.debug("no match; ${e.id} needs reassignemnt")
-          needsAssignment = true
-        }
-      } catch(Exception ex) {
-        needsAssignment = true
-      } finally {
-        if (needsAssignment) {
-          String r = c.toString().split('\\.')[-1]
-          String id = new ObjectId().toString()
-          assignments[e.id] = urlService.relativeResourceLink(r, id)
+      Resource res = e.resource
+      Class c = res.class
+      String resourceType = res.resourceType.path
+      
+      if (e.status == BundleEntryStatus.CREATE) {
+        String oldid = e.resource.id
+        e.resource.id = new ObjectId().toString()
+        
+        if (oldid != null) {
+          assignments[urlService.relativeResourceLink(resourceType, oldid)] = 
+            urlService.relativeResourceLink(resourceType, e.resource.id)
         }
       }
+      
     }
 
     def xml = f.encodeAsFhirXml()
     assignments.each {from, to ->
-      xml = xml.replaceAll(Pattern.quote(from), to)
       log.debug("Replacing: $from -> $to")
+      xml = xml.replaceAll(Pattern.quote("value=\"$from\""), to)
     }
 
     return xml.decodeFhirXml()

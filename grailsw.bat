@@ -1,349 +1,186 @@
-##############################################################################
-##                                                                          ##
-##  Grails JVM Bootstrap for UN*X                                           ##
-##                                                                          ##
-##############################################################################
+@if "%DEBUG%" == "" @echo off
+@rem ##########################################################################
+@rem                                                                         ##
+@rem  Grails JVM Bootstrap for Windows                                       ##
+@rem                                                                         ##
+@rem ##########################################################################
 
-PROGNAME=`basename "$0"`
-DIRNAME=`dirname "$0"`
+@rem Set local scope for the variables with windows NT shell
+if "%OS%"=="Windows_NT" setlocal
 
-# Use the maximum available, or set MAX_FD != -1 to use that
-MAX_FD="maximum"
+set CLASS=org.grails.wrapper.GrailsWrapper
 
-warn() {
-    echo "${PROGNAME}: $*"
-}
+if exist "%USERPROFILE%/.groovy/preinit.bat" call "%USERPROFILE%/.groovy/preinit.bat"
 
-die() {
-    warn "$*"
-    exit 1
-}
+@rem Determine the command interpreter to execute the "CD" later
+set COMMAND_COM="cmd.exe"
+if exist "%SystemRoot%\system32\cmd.exe" set COMMAND_COM="%SystemRoot%\system32\cmd.exe"
+if exist "%SystemRoot%\command.com" set COMMAND_COM="%SystemRoot%\command.com"
 
-earlyInit() {
-	return
-}
-lateInit() {
-	return
-}
+@rem Use explicit find.exe to prevent cygwin and others find.exe from being used
+set FIND_EXE="find.exe"
+if exist "%SystemRoot%\system32\find.exe" set FIND_EXE="%SystemRoot%\system32\find.exe"
+if exist "%SystemRoot%\command\find.exe" set FIND_EXE="%SystemRoot%\command\find.exe"
 
-GROOVY_STARTUP=~/.groovy/startup
-if [ -r "$GROOVY_STARTUP" ]; then
-	. "$GROOVY_STARTUP"
-fi
+:check_JAVA_HOME
+@rem Make sure we have a valid JAVA_HOME
+if not "%JAVA_HOME%" == "" goto have_JAVA_HOME
 
-earlyInit
+echo.
+echo ERROR: Environment variable JAVA_HOME has not been set.
+echo.
+echo Please set the JAVA_HOME variable in your environment to match the
+echo location of your Java installation.
+echo.
+goto end
 
-# OS specific support (must be 'true' or 'false').
-cygwin=false;
-darwin=false;
-mingw=false;
-case "`uname`" in
-    CYGWIN*)
-        cygwin=true
-        ;;
+:have_JAVA_HOME
+@rem Remove trailing slash from JAVA_HOME if found
+if "%JAVA_HOME:~-1%"=="\" SET JAVA_HOME=%JAVA_HOME:~0,-1%
 
-    Darwin*)
-        darwin=true
-        ;;
+@rem Validate JAVA_HOME
+%COMMAND_COM% /C DIR "%JAVA_HOME%" 2>&1 | %FIND_EXE% /I /C "%JAVA_HOME%" >nul
+if not errorlevel 1 goto check_GRAILS_HOME
 
-    MINGW*)
-        mingw=true
-        ;;
-esac
+echo.
+echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME%
+echo.
+echo Please set the JAVA_HOME variable in your environment to match the
+echo location of your Java installation.
+echo.
+goto end
 
-# Attempt to set JAVA_HOME if it's not already set
-if [ -z "$JAVA_HOME" ]; then
+:check_GRAILS_HOME
+@rem Define GRAILS_HOME if not set
+if "%GRAILS_HOME%" == "" set GRAILS_HOME=%DIRNAME%..
 
-	# Set JAVA_HOME for Darwin
-	if $darwin; then
+@rem Remove trailing slash from GRAILS_HOME if found
+if "%GRAILS_HOME:~-1%"=="\" SET GRAILS_HOME=%GRAILS_HOME:~0,-1%
 
-		[ -z "$JAVA_HOME" -a -d "/Library/Java/Home" ] &&
-			export JAVA_HOME="/Library/Java/Home"
+:init
 
-		[ -z "$JAVA_HOME" -a -d "/System/Library/Frameworks/JavaVM.framework/Home" ] &&
-			export JAVA_HOME="/System/Library/Frameworks/JavaVM.framework/Home"
+for %%x in ("%USERPROFILE%") do set SHORTHOME=%%~fsx
+if "x%GRAILS_AGENT_CACHE_DIR%" == "x" set GRAILS_AGENT_CACHE_DIR=%SHORTHOME%/.grails/2.4.4/
+set SPRINGLOADED_PARAMS="profile=grails;cacheDir=%GRAILS_AGENT_CACHE_DIR%"
+if not exist "%GRAILS_AGENT_CACHE_DIR%" mkdir "%GRAILS_AGENT_CACHE_DIR%"
 
-	fi
+if "%GRAILS_NO_PERMGEN%" == "" (
+	type "%JAVA_HOME%\include\classfile_constants.h" 2>nul | findstr /R /C:"#define JVM_CLASSFILE_MAJOR_VERSION 5[23]" >nul
+	if not errorlevel 1 set GRAILS_NO_PERMGEN=1
+)
 
-fi
+set AGENT_STRING=-javaagent:wrapper/springloaded-1.2.1.RELEASE.jar -Xverify:none -Dspringloaded.synchronize=true -Djdk.reflect.allowGetCallerClass=true -Dspringloaded=\"%SPRINGLOADED_PARAMS%\"
+set DISABLE_RELOADING=
+if "%GRAILS_OPTS%" == "" (
+	set GRAILS_OPTS=-server -Xmx768M -Xms64M -Dfile.encoding=UTF-8
+	if not "%GRAILS_NO_PERMGEN%" == "1" (
+		set GRAILS_OPTS=-server -Xmx768M -Xms64M -XX:PermSize=32m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8
+	)
+)
 
-# For Cygwin, ensure paths are in UNIX format before anything is touched
-if $cygwin ; then
-    [ -n "$GRAILS_HOME" ] &&
-        GRAILS_HOME=`cygpath --unix "$GRAILS_HOME"`
-    [ -n "$JAVACMD" ] &&
-        JAVACMD=`cygpath --unix "$JAVACMD"`
-    [ -n "$JAVA_HOME" ] &&
-        JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
-    [ -n "$CP" ] &&
-        CP=`cygpath --path --unix "$CP"`
-fi
+@rem Get command-line arguments, handling Windows variants
+if "%@eval[2+2]" == "4" goto 4NT_args
 
-# Remove possible trailing slash (after possible cygwin correction)
-GRAILS_HOME=`echo $GRAILS_HOME | sed -e 's|/$||g'`
+@rem Slurp the command line arguments.
+set CMD_LINE_ARGS=
+set CP=
+set INTERACTIVE=true
 
-# Locate GRAILS_HOME if not it is not set
-if [ -z "$GRAILS_HOME" -o ! -d "$GRAILS_HOME" ] ; then
-  # resolve links - $0 may be a link to groovy's home
-  PRG="$0"
+:win9xME_args_slurp
+if "x%~1" == "x" goto execute
+set CURR_ARG=%~1
+if "%CURR_ARG:~0,2%" == "-D" (
+	set CMD_LINE_ARGS=%CMD_LINE_ARGS% %~1=%~2
+	shift
+	shift
+	goto win9xME_args_slurp
+)
+if "x%~1" == "x-cp" (
+	set CP=%~2
+	shift
+	shift
+	goto win9xME_args_slurp
+)
+if "x%~1" == "x-debug" (
+	set JAVA_OPTS=%JAVA_OPTS% -Xdebug -Xnoagent -Dgrails.full.stacktrace=true -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005
+	shift
+	goto win9xME_args_slurp
+)
+if "x%~1" == "x-classpath" (
+	set CP=%~2
+	shift
+	shift
+	goto win9xME_args_slurp
+)
+if "x%~1" == "x-reloading" (
+	set AGENT=%AGENT_STRING%
+	shift
+	goto win9xME_args_slurp
+)
+if "x%~1" == "xrun-app" (
+	set AGENT=%AGENT_STRING%
+	set INTERACTIVE=
+	set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+	shift
+	goto win9xME_args_slurp
+)
+if "x%~1" == "x-noreloading" (
+	set DISABLE_RELOADING=true
+	shift
+	goto win9xME_args_slurp
+)
+set INTERACTIVE=
+set CMD_LINE_ARGS=%CMD_LINE_ARGS% %1
+shift
+goto win9xME_args_slurp
 
-  # need this for relative symlinks
-  while [ -h "$PRG" ] ; do
-    ls=`ls -ld "$PRG"`
-    link=`expr "$ls" : '.*-> \(.*\)$'`
-    if expr "$link" : '/.*' > /dev/null; then
-    PRG="$link"
-    else
-    PRG=`dirname "$PRG"`"/$link"
-    fi
-  done
+:4NT_args
+@rem Get arguments from the 4NT Shell from JP Software
+set CMD_LINE_ARGS=%$
 
-  SAVED="`pwd`"
-  cd "`dirname \"$PRG\"`/.."
-  GRAILS_HOME="`pwd -P`"
-  cd "$SAVED"
-fi
+:execute
+@rem Setup the command line
+set STARTER_CLASSPATH=wrapper/grails-wrapper-runtime-2.4.4.jar;wrapper;.
 
-# Warn the user if JAVA_HOME and/or GRAILS_HOME are not set.
-if [ -z "$JAVA_HOME" ] ; then
-    die "JAVA_HOME environment variable is not set"
-elif [ ! -d "$JAVA_HOME" ] ; then
-    die "JAVA_HOME is not a directory: $JAVA_HOME"
-fi
+if exist "%USERPROFILE%/.groovy/init.bat" call "%USERPROFILE%/.groovy/init.bat"
 
-if [ -z "$GRAILS_HOME" ] ; then
-    warn "GRAILS_HOME environment variable is not set"
-fi
+@rem Setting a classpath using the -cp or -classpath option means not to use
+@rem the global classpath. Groovy behaves then the same as the java interpreter
 
-if [ ! -d "$GRAILS_HOME" ] ; then
-    die "GRAILS_HOME is not a directory: $GRAILS_HOME"
-fi
+if "x" == "x%CLASSPATH%" goto after_classpath
+set CP=%CP%;%CLASSPATH%
+:after_classpath
 
-# Use default groovy-conf config
-if [ -z "$STARTER_CONF" ]; then
-    STARTER_CONF="$GRAILS_HOME/conf/groovy-starter.conf"
-fi
-STARTER_CLASSPATH="wrapper/grails-wrapper-runtime-2.3.1.jar:wrapper:."
+if "x%DISABLE_RELOADING%" == "xtrue" (
+	set AGENT=
+) else (
+	if "x%INTERACTIVE%" == "xtrue" (
+		set AGENT=%AGENT_STRING%
+	)
+)
 
-# Allow access to Cocoa classes on OS X
-if $darwin; then
-    STARTER_CLASSPATH="$STARTER_CLASSPATH:/System/Library/Java/Support"
-fi
+set STARTER_MAIN_CLASS=org.grails.wrapper.GrailsWrapper
+set STARTER_CONF=%GRAILS_HOME%\conf\groovy-starter.conf
 
-# Create the final classpath
-# Setting a classpath using the -cp or -classpath option means not to use
-# the global classpath. Groovy behaves then the same as the java
-# interpreter
-if [ -n "$CP" ] ; then
-    CP="$CP"
-elif [ -n "$CLASSPATH" ] ; then
-    CP="$CLASSPATH"
-fi
+set JAVA_EXE=%JAVA_HOME%\bin\java.exe
+set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 
-# Determine the Java command to use to start the JVM
-if [ -z "$JAVACMD" ]; then
-    if [ -n "$JAVA_HOME" ]; then
-        if [ -x "$JAVA_HOME/jre/sh/java" ]; then
-            # IBM's JDK on AIX uses strange locations for the executables
-            JAVACMD="$JAVA_HOME/jre/sh/java"
-        else
-            JAVACMD="$JAVA_HOME/bin/java"
-        fi
-    else
-        JAVACMD="java"
-    fi
-fi
-if [ ! -x "$JAVACMD" ]; then
-    die "JAVA_HOME is not defined correctly; can not execute: $JAVACMD"
-fi
+set JAVA_OPTS=%GRAILS_OPTS% %JAVA_OPTS% %AGENT%
 
-# Increase the maximum file descriptors if we can
-if [ "$cygwin" = "false" ]; then
-    MAX_FD_LIMIT=`ulimit -H -n`
-	if [ "$MAX_FD_LIMIT" != "unlimited" ]; then
-	    if [ $? -eq 0 ]; then
-	        if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ]; then
-	            # use the businessSystem max
-	            MAX_FD="$MAX_FD_LIMIT"
-	        fi
+set JAVA_OPTS=%JAVA_OPTS% -Dprogram.name="%PROGNAME%"
+set JAVA_OPTS=%JAVA_OPTS% -Dgrails.home="%GRAILS_HOME%"
+set JAVA_OPTS=%JAVA_OPTS% -Dgrails.version=2.4.4
+set JAVA_OPTS=%JAVA_OPTS% -Dbase.dir=.
+set JAVA_OPTS=%JAVA_OPTS% -Dtools.jar="%TOOLS_JAR%"
+set JAVA_OPTS=%JAVA_OPTS% -Dgroovy.starter.conf="%STARTER_CONF%"
 
-	        ulimit -n $MAX_FD
-	        if [ $? -ne 0 ]; then
-	            warn "Could not set maximum file descriptor limit: $MAX_FD"
-	        fi
-	    else
-	        warn "Could not query businessSystem maximum file descriptor limit: $MAX_FD_LIMIT"
-	    fi
-	fi
-fi
+if exist "%USERPROFILE%/.groovy/postinit.bat" call "%USERPROFILE%/.groovy/postinit.bat"
 
-# Fix the cygwin agent issue
-AGENT_GRAILS_HOME=$GRAILS_HOME
-if $cygwin ; then
-    [ -n "$GRAILS_HOME" ] &&
-        AGENT_GRAILS_HOME=`cygpath --windows "$GRAILS_HOME"`
-fi
+@rem Execute Grails
+CALL "%JAVA_EXE%" %JAVA_OPTS% -classpath "%STARTER_CLASSPATH%" %STARTER_MAIN_CLASS% --main %CLASS% --conf "%STARTER_CONF%" --classpath "%CP%" "%CMD_LINE_ARGS%"
+:end
+@rem End local scope for the variables with windows NT shell
+if "%OS%"=="Windows_NT" endlocal
 
-if $mingw ; then
-    # Converts GRAILS_HOME path to Windows syntax
-    [ -n "$GRAILS_HOME" ] &&
-        AGENT_GRAILS_HOME=`cmd //C echo "$GRAILS_HOME"`
-fi
-
-if [ -z "$GRAILS_AGENT_CACHE_DIR" ]; then
-    GRAILS_AGENT_CACHE_DIR=~/.grails/2.3.1/
-fi
-SPRINGLOADED_PARAMS=profile=grails\;cacheDir=$GRAILS_AGENT_CACHE_DIR
-if [ ! -d "$GRAILS_AGENT_CACHE_DIR" ]; then
-    mkdir -p "$GRAILS_AGENT_CACHE_DIR"
-fi
-
-# Process JVM args
-AGENT_STRING="-javaagent:wrapper/springloaded-core-1.1.4.jar -noverify -Dspringloaded.synchronize=true -Djdk.reflect.allowGetCallerClass=true -Dspringloaded=$SPRINGLOADED_PARAMS"
-CMD_LINE_ARGS=""
-DISABLE_RELOADING=true
-
-while true; do
-  if [ "$1" = "-cp" ] || [ "$1" = "-classpath" ]; then
-    CP=$2
-    shift 2
-    break
-  fi
-
-  if [ "$1" = "-reloading" ]; then
-    AGENT=$AGENT_STRING
-    DISABLE_RELOADING=false
-    shift
-    break
-  fi
-
-  if [ "$1" = "-noreloading" ]; then
-    DISABLE_RELOADING=true
-    shift
-    break
-  fi
-
-  if [ "$1" = "-debug" ]; then
-    JAVA_OPTS="$JAVA_OPTS -Xdebug -Xnoagent -Dgrails.full.stacktrace=true -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
-    shift
-    break
-  fi
-
-  if [ "$1" != -* ]; then
-    break
-  fi
-
-  CMD_LINE_ARGS="$CMD_LINE_ARGS $1"
-  shift
-done
-
-# Enable agent-based reloading for the 'run-app' command.
-if ! $DISABLE_RELOADING; then
-    for a in "$@"; do
-        if [ "$a" = "run-app" ]; then
-            AGENT=$AGENT_STRING
-        fi
-    done
-
-    if [ $# = 0 ]; then
-        AGENT=$AGENT_STRING
-    fi
-fi
-
-ARGUMENTS="$CMD_LINE_ARGS $@"
-
-# Setup Profiler
-useprofiler=false
-if [ "x$PROFILER" != "x" ]; then
-    if [ -r "$PROFILER" ]; then
-        . $PROFILER
-        useprofiler=true
-    else
-        die "Profiler file not found: $PROFILER"
-    fi
-fi
-
-# For Darwin, use classes.jar for TOOLS_JAR
-TOOLS_JAR="$JAVA_HOME/lib/tools.jar"
-if $darwin; then
-    JAVA_OPTS="-Xdock:name=Grails -Xdock:icon=$GRAILS_HOME/media/icons/grails.icns $JAVA_OPTS"
-#   TOOLS_JAR="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Classes/classes.jar"
-fi
-
-# For Cygwin, switch paths to Windows format before running java
-if $cygwin; then
-    GRAILS_HOME=`cygpath --path --mixed "$GRAILS_HOME"`
-    JAVA_HOME=`cygpath --path --mixed "$JAVA_HOME"`
-    STARTER_CONF=`cygpath --path --mixed "$STARTER_CONF"`
-    CP=`cygpath --path --mixed "$CP"`
-    TOOLS_JAR=`cygpath --path --mixed "$TOOLS_JAR"`
-    STARTER_CLASSPATH=`cygpath --path --mixed "$STARTER_CLASSPATH"`
-	# We build the pattern for arguments to be converted via cygpath
-    ROOTDIRSRAW=`find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
-    SEP=""
-    for dir in $ROOTDIRSRAW; do
-    	ROOTDIRS="$ROOTDIRS$SEP$dir"
-	    SEP="|"
-    done
-    OURCYGPATTERN="(^($ROOTDIRS))"
-    # Add a user-defined pattern to the cygpath arguments
-    if [ "$GROOVY_CYGPATTERN" != "" ] ; then
-    	OURCYGPATTERN="$OURCYGPATTERN|($GROOVY_CYGPATTERN)"
-    fi
-    # Now convert the arguments
-	ARGUMENTS=""
-    for arg in "$@" ; do
-    	CHECK=`echo "$arg"|egrep -c "$OURCYGPATTERN" -`
-    	if [ $CHECK -ne 0 ] ; then
-	    	convArg=`cygpath --path --ignore --mixed "$arg"`
-    	else
-			convArg=$arg
-    	fi
-		ARGUMENTS="$ARGUMENTS $convArg"
-    done
-fi
-
-STARTER_MAIN_CLASS=org.grails.wrapper.GrailsWrapper
-
-lateInit
-
-startGrails() {
-  CLASS=$1
-  shift
-  if [ -n "$GRAILS_OPTS" ]
-     then
- 	GRAILS_OPTS="$GRAILS_OPTS"
-     else
-	GRAILS_OPTS="-server -Xmx768M -Xms64M -XX:PermSize=32m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8"
-  fi
-  JAVA_OPTS="$GRAILS_OPTS $JAVA_OPTS $AGENT"
-  # Start the Profiler or the JVM
-  if $useprofiler; then
-      runProfiler
-  else
-  	if [ $# -eq 0 ] ; then         # no argument given
-         exec "$JAVACMD" $JAVA_OPTS \
-          -classpath "$STARTER_CLASSPATH" \
-          -Dgrails.home="$GRAILS_HOME" \
-          -Dtools.jar="$TOOLS_JAR" \
-          -Djava.net.preferIPv4Stack=true \
-          $STARTER_MAIN_CLASS \
-          --main $CLASS \
-          --conf "$STARTER_CONF" \
-          --classpath "$CP"
-  	else
-         exec "$JAVACMD" $JAVA_OPTS \
-          -classpath "$STARTER_CLASSPATH" \
-          -Dgrails.home="$GRAILS_HOME" \
-          -Dtools.jar="$TOOLS_JAR" \
-          -Djava.net.preferIPv4Stack=true \
-          $STARTER_MAIN_CLASS \
-          --main $CLASS \
-          --conf "$STARTER_CONF" \
-          --classpath "$CP" \
-          "${ARGUMENTS}"
-  	fi
-  fi
-}
-
-startGrails $STARTER_MAIN_CLASS "$@"
+@rem Optional pause the batch file
+if "%GROOVY_BATCH_PAUSE%" == "on" pause

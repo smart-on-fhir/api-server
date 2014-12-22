@@ -6,8 +6,7 @@ import java.lang.*
 
 import org.bson.types.ObjectId
 import org.hibernate.SessionFactory
-import org.hl7.fhir.instance.model.AtomEntry
-import org.hl7.fhir.instance.model.AtomFeed
+import org.hl7.fhir.instance.model.Bundle
 import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Patient

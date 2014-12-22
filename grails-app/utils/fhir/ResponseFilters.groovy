@@ -1,6 +1,6 @@
 package fhir
 import org.hibernate.SessionFactory
-import org.hl7.fhir.instance.model.AtomFeed;
+import org.hl7.fhir.instance.model.Bundle;
 import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.Resource
 
@@ -21,7 +21,7 @@ class ResponseFilters {
           return true
         }
 
-        if (!(r instanceof Resource || r instanceof AtomFeed)) {
+        if (!(r instanceof Resource || r instanceof Bundle)) {
           log.debug("Got a " + r)
           r = r.content.toString().decodeFhirJson()
         }

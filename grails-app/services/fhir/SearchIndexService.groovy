@@ -44,36 +44,36 @@ class SearchIndexService{
     // For each searchParam we support, create a SearchParamHandler instance
     // to handle indexing newly POSTed resources, and searching for existing ones
     conformanceService.conformance.rest[0].resource.each { resource ->
-      Class model = classForModel resource.typeSimple
+      Class model = classForModel resource.type
 
-      String resourceName = resource.typeSimple
+      String resourceName = resource.type
       indexersByResource[model] = resource.searchParam.collect { searchParam ->
 
 
         // join search param declaration in Conformance against search param definition
         // in individual profiles. This is only necessary to extract the xpath...
         // (Since all other properties of the searchParams are repeated in Conformance)
-        String paramName = searchParam.nameSimple
+        String paramName = searchParam.name
         String key = resourceName + '.' + paramName
 
         // Short-circuit FHIR's built-in xpath if defined. Handles:
         //  * missing xpaths
         //  * broken xpaths  -- like 'f:value[x]'
         SearchParamHandler.create(
-            searchParam.nameSimple,
-            searchParam.typeSimple,
-            resource.typeSimple,
+            searchParam.name,
+            searchParam.type,
+            resource.type,
             conformanceService.searchParamXpaths[key],
             conformanceService.searchParamReferenceTypes[key]);
       } + new IdSearchParamHandler( searchParamName: "_id",
-      fieldType: SearchParamType.token,
+      fieldType: SearchParamType.TOKEN,
       xpath: null,
       resourceName: resourceName);
     }
   }
 
   public String modelForClass(Resource r) {
-      return r.class.toString().split('\\.')[-1].replace("_", "")
+    return r.class.toString().split('\\.')[-1].replace("_", "")
   }
 
   public Class<Resource> classForModel(String modelName){
@@ -104,9 +104,9 @@ class SearchIndexService{
     }
 
     org.w3c.dom.Document rdoc = xmlService.fromResource(rx)
-    def ret = indexers
-        .findAll{ ! (it instanceof IdSearchParamHandler )}
-        .collectMany { SearchParamHandler h -> h.execute(rdoc) }
+    def ret = ((Iterable) indexers
+        .findAll({ ! (it instanceof IdSearchParamHandler )}))
+        .collectMany({ SearchParamHandler h -> h.execute(rdoc) })
 
     log.info("Logged")
     log.info(ret.each { IndexedValue p ->
@@ -233,11 +233,11 @@ class SearchIndexService{
               chainedResource = indexer.referenceTypes[0]
             }
             else {
-              throw new Exception("The search param '$paramName' can match ${indexer.referenceTypes.size()} types. Please specify further by providing one of: " + 
-                indexer.referenceTypes.collect {"$paramName:$it="}.join(" or "));
+              throw new Exception("The search param '$paramName' can match ${indexer.referenceTypes.size()} types. Please specify further by providing one of: " +
+              indexer.referenceTypes.collect {"$paramName:$it="}.join(" or "));
             }
           }
-            // infer type if there is no ambiguity
+          // infer type if there is no ambiguity
           chainedSearchValue = queryToHandlerTree([resource: chainedResource, (afterChain): searchValue])[0]
           searchValue = null
         }

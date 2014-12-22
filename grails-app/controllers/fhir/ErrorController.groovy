@@ -14,8 +14,8 @@ class ErrorController {
     response.status=s
     def o = new OperationOutcome()
     def i = o.addIssue()
-    i.setSeveritySimple(OperationOutcome.IssueSeverity.error)
-    i.setDetailsSimple(extra)
+      .setSeverity(OperationOutcome.IssueSeverity.ERROR)
+      .setDetails(extra)
     request.resourceToRender = o
   }
 

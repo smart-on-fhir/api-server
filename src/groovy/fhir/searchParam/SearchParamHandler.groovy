@@ -7,14 +7,10 @@ import groovy.util.logging.Log4j
 import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathConstants
 
-import org.hl7.fhir.instance.formats.XmlComposer
 import org.hl7.fhir.instance.formats.XmlParser
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.w3c.dom.Node
-
-import com.mongodb.BasicDBObject
-import com.mongodb.DBObject
 
 
 /**
@@ -28,7 +24,6 @@ import com.mongodb.DBObject
 public abstract class SearchParamHandler {
 
   static XmlParser parser = new XmlParser()
-  static XmlComposer composer = new XmlComposer()
   static XPath xpathEvaluator;
   static UrlService urlService;
 
@@ -45,14 +40,13 @@ public abstract class SearchParamHandler {
       String xpath,
       List<String> referenceTypes) {
 
-    String ft = fieldType.toString().capitalize();
+    String ft = fieldType.toString().toLowerCase().capitalize();
     String className = SearchParamHandler.class.canonicalName.replace(
         "SearchParamHandler", ft + "SearchParamHandler")
 
     Class c = Class.forName(className,
         true,
         Thread.currentThread().contextClassLoader);
-
 
     SearchParamHandler ret =  c.newInstance(
         searchParamName: searchParamName,
@@ -116,6 +110,6 @@ public abstract class SearchParamHandler {
   def joinOn(SearchedValue v) {
     throw new Exception("joinOn must be implemented in subclasses");
   }
-  
+
 
 }

@@ -4,7 +4,7 @@ import fhir.AuthorizationService.Authorization
 import grails.converters.JSON
 
 import org.codehaus.groovy.grails.web.json.JSONObject
-import org.hl7.fhir.instance.model.AtomFeed
+import org.hl7.fhir.instance.model.Bundle
 import org.hl7.fhir.instance.model.Patient
 
 class LaunchContextController {
@@ -59,7 +59,7 @@ class LaunchContextController {
           [(it.fhir_type+'/'+it.fhir_id): it.content.decodeFhirJson()]
         }
 
-    AtomFeed feed = bundleService.atomFeed([
+    Bundle feed = bundleService.createFeed([
       entries: entries,
       paging: new PagingCommand(total: entries.size(), _count: entries.size(), _skip: 0),
       feedId: urlService.fullRequestUrl(request)

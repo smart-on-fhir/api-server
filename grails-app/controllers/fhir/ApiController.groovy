@@ -1,19 +1,23 @@
 package fhir
 
 import java.util.regex.Pattern
+
 import javax.sql.DataSource
 
 import org.bson.types.ObjectId
 import org.hibernate.SessionFactory
-import org.hl7.fhir.instance.model.AtomEntry
-import org.hl7.fhir.instance.model.AtomFeed
+import org.hl7.fhir.instance.model.Bundle
+import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.instance.model.Bundle.BundleType
 import org.hl7.fhir.instance.model.Binary
+import org.hl7.fhir.instance.model.Bundle.BundleTypeEnumFactory;
 import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Patient
 import org.hl7.fhir.instance.model.Resource
 
 import fhir.searchParam.DateSearchParamHandler
 import grails.transaction.Transactional
+
 
 class ResourceDeletedException extends Exception {
   def ResourceDeletedException(String msg){
@@ -55,7 +59,8 @@ class ApiController {
   def transaction() {
 
     def body = request.getReader().text
-    AtomFeed feed;
+    Bundle feed = new Bundle()
+    feed.type = BundleType.TRANSACTIONRESPONSE
     if (request.providingFormat == "json") {
       feed = body.decodeFhirJson()
     } else {
@@ -65,10 +70,10 @@ class ApiController {
     bundleService.validateFeed(feed)
     feed = bundleService.assignURIs(feed)
 
-    feed.entryList.eachWithIndex { AtomEntry e, int i->
+    feed.entry.each { BundleEntryComponent e->
       String r = searchIndexService.modelForClass(e.resource)
-      def parts = urlService.fhirUrlParts(e.id)
-      sqlService.updateResource(e.resource, r, parts.id, requestedCompartments, request.authorization)
+      def parts = urlService.fhirUrlParts(e.resource.id)
+      sqlService.updateResource(e.resource, r, e.resource.id, requestedCompartments, request.authorization)
     }
 
     request.resourceToRender =  feed
@@ -185,7 +190,7 @@ class ApiController {
       entries += toEntryMap(includes)
     }
 
-    AtomFeed feed = bundleService.atomFeed([
+    Bundle feed = bundleService.createFeed([
       entries: entries,
       paging: query.paging,
       feedId: fullRequestURI
@@ -221,7 +226,7 @@ class ApiController {
 
     time("Fetched content of size ${entries.size()}")
 
-    AtomFeed feed = bundleService.atomFeed([
+    Bundle feed = bundleService.createFeed([
       entries: entries,
       paging: paging,
       feedId: fullRequestURI

@@ -1,16 +1,23 @@
 package fhir
 import org.apache.commons.io.IOUtils
-import org.hl7.fhir.instance.formats.JsonComposer
 import org.hl7.fhir.instance.formats.JsonParser
+import org.hl7.fhir.instance.formats.IParser
 
 class FhirJsonCodec  {
+  
+  static IParser prettyParser = {
+    JsonParser jp= new JsonParser()
+    jp.outputStyle = IParser.OutputStyle.PRETTY
+    jp
+  }.call()
+    
   static decode = { str ->
-    def ret = new JsonParser().parseGeneral(IOUtils.toInputStream(str));
-    return ret.resource ?: ret.feed
+    def ret = prettyParser.parse(IOUtils.toInputStream(str));
+    return ret
   }
   static encode = { resource ->
     ByteArrayOutputStream jsonStream = new ByteArrayOutputStream()
-    new JsonComposer().compose(jsonStream,resource, true)
+    prettyParser.compose(jsonStream,resource)
     jsonStream.toString()
   }
 }
