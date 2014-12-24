@@ -3,7 +3,7 @@ package fhir;
 
 import org.apache.commons.io.IOUtils;
 import org.hl7.fhir.instance.model.Patient
-import org.hl7.fhir.instance.model.Binary
+import org.hl7.fhir.instance.model.DomainResource
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.DocumentReference
 
@@ -80,8 +80,10 @@ def generator = { String alphabet, int n ->
       inserts.add(term.insertStatement(versionId))
     }
 
-    r.contained.each { Resource it ->
-      insertIndexTerms(inserts, 0, it.class.name.split("\\.")[-1], fhirId+"_contained_"+it.xmlId, it)
+    if (r instanceof DomainResource) {
+        r.contained.each { Resource it ->
+          insertIndexTerms(inserts, 0, it.class.name.split("\\.")[-1], fhirId+"_contained_"+it.id, it)
+        }
     }
     return
   }
@@ -101,9 +103,9 @@ def generator = { String alphabet, int n ->
     if (r instanceof Patient) {
       compartments.add("Patient/$fhirId")
     } else if ("subject" in r.properties) {
-      compartments.add(r.subject.referenceSimple)
+      compartments.add(r.subject.reference)
     } else if ("patient" in r.properties) {
-      compartments.add(r.patient.referenceSimple)
+      compartments.add(r.patient.reference)
     }
 
     return compartments
@@ -168,13 +170,19 @@ def generator = { String alphabet, int n ->
 
     def inserts = []
 
-    inserts.add ("delete from resource_index_term where fhir_type= $fhirType and fhir_id= $fhirId;" )
+    // remove indexing from contained resources
+    inserts.add ("""delete from resource_index_term where (fhir_type, fhir_id) in 
+                 (select reference_type, reference_id from resource_index_term where
+                 fhir_type='$fhirType' and fhir_id='$fhirId');""")
+
+    // remove indexing from the resoure
+    inserts.add ("delete from resource_index_term where fhir_type=$fhirType and fhir_id=$fhirId;" )
+
     inserts.add ("delete from resource_compartment where fhir_type= $fhirType and fhir_id= $fhirId;" )
     inserts.add("insert into resource_compartment (fhir_type, fhir_id, compartments) values ($fhirType, $fhirId, '{" +compartments.join(",")+"}');")
     insertIndexTerms(inserts, h.version_id, fhirType, fhirId, r)
-    println inserts
 
-    inserts.each { sql.execute(it) }
+    inserts.each {println it; sql.execute(it) }
 
     versionUrl = urlService.resourceVersionLink(resourceName, fhirId, h.version_id)
     log.debug("Created version: " + versionUrl)

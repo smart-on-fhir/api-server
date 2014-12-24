@@ -18,7 +18,7 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
       if (ref.startsWith("#")) {
         index.add(value([
           contained_id: ref[1..-1],
-          contained_type: query("//f:contained/*[@id='"+ref[1..-1]+"']", r).collect{it.nodeName}.join("")
+          contained_type: query("//f:contained/*/f:id[@value='"+ref[1..-1]+"']/..", r).collect{it.nodeName}.join("")
         ]))
       }
       else if (!parts['type'])  {
