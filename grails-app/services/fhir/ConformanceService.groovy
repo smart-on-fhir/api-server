@@ -12,7 +12,7 @@ import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.instance.model.CodeableConcept
 import org.hl7.fhir.instance.model.Coding
 import org.hl7.fhir.instance.model.Conformance
-import org.hl7.fhir.instance.model.DateAndTime
+import org.hl7.fhir.instance.model.DateTimeType
 import org.hl7.fhir.instance.model.Extension
 import org.hl7.fhir.instance.model.Profile
 import org.hl7.fhir.instance.model.Resource
@@ -80,7 +80,7 @@ class ConformanceService {
     conformance.description = "Describes capabilities of this SMART on FHIR server"
     conformance.telecom[0].value = urlService.fhirBase
 
-    conformance.setDate(DateAndTime.now())
+    conformance.setDate(new Date())
 
     if (oauth.enabled) {
 	Extension registerUriExtension = new Extension()

@@ -136,13 +136,23 @@ def generator = { String alphabet, int n ->
   }
 
 
-  public def updateResource(Resource r, String resourceName, String fhirId, List needCompartments, authorization) {
+  public def updateResource(DomainResource r, String resourceName, String fhirId, List needCompartments, authorization) {
 
     List compartments = needCompartments + compartmentsForResource(r, fhirId)
     authorization.assertAccessEvery(compartments: compartments)
-
+    
+    
+    def h = new ResourceVersion(
+        fhir_id: fhirId,
+        fhir_type: resourceName,
+        rest_operation: 'POST',
+        content: "placeholder")
+    h.save(failOnError: true)
+    
+    r.meta.setVersionId(h.version_id.toString())
     JsonObject rjson = jsonParser.parse(r.encodeAsFhirJson())
 
+    log.debug("Updating to version id: " + h.version_id)
     log.debug("raw " + rjson)
     log.debug("Parsed a $rjson.resourceType.asString")
 
@@ -158,15 +168,11 @@ def generator = { String alphabet, int n ->
       log.debug("Got a resource to create ids type didn't match: $r.id vs. $fhirId")
       throw new Exception("Can't post a $fhirType with id $fhirId when content id is $r.id");
     }
-
-    String versionUrl;
-
-    def h = new ResourceVersion(
-        fhir_id: fhirId,
-        fhir_type: fhirType,
-        rest_operation: 'POST',
-        content: rjson.toString())
+    
+    h.content = rjson.toString()
     h.save(failOnError: true)
+
+    String versionUrl
 
     def inserts = []
 

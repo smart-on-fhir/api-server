@@ -9,9 +9,12 @@ import org.hl7.fhir.instance.model.Bundle
 import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.instance.model.Bundle.BundleEntryStatus;
 import org.hl7.fhir.instance.model.Bundle.BundleTypeEnumFactory;
+import org.hl7.fhir.instance.model.DomainResource
 import org.hl7.fhir.instance.model.Resource
-import org.hl7.fhir.instance.model.DateAndTime
+import org.hl7.fhir.instance.model.DateTimeType
 import org.hl7.fhir.instance.model.Bundle.BundleType;
+
+import org.apache.commons.lang3.time.FastDateFormat;
 
 class BundleValidationException extends Exception{
 }
@@ -53,14 +56,15 @@ class BundleService{
       feed.addLink().setRelation("next").setUrl(nextPageUrl)
     }
 
-    def now = DateAndTime.now()
-    feed.entry.addAll entries.collect { id, resource ->
+    feed.entry.addAll entries.collect { id, DomainResource resource ->
       BundleEntryComponent entry = new BundleEntryComponent()
       entry.status = BundleEntryStatus.MATCH
       if (resource == null) {
         // TODO populate with version, timestamp, etc
         entry.getDeleted().setResourceId(id);
       } else {
+      // Map idParts = urlService.fhirUrlParts(id)
+      // resource.getMeta().setVersionId()
         entry.resource = resource
       }
       return entry
