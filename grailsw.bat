@@ -69,7 +69,7 @@ if "%GRAILS_NO_PERMGEN%" == "" (
 	if not errorlevel 1 set GRAILS_NO_PERMGEN=1
 )
 
-set AGENT_STRING=-javaagent:wrapper/springloaded-1.2.1.RELEASE.jar -Xverify:none -Dspringloaded.synchronize=true -Djdk.reflect.allowGetCallerClass=true -Dspringloaded=\"%SPRINGLOADED_PARAMS%\"
+set AGENT_STRING=-javaagent:grailsWrapper/springloaded-1.2.1.RELEASE.jar -Xverify:none -Dspringloaded.synchronize=true -Djdk.reflect.allowGetCallerClass=true -Dspringloaded=\"%SPRINGLOADED_PARAMS%\"
 set DISABLE_RELOADING=
 if "%GRAILS_OPTS%" == "" (
 	set GRAILS_OPTS=-server -Xmx768M -Xms64M -Dfile.encoding=UTF-8
@@ -140,7 +140,7 @@ set CMD_LINE_ARGS=%$
 
 :execute
 @rem Setup the command line
-set STARTER_CLASSPATH=wrapper/grails-wrapper-runtime-2.4.4.jar;wrapper;.
+set STARTER_CLASSPATH=grailsWrapper/grails-wrapper-runtime-2.4.4.jar;grailsWrapper;.
 
 if exist "%USERPROFILE%/.groovy/init.bat" call "%USERPROFILE%/.groovy/init.bat"
 
