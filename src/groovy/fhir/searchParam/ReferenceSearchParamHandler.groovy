@@ -23,16 +23,16 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
       }
       else if (!parts['type'])  {
         index.add(value([
-          resource_is_external: true,
-          resource_id: ref
+          reference_is_external: true,
+          reference_id: ref
         ]))
       } else {
         index.add(value([
           raw: ref,
-          resource_is_external: false,
-          resource_id: parts.id,
-          resource_type: parts.type,
-          resource_version: parts.version
+          reference_is_external: false,
+          reference_id: parts.id,
+          reference_type: parts.type,
+          reference_version: parts.version
         ]))
       }
     }

@@ -5,21 +5,18 @@ import org.hl7.fhir.instance.formats.XmlParser
 
 class FhirXmlCodec  {
   
-  static IParser prettyParser = {
-    XmlParser jp= new XmlParser()
-    jp.outputStyle = IParser.OutputStyle.PRETTY
-    jp
-  }.call()
-   
   
   static decode = { str ->
-    def ret = prettyParser.parse(IOUtils.toInputStream(str));
-    return ret
+    XmlParser jp= new XmlParser()
+    jp.outputStyle = IParser.OutputStyle.PRETTY
+    jp.parse(IOUtils.toInputStream(str));
   }
 
   static encode = { resource ->
+    XmlParser jp= new XmlParser()
+    jp.outputStyle = IParser.OutputStyle.PRETTY
     ByteArrayOutputStream xmlStream = new ByteArrayOutputStream()
-    prettyParser.compose(xmlStream,resource)
+    jp.compose(xmlStream,resource)
     xmlStream.toString()
   }
 }

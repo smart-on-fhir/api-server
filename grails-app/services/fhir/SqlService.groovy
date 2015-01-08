@@ -141,7 +141,6 @@ def generator = { String alphabet, int n ->
     List compartments = needCompartments + compartmentsForResource(r, fhirId)
     authorization.assertAccessEvery(compartments: compartments)
     
-    
     def h = new ResourceVersion(
         fhir_id: fhirId,
         fhir_type: resourceName,
@@ -150,9 +149,11 @@ def generator = { String alphabet, int n ->
     h.save(failOnError: true)
     
     r.meta.setVersionId(h.version_id.toString())
+    r.meta.setLastUpdated(new Date())
+    
     JsonObject rjson = jsonParser.parse(r.encodeAsFhirJson())
 
-    log.debug("Updating to version id: " + h.version_id)
+    log.debug("Updating to version id: ${h.fhir_id} /_history/ " + h.version_id)
     log.debug("raw " + rjson)
     log.debug("Parsed a $rjson.resourceType.asString")
 
@@ -179,7 +180,7 @@ def generator = { String alphabet, int n ->
     // remove indexing from contained resources
     inserts.add ("""delete from resource_index_term where (fhir_type, fhir_id) in 
                  (select reference_type, reference_id from resource_index_term where
-                 fhir_type='$fhirType' and fhir_id='$fhirId');""")
+                 fhir_type='$fhirType' and fhir_id='$fhirId' and reference_id like '%_contained_%');""")
 
     // remove indexing from the resoure
     inserts.add ("delete from resource_index_term where fhir_type=$fhirType and fhir_id=$fhirId;" )

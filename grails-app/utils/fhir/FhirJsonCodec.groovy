@@ -5,19 +5,17 @@ import org.hl7.fhir.instance.formats.IParser
 
 class FhirJsonCodec  {
   
-  static IParser prettyParser = {
+
+  static decode = { str ->
     JsonParser jp= new JsonParser()
     jp.outputStyle = IParser.OutputStyle.PRETTY
-    jp
-  }.call()
-    
-  static decode = { str ->
-    def ret = prettyParser.parse(IOUtils.toInputStream(str));
-    return ret
+    jp.parse(IOUtils.toInputStream(str));
   }
   static encode = { resource ->
+    JsonParser jp= new JsonParser()
+    jp.outputStyle = IParser.OutputStyle.PRETTY
     ByteArrayOutputStream jsonStream = new ByteArrayOutputStream()
-    prettyParser.compose(jsonStream,resource)
+    jp.compose(jsonStream,resource)
     jsonStream.toString()
   }
 }

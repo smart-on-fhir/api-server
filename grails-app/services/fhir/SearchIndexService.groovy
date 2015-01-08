@@ -12,6 +12,7 @@ import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
 
 import fhir.AuthorizationService.Authorization
+import fhir.searchParam.DateSearchParamHandler
 import fhir.searchParam.IdSearchParamHandler
 import fhir.searchParam.IndexedValue
 import fhir.searchParam.SearchParamHandler
@@ -65,10 +66,15 @@ class SearchIndexService{
             resource.type,
             conformanceService.searchParamXpaths[key],
             conformanceService.searchParamReferenceTypes[key]);
-      } + new IdSearchParamHandler( searchParamName: "_id",
-      fieldType: SearchParamType.TOKEN,
-      xpath: null,
-      resourceName: resourceName);
+      } +
+      new IdSearchParamHandler( searchParamName: "_id",
+        fieldType: SearchParamType.TOKEN,
+        xpath: null,
+        resourceName: resourceName) +
+      new DateSearchParamHandler( searchParamName: "_lastUpdated",
+        fieldType: SearchParamType.DATE,
+        xpath: "f:meta/f:lastUpdated",
+        resourceName: resourceName);
     }
   }
 

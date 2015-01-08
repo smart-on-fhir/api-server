@@ -106,8 +106,9 @@ public class DateSearchParamHandler extends SearchParamHandler {
 		return ret
 	}
 
-	private java.sql.Date toSqlDate(def d){
-		return new java.sql.Date(d.toDate().time)
+	private java.sql.Timestamp toSqlDate(DateTime d){
+        print "coverting $d to ${d.toInstant().millis}"
+		return new java.sql.Timestamp(d.toInstant().millis)
 	}
 
 	@Override

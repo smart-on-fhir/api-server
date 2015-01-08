@@ -72,7 +72,7 @@ class ApiController {
 
     feed.entry.each { BundleEntryComponent e->
       String r = searchIndexService.modelForClass(e.resource)
-      def parts = urlService.fhirUrlParts(e.resource.id)
+      log.debug("Transacting on an entry with $r / $e.resource.id")
       sqlService.updateResource(e.resource, r, e.resource.id, requestedCompartments, request.authorization)
     }
 
