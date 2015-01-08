@@ -17,6 +17,7 @@ import fhir.searchParam.IdSearchParamHandler
 import fhir.searchParam.IndexedValue
 import fhir.searchParam.SearchParamHandler
 import fhir.searchParam.SearchedValue
+import fhir.searchParam.StringSearchParamHandler
 
 /**
  * @author jmandel
@@ -74,6 +75,10 @@ class SearchIndexService{
       new DateSearchParamHandler( searchParamName: "_lastUpdated",
         fieldType: SearchParamType.DATE,
         xpath: "f:meta/f:lastUpdated",
+        resourceName: resourceName) +
+      new StringSearchParamHandler(searchParamName: "_profile",
+        fieldType: SearchParamType.STRING,
+        xpath: "f:meta/f:profile",
         resourceName: resourceName);
     }
   }
