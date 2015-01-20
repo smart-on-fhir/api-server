@@ -136,7 +136,7 @@ def generator = { String alphabet, int n ->
   }
 
 
-  public def updateResource(DomainResource r, String resourceName, String fhirId, List needCompartments, authorization) {
+  public def updateResource(Resource r, String resourceName, String fhirId, List needCompartments, authorization) {
 
     List compartments = needCompartments + compartmentsForResource(r, fhirId)
     authorization.assertAccessEvery(compartments: compartments)

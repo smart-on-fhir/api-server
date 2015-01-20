@@ -68,8 +68,8 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
       ret.reference_id = fhirId+"_contained_"+indexedValue.dbFields.contained_id
       ret.reference_type = indexedValue.dbFields.contained_type
     } else {
-      ret.reference_type = indexedValue.dbFields.resource_type
-      ret.reference_id = indexedValue.dbFields.resource_id
+      ret.reference_type = indexedValue.dbFields.reference_type
+      ret.reference_id = indexedValue.dbFields.reference_id
     }
 
     ret.reference_version = indexedValue.dbFields.resource_version
