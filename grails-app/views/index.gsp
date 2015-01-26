@@ -58,7 +58,7 @@ h2 {
 		Service URL: <strong>
 			${urlService.fhirBase}
 		</strong><br> Source: <strong><a
-			href="https://github.com/jmandel/smart-on-fhir">GitHub</a></strong><br>
+			href="https://github.com/smart-on-fhir/api-server">GitHub</a></strong><br>
 	</h2>
 
 </body>
