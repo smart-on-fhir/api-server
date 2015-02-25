@@ -41,6 +41,9 @@ class LaunchContext {
     params.each {
       ps.put(it.param_name, it.param_value)
     }
+    
+    ps.put("need_patient_banner", "true")
+    ps.put("smart_style_url", "https://fhir.smartplatforms.org/stylesheets/smart_v1.json")
 
     j.put("parameters", ps);
     
