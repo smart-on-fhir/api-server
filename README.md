@@ -10,7 +10,7 @@ Still highly experimental, but has limited support for:
  * `transaction` (POST a bundle of resources)
  * Search resources based on FHIR's defined search params
 
-## Live demo: [API](https://fhir-api.smartplatforms.org) | [Apps](https://fhir.smartplatforms.org)
+## Live demo: [API](https://fhir-api.smarthealthit.org) | [Apps](https://fhir.smarthealthit.org)
 
 ## Installing
 
