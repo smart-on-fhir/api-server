@@ -43,7 +43,7 @@ class LaunchContext {
     }
     
     ps.put("need_patient_banner", true)
-    ps.put("smart_style_url", "https://fhir.smartplatforms.org/stylesheets/smart_v1.json")
+    ps.put("smart_style_url", "https://fhir.smarthealthit.org/stylesheets/smart_v1.json")
 
     j.put("parameters", ps);
     

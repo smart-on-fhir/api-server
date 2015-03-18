@@ -7,7 +7,7 @@
 <head>
 <title>SMART on FHIR</title>
 <link rel="shortcut icon"
-	href="https://smartplatforms.org/wp-content/uploads/2012/09/favicon1.png">
+	href="https://smarthealthit.org/wp-content/uploads/2012/09/favicon1.png">
 <link
 	href='https://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700'
 	rel='stylesheet' type='text/css'>

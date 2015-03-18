@@ -82,19 +82,19 @@ class ConformanceService {
 
     if (oauth.enabled) {
         Extension registerUriExtension = new Extension()
-        registerUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#register")
+        registerUriExtension.setUrlSimple("http://fhir-registry.smarthealthit.org/Profile/oauth-uris#register")
         UriType registerUri = new UriType()
         registerUri.setValue(oauth.registerUri)
         registerUriExtension.setValue(registerUri)
         
         Extension authorizeUriExtension = new Extension()
-        authorizeUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#authorize")
+        authorizeUriExtension.setUrlSimple("http://fhir-registry.smarthealthit.org/Profile/oauth-uris#authorize")
         UriType authorizeUri = new UriType()
         authorizeUri.setValue(oauth.authorizeUri)
         authorizeUriExtension.setValue(authorizeUri)
         
         Extension tokenUriExtension = new Extension()
-        tokenUriExtension.setUrlSimple("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#token")
+        tokenUriExtension.setUrlSimple("http://fhir-registry.smarthealthit.org/Profile/oauth-uris#token")
         UriType tokenUri = new UriType();
         tokenUri.setValue(oauth.tokenUri)
         tokenUriExtension.setValue(tokenUri)
