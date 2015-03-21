@@ -40,8 +40,6 @@ postgres@$ createuser -R  -P -S  -D fhir
            [at password prompt: fhir]
 postgres@$ createdb -O fhir fhir
 postgres@$ logout
-$ ./grailsw compile
-$ ./grailsw -DnoTomcat=true run-script scripts/CreateDatabase.groovy
 ```
 
 ### Run it
