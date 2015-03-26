@@ -97,9 +97,10 @@ class AuthorizationService{
           .parseDateTime(status.exp).toDate()
 
       if (status.scope.class == String) status.scope = status.scope.split("\\s+") as List
-          
+      
+      // TODO: make *.read produce read-only permissions
       def ret = new Authorization(
-          isAdmin: "fhir_complete" in status.scope || "user/*.*" in status.scope,
+          isAdmin: "fhir_complete" in status.scope || "user/*.*" in status.scope || "user/*.read" in status.scope,
           isActive:status.active,
           expiration: exp,
           username: status.sub,
