@@ -74,29 +74,28 @@ class ConformanceService {
 
     conformance.text.div = new XhtmlNode(NodeType.Element, "div");
     conformance.text.div.addText("Generated Conformance Statement -- see structured representation.")
-    conformance.identifier = urlService.fhirBase + '/conformance'
+    conformance.url = urlService.fhirBase + '/conformance'
     conformance.publisher = "SMART on FHIR"
     conformance.name =  "SMART on FHIR Conformance Statement"
     conformance.description = "Describes capabilities of this SMART on FHIR server"
-    conformance.telecom[0].value = urlService.fhirBase
 
     conformance.setDate(new Date())
 
     if (oauth.enabled) {
 	Extension registerUriExtension = new Extension()
-	registerUriExtension.setUrl( "http://fhir-registry.smartplatforms.org/Profile/oauth-uris#register")
+	registerUriExtension.setUrl( "http://fhir-registry.smarthealthit.org/oauth-uris#register")
 	UriType registerUri = new UriType()
 	registerUri.setValue(oauth.registerUri)
 	registerUriExtension.setValue(registerUri)
 	
 	Extension authorizeUriExtension = new Extension()
-	authorizeUriExtension.setUrl("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#authorize")
+	authorizeUriExtension.setUrl("http://fhir-registry.smarthealthit.org/oauth-uris#authorize")
 	UriType authorizeUri = new UriType()
 	authorizeUri.setValue(oauth.authorizeUri)
 	authorizeUriExtension.setValue(authorizeUri)
 	
 	Extension tokenUriExtension = new Extension()
-	tokenUriExtension.setUrl("http://fhir-registry.smartplatforms.org/Profile/oauth-uris#token")
+	tokenUriExtension.setUrl("http://fhir-registry.smarthealthit.org/oauth-uris#token")
 	UriType tokenUri = new UriType();
 	tokenUri.setValue(oauth.tokenUri)
 	tokenUriExtension.setValue(tokenUri)
@@ -171,10 +170,6 @@ class ConformanceService {
       }
       r.resource.each { ConformanceRestResourceComponent rc ->
         
-        rc.searchParam.each { 
-          it.definition = fixSearchParamName(it.definition)
-        }
-
         rc.interaction = rc.interaction.findAll { ResourceInteractionComponent o ->
           o.code in supportedOps
         }

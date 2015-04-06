@@ -14,6 +14,9 @@ import org.hl7.fhir.instance.model.Bundle.BundleTypeEnumFactory;
 import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Patient
 import org.hl7.fhir.instance.model.Resource
+import org.hl7.fhir.instance.model.Bundle.HttpVerb;
+import org.hl7.fhir.instance.model.Bundle.BundleEntrySearchComponent;
+import org.hl7.fhir.instance.model.Bundle.SearchEntryMode;
 
 import fhir.searchParam.DateSearchParamHandler
 import grails.transaction.Transactional
@@ -165,12 +168,25 @@ class ApiController {
   def time(label) {
     log.debug("T $label: " + (new Date().getTime() - request.t0))
   }
-  
-  public Map<String,Resource> toEntryMap(Map sqlQuery) {
-    def entries = sqlService.rows(sqlQuery.content, sqlQuery.params).collectEntries {
-      [(it.fhir_type+'/'+it.fhir_id): it.content.decodeFhirJson()]
+
+  public BundleEntryComponent toBundleEntry(dbRecord) {
+      def id = (dbRecord.fhir_type+'/'+dbRecord.fhir_id);
+      def resource = dbRecord.content.decodeFhirJson()
+      BundleEntryComponent entry = new BundleEntryComponent()
+      if (resource == null) {
+        // TODO populate with version, timestamp, etc
+        entry.transaction.setMethod(HttpVerb.DELETE);
+        entry.transaction.setUrl("${resource.resourceType}/${resource.id}");
+      } else {
+        entry.resource = resource
+      }
+      entry
+  }
+ 
+  public Map<String,Resource> toEntryList(Map sqlQuery) {
+    sqlService.rows(sqlQuery.content, sqlQuery.params).collect {
+      toBundleEntry(it)
     }    
-    return entries
   }
 
   def search(SearchCommand query) {
@@ -182,12 +198,16 @@ class ApiController {
     def sqlQuery = query.clauses
 
     query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
-    def entries = toEntryMap(sqlQuery)
-    time("got entries")
-    
+    def entries = toEntryList(sqlQuery)
+    entries.each {v -> v.search.mode = SearchEntryMode.MATCH }
+    time("got entries ${entries.count {true}}")
+
     def includes = query.includesFor(entries)
     if (includes) {
-      entries += toEntryMap(includes)
+      time("got includes ${includes.count}")
+      includeEntries = toEntryList(includes)
+      includeEntries.each {v -> v.search.mode = SearchEntryMode.INCLUDE}
+      entries += includeEntries
     }
 
     Bundle feed = bundleService.createFeed([
@@ -217,13 +237,12 @@ class ApiController {
         " limit ${paging._count}" +
         " offset ${paging._skip}"
 
-    def entries = sqlService.rows(rawSqlQuery, clauses.params).collectEntries {
+    def entries = sqlService.rows(rawSqlQuery, clauses.params).collect {
       def deleted = it.rest_operation == "DELETE"
-      [(it.fhir_type+'/'+it.fhir_id+'/_history/'+it.version_id):
-	deleted? null : it.content.decodeFhirJson()]
+      toBundleEntry(it)
     }
-    time("got entries")
 
+    time("got entries")
     time("Fetched content of size ${entries.size()}")
 
     Bundle feed = bundleService.createFeed([

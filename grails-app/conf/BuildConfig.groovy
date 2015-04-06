@@ -19,7 +19,7 @@ grails.project.dependency.resolution = {
         grailsCentral()
         mavenLocal()
         mavenCentral()
-        mavenRepo "https://oss.sonatype.org/content/repositories/snapshots/"
+        //mavenRepo "https://oss.sonatype.org/content/repositories/snapshots/"
     }
 
     dependencies {
@@ -39,7 +39,7 @@ grails.project.dependency.resolution = {
 
       //  runtime 'xpp3:xpp3:1.1.3.4.O'
       //  runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
-        compile 'me.fhir:fhir-dstu2:0.4.0.3924-SNAPSHOT'
+        compile 'me.fhir:fhir-dstu2:0.5.0.5149'
     }
 
     plugins {

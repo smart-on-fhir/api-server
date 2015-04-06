@@ -7,12 +7,14 @@ import java.util.regex.Pattern
 import org.bson.types.ObjectId
 import org.hl7.fhir.instance.model.Bundle
 import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
-import org.hl7.fhir.instance.model.Bundle.BundleEntryStatus;
-import org.hl7.fhir.instance.model.Bundle.BundleTypeEnumFactory;
 import org.hl7.fhir.instance.model.DomainResource
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.DateTimeType
 import org.hl7.fhir.instance.model.Bundle.BundleType;
+import org.hl7.fhir.instance.model.Bundle.BundleTypeEnumFactory;
+import org.hl7.fhir.instance.model.Bundle.HttpVerb;
+import org.hl7.fhir.instance.model.Bundle.BundleEntrySearchComponent;
+import org.hl7.fhir.instance.model.Bundle.SearchEntryMode;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 
@@ -56,20 +58,7 @@ class BundleService{
       feed.addLink().setRelation("next").setUrl(nextPageUrl)
     }
 
-    feed.entry.addAll entries.collect { id, DomainResource resource ->
-      BundleEntryComponent entry = new BundleEntryComponent()
-      entry.status = BundleEntryStatus.MATCH
-      if (resource == null) {
-        // TODO populate with version, timestamp, etc
-        entry.getDeleted().setResourceId(id);
-      } else {
-      // Map idParts = urlService.fhirUrlParts(id)
-      // resource.getMeta().setVersionId()
-        entry.resource = resource
-      }
-      return entry
-    }
-
+    feed.entry.addAll entries
     return feed
   }
 
@@ -108,7 +97,7 @@ class BundleService{
       Class c = res.class
       String resourceType = res.resourceType.path
       
-      if (e.status == BundleEntryStatus.CREATE) {
+      if (e.transaction.method == HttpVerb.POST) {
         String oldid = e.resource.id
         e.resource.id = new ObjectId().toString()
         

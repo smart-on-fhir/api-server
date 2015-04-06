@@ -8,6 +8,7 @@ import javax.xml.xpath.XPathConstants
 import org.hl7.fhir.instance.model.Conformance
 import org.hl7.fhir.instance.model.Profile
 import org.hl7.fhir.instance.model.Resource
+import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
 import org.hl7.fhir.instance.model.Conformance.SearchParamType
 
@@ -489,8 +490,8 @@ class SearchIndexService{
   private List getResourceIds(Map params, Map entries) {
     def includes = includeProcessor(paramAsList(params._include))
 
-    def resourcesToInclude = entries.collectMany { String uri, Resource r ->
-      includes(r)
+    def resourcesToInclude = entries.collectMany { String uri, BundleEntryComponent c ->
+      includes(c.resource)
     } as Set
 
     return resourcesToInclude.collect { urlService.fhirUrlParts(it) }
