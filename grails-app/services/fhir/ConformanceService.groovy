@@ -83,19 +83,19 @@ class ConformanceService {
 
     if (oauth.enabled) {
 	Extension registerUriExtension = new Extension()
-	registerUriExtension.setUrl( "http://fhir-registry.smarthealthit.org/oauth-uris#register")
+	registerUriExtension.setUrl( "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris#register")
 	UriType registerUri = new UriType()
 	registerUri.setValue(oauth.registerUri)
 	registerUriExtension.setValue(registerUri)
 	
 	Extension authorizeUriExtension = new Extension()
-	authorizeUriExtension.setUrl("http://fhir-registry.smarthealthit.org/oauth-uris#authorize")
+	authorizeUriExtension.setUrl("http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris#authorize")
 	UriType authorizeUri = new UriType()
 	authorizeUri.setValue(oauth.authorizeUri)
 	authorizeUriExtension.setValue(authorizeUri)
 	
 	Extension tokenUriExtension = new Extension()
-	tokenUriExtension.setUrl("http://fhir-registry.smarthealthit.org/oauth-uris#token")
+	tokenUriExtension.setUrl("http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris#token")
 	UriType tokenUri = new UriType();
 	tokenUri.setValue(oauth.tokenUri)
 	tokenUriExtension.setValue(tokenUri)
@@ -129,15 +129,6 @@ class ConformanceService {
       SystemRestfulInteraction.TRANSACTION,
       SystemRestfulInteraction.HISTORYSYSTEM
     ]
-    
-    
-    def fixSearchParamName  = { String n ->
-        Matcher match = n =~ /(.*fhir)\/Profile\/(.*)#.*\.(.*)$/
-        def base = match[0][1]
-        def res = match[0][2].toLowerCase()
-        def sp = match[0][3].toLowerCase()
-        "$base/SearchParameter/$res-$sp"
-    }
     
     
     // TODO get search param names lined up so we can index correctly
