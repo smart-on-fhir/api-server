@@ -1,4 +1,4 @@
-smart-on-fhir
+SMART on FHIR
 =============
 
 
@@ -6,11 +6,11 @@ Open-source [FHIR](http://hl7.org/implement/standards/fhir/) Server to support p
 
 Still highly experimental, but has limited support for:
 
- * GET, POST, and PUT resourcesf
+ * GET, POST, and PUT resources
  * `transaction` (POST a bundle of resources)
  * Search resources based on FHIR's defined search params
 
-## Live demo: [API](https://fhir-api.smartplatforms.org) | [Apps](https://fhir.smartplatforms.org)
+## Live demo: [API](https://fhir-api.smarthealthit.org) | [Apps](https://fhir.smarthealthit.org)
 
 ## Installing
 
@@ -40,8 +40,6 @@ postgres@$ createuser -R  -P -S  -D fhir
            [at password prompt: fhir]
 postgres@$ createdb -O fhir fhir
 postgres@$ logout
-$ ./grailsw compile
-$ ./grailsw -DnoTomcat=true run-script scripts/CreateDatabase.groovy
 ```
 
 ### Run it
