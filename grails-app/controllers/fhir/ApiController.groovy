@@ -183,7 +183,7 @@ class ApiController {
       entry
   }
  
-  public Map<String,Resource> toEntryList(Map sqlQuery) {
+  public Collection<BundleEntryComponent> toEntryList(Map sqlQuery) {
     sqlService.rows(sqlQuery.content, sqlQuery.params).collect {
       toBundleEntry(it)
     }    
@@ -205,7 +205,7 @@ class ApiController {
     def includes = query.includesFor(entries)
     if (includes) {
       time("got includes ${includes.count}")
-      includeEntries = toEntryList(includes)
+      def includeEntries = toEntryList(includes)
       includeEntries.each {v -> v.search.mode = SearchEntryMode.INCLUDE}
       entries += includeEntries
     }

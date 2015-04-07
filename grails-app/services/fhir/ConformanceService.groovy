@@ -14,7 +14,6 @@ import org.hl7.fhir.instance.model.Coding
 import org.hl7.fhir.instance.model.Conformance
 import org.hl7.fhir.instance.model.DateTimeType
 import org.hl7.fhir.instance.model.Extension
-import org.hl7.fhir.instance.model.Profile
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.SearchParameter;
 import org.hl7.fhir.instance.model.UriType

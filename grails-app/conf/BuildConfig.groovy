@@ -24,12 +24,8 @@ grails.project.dependency.resolution = {
 
     dependencies {
         runtime 'com.google.guava:guava:14.0.1'
-//        runtime "org.json:json:20090211"
-//        runtime "com.google.code.gson:gson:2.2.4"
         runtime "joda-time:joda-time:2.2"
-//        runtime 'org.apache.commons:commons-io:1.3.2'
         runtime "org.mongodb:mongo-java-driver:2.11.3"
-//        runtime 'net.sf.saxon:Saxon-HE:9.4'
         runtime('org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
             excludes 'groovy'
             excludes 'xml-apis'
@@ -37,8 +33,11 @@ grails.project.dependency.resolution = {
         }
 	runtime 'org.postgresql:postgresql:9.3-1100-jdbc41' 
 
-      //  runtime 'xpp3:xpp3:1.1.3.4.O'
-      //  runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
+        //runtime 'org.apache.commons:commons-io:1.3.2'
+        //runtime "com.google.code.gson:gson:2.2.4"
+        //runtime 'net.sf.saxon:Saxon-HE:9.4'
+        //runtime 'xpp3:xpp3:1.1.3.4.O'
+        //runtime 'xmlpull:xmlpull:1.1.3.4d_b4_min'
         compile 'me.fhir:fhir-dstu2:0.5.0.5149'
     }
 

@@ -6,7 +6,6 @@ import javax.annotation.PostConstruct
 import javax.xml.xpath.XPathConstants
 
 import org.hl7.fhir.instance.model.Conformance
-import org.hl7.fhir.instance.model.Profile
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
@@ -434,7 +433,7 @@ class SearchIndexService{
   // for example, GET /List?_include=List.entry.item
   // should generate a list of required items for inclusion on a result page
   //TODO: support versioned references
-  public  Map<String,String> includesFor(Map params, Map<String,Resource> entries, Authorization a){
+  public  Map<String,String> includesFor(Map params, Collection<BundleEntryComponent> entries, Authorization a){
 
     List<Map> resourceIds = getResourceIds(params, entries)
     if (resourceIds.size() == 0) return null
@@ -487,10 +486,10 @@ class SearchIndexService{
     }
   }
 
-  private List getResourceIds(Map params, Map entries) {
+  private List getResourceIds(Map params, Collection<BundleEntryComponent> entries) {
     def includes = includeProcessor(paramAsList(params._include))
 
-    def resourcesToInclude = entries.collectMany { String uri, BundleEntryComponent c ->
+    def resourcesToInclude = entries.collectMany { BundleEntryComponent c ->
       includes(c.resource)
     } as Set
 

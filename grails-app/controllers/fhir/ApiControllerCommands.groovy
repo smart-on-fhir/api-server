@@ -7,6 +7,7 @@ import java.lang.*
 import org.bson.types.ObjectId
 import org.hibernate.SessionFactory
 import org.hl7.fhir.instance.model.Bundle
+import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Patient
@@ -105,7 +106,7 @@ class SearchCommand {
     return clauses
   }
   
-  Map<String,String> includesFor(Map<String, Resource> entries){
+  Map<String,String> includesFor(Collection<BundleEntryComponent> entries){
     def ret = searchIndexService.includesFor(params, entries, request.authorization)
     return ret
   }
