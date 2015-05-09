@@ -20,6 +20,8 @@ fhir.namespaces = [
 ]
 
 fhir.searchParam.spotFixes = [
+	"Patient.deceased": "f:Patient/f:deceasedBoolean",
+	"Patient.deathdate": "f:Patient/f:deceasedDateTime",
 	"Condition.onset":
 	"f:Condition/f:onsetAge | f:Condition/f:onsetDate",
 	"Group.value":
