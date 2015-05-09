@@ -98,14 +98,15 @@ class ApiController {
 
   def create() {
     params.id = new ObjectId().toString()
-    update()
+    def r = parseResourceFromRequest()
+    r.setId(params.id)
+    updateFinish(r)
   }
 
-  def update() {
-    def body = request.reader.text
+  def parseResourceFromRequest() {
+    def body = request.reader.text;
     Resource r;
-
-    if (params.resource == 'Binary')  {
+    if (params.resource == 'Binary') {
       r = new Binary();
       r.setContentType(request.contentType)
       r.setContent(body.bytes)
@@ -117,12 +118,19 @@ class ApiController {
       }
     }
 
+    return r
+  }
+
+  def update() {
+    updateFinish(parseResourceFromRequest())
+  }
+
+  def updateFinish(r) {
     String versionUrl = sqlService.updateResource(r, params.resource, params.id, requestedCompartments, request.authorization)
     response.setHeader('Content-Location', versionUrl)
     response.setHeader('Location', versionUrl)
     response.setStatus(201)
     request.resourceToRender = r
-
   }
 
   def delete() {
