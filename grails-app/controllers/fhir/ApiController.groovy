@@ -129,7 +129,11 @@ class ApiController {
     String versionUrl = sqlService.updateResource(r, params.resource, params.id, requestedCompartments, request.authorization)
     response.setHeader('Content-Location', versionUrl)
     response.setHeader('Location', versionUrl)
-    response.setStatus(201)
+    if (request.method == 'POST') {
+      response.setStatus(201)
+    } else {
+      response.setStatus(200)
+    }
     request.resourceToRender = r
   }
 
