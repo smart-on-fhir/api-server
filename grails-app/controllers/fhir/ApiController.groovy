@@ -1,5 +1,7 @@
 package fhir
 
+import org.codehaus.groovy.grails.web.util.WebUtils
+
 import java.util.regex.Pattern
 
 import javax.sql.DataSource
@@ -97,6 +99,28 @@ class ApiController {
   }
 
   def create() {
+    def conditional = request.getHeader("If-None-Exist")
+    if (conditional) {
+      def queryString = new URL(conditional).getQuery()
+      def searchParams = queryString ? WebUtils.fromQueryString(queryString) : [:]
+      searchParams.resource = WebUtils.extractFilenameFromUrlPath(conditional)
+      def sqlQuery = searchIndexService.searchParamsToSql(searchParams, request.authorization, new PagingCommand())
+      def total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
+
+      if (total ==1) {
+        def resource = sqlService.rows(sqlQuery.content, sqlQuery.params)[0].content.decodeFhirJson()
+        def versionUrl = urlService.resourceVersionLink(resource.getResourceType().name(), resource.getId(), resource.getMeta().getVersionId())
+        response.setHeader('Content-Location', versionUrl)
+        response.setHeader('Location', versionUrl)
+        response.setStatus(200)
+        request.resourceToRender = resource
+        return
+      } else if (total > 1) {
+        render(status: 412, text: "Conditional create failed.  The search criteria was not selective enough (${total} results).")
+        return
+      } // else continue on with Create
+    }
+
     params.id = new ObjectId().toString()
     def r = parseResourceFromRequest()
     r.setId(params.id)
