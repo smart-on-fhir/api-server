@@ -81,20 +81,23 @@ class ConformanceService {
     conformance.setDate(new Date())
 
     if (oauth.enabled) {
+	Extension smartAuthExtension = new Extension()
+	smartAuthExtension.setUrl( "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris")
+    
 	Extension registerUriExtension = new Extension()
-	registerUriExtension.setUrl( "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris#register")
+	registerUriExtension.setUrl( "register")
 	UriType registerUri = new UriType()
 	registerUri.setValue(oauth.registerUri)
 	registerUriExtension.setValue(registerUri)
 	
 	Extension authorizeUriExtension = new Extension()
-	authorizeUriExtension.setUrl("http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris#authorize")
+	authorizeUriExtension.setUrl("authorize")
 	UriType authorizeUri = new UriType()
 	authorizeUri.setValue(oauth.authorizeUri)
 	authorizeUriExtension.setValue(authorizeUri)
 	
 	Extension tokenUriExtension = new Extension()
-	tokenUriExtension.setUrl("http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris#token")
+	tokenUriExtension.setUrl("token")
 	UriType tokenUri = new UriType();
 	tokenUri.setValue(oauth.tokenUri)
 	tokenUriExtension.setValue(tokenUri)
@@ -110,9 +113,10 @@ class ConformanceService {
 	newSecurity.setDescription("SMART on FHIR uses OAuth2 for authorization")
 	newSecurity.getService().add(newService)
     
-	newSecurity.getExtension().add(registerUriExtension)
-	newSecurity.getExtension().add(authorizeUriExtension)
-	newSecurity.getExtension().add(tokenUriExtension)
+	smartAuthExtension.getExtension().add(registerUriExtension)
+	smartAuthExtension.getExtension().add(authorizeUriExtension)
+	smartAuthExtension.getExtension().add(tokenUriExtension)
+	newSecurity.getExtension().add(smartAuthExtension)
     
         conformance.getRest().get(0).setSecurity(newSecurity)
     }
