@@ -113,7 +113,7 @@ environments {
 		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:9080"
 		fhir.oauth = [
 			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : false,
-			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
+			tokenCacheSpec: System.env.TOKEN_CACHE_SPEC ?: 'maximumSize=1000,expireAfterWrite=30m',
 			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:9085/openid-connect-server-webapp/introspect?token={token}',
 			clientId: System.env.AUTH_CLIENT_ID ?: 'client',
 			clientSecret: System.env.AUTH_CLIENT_SECRET ?: 'secret',
@@ -131,7 +131,7 @@ environments {
 		grails.serverURL =  System.env.BASE_URL ?: "http://localhost:8080/fhir-server"
 		fhir.oauth = [
 			enabled: System.env.AUTH ? System.env.AUTH.toBoolean() : true,
-			tokenCacheSpec: 'maximumSize=1000,expireAfterWrite=30m',
+			tokenCacheSpec: System.env.TOKEN_CACHE_SPEC ?: 'maximumSize=1000,expireAfterWrite=30m',
 			introspectionUri: System.env.INTROSPECTION_URI ?: 'http://localhost:8080/openid-connect-server-webapp/introspect?token={token}',
 			clientId: System.env.AUTH_CLIENT_ID ?: 'client',
 			clientSecret: System.env.AUTH_CLIENT_SECRET ?: 'secret',
