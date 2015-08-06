@@ -146,13 +146,13 @@ class ConformanceService {
       SearchParameter sp = be.resource
       String key = sp.base + '.' + sp.name
       String xpath = sp.xpath
-      //      if (xpath) {
-      //        // TODO: scan for all type associated with a particular search param name (like "patient" --> Many, many types)
-      //        def types = typesForParam[xpathToFhirPath(xpath)]
-      //        if (types) {
-      //          xpathReferenceTypes.put(key, types);
-      //        }
-      //      }
+      if (xpath) {
+        def types = sp.target.collect {t -> t.value}
+        //println "Types for ${key}: ${types}"
+        if (types) {
+          xpathReferenceTypes.put(key, types);
+        }
+      }
       if (xpath && !spotFixes[key]) xpathFixes.put(key, xpath)
     }
 
