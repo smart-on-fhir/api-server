@@ -29,7 +29,7 @@ grails.project.dependency.resolution = {
         runtime "joda-time:joda-time:2.2"
         runtime 'org.apache.commons:commons-io:1.3.2'
         runtime "org.mongodb:mongo-java-driver:2.11.3"
-        runtime 'net.sf.saxon:Saxon-HE:9.4'
+        runtime 'net.sf.saxon:Saxon-HE:9.5.1-5'
         runtime('org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
             excludes 'groovy'
             excludes 'xml-apis'
