@@ -85,13 +85,12 @@ curl 'http://localhost:8080/DiagnosticOrder/example' \
 ```
 
 ## Getting more sample data
-You can load sample data from SMART's [Sample Patients](https://github.com/chb/smart_sample_patients/tree/fhir):
+You can load sample data from SMART's [Sample Patients](https://github.com/smart-on-fhir/sample-patients):
 
 ```
-$ sudo apt-get install python-jinja2
 $ git clone --recursive https://github.com/smart-on-fhir/sample-patients
 $ cd sample-patients/bin
-$ git checkout fhir
+$ pip install -r requirements.txt
 $ python generate.py --write-fhir ../generated-data
 $ ls ../generated-data # a bunch of XML files
 ```
