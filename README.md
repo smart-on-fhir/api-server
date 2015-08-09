@@ -85,13 +85,12 @@ curl 'http://localhost:8080/DiagnosticOrder/example' \
 ```
 
 ## Getting more sample data
-You can load sample data from SMART's [Sample Patients](https://github.com/chb/smart_sample_patients/tree/fhir):
+You can load sample data from SMART's [Sample Patients](https://github.com/smart-on-fhir/sample-patients):
 
 ```
-$ sudo apt-get install python-jinja2
 $ git clone --recursive https://github.com/smart-on-fhir/sample-patients
 $ cd sample-patients/bin
-$ git checkout fhir
+$ pip install -r requirements.txt
 $ python generate.py --write-fhir ../generated-data
 $ ls ../generated-data # a bunch of XML files
 ```
@@ -106,41 +105,4 @@ for i in *.xml; do
         --data-binary @$i; 
 done
 ```
-
-## Storing `Document`s + `DocumentReference`s
-There's very rudimentary support for adding C-CDA documents to the server,
-with a client-side loader script. The loader will:
- 
- * Store the raw content of your C-CDA
- * Create a FHIR DocumentReference for your C-CDA, with a `location` pointing to the raw content.
- * Create an empty patient if needed
-
-Here's how to invoke it (note the awkward use of environment variables to pass arguments):
-
-```
-BASE_URL="http://localhost:8080" \
-CLIENT_ID=client \
-CLIENT_SECRET=secret \
-PATIENT_ID="1234" \
-CCDA="grails-app/conf/examples/ccda.xml"\
-./grailsw run-script scripts/LoadCCDA.groovy
-```
-
-
-## Loading EMERGE Test Patients
-
-To load a collection of >600 C-CDA documents (and a FHIR `DocumentReference` for each), you can do:
-
-```
-cd load-emerge-patients
-git clone https://github.com/chb/sample_ccdas
-./gradlew -PemergeDir=sample_ccdas/EMERGE/ -PfhirBase="http://localhost:8080" loadPatients
-
-```
-
-And load a single patient with id of `example`:
-```
-./gradlew -PemergeDir=../grails-app/conf/examples -PfhirBase="http://localhost:8080" loadPatients
-```
-
 
