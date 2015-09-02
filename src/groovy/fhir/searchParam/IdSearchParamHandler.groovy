@@ -2,7 +2,7 @@ package fhir.searchParam
 
 import java.util.List;
 
-import org.hl7.fhir.instance.model.Conformance.SearchParamType
+//import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.w3c.dom.Node
 
 public class IdSearchParamHandler extends SearchParamHandler {

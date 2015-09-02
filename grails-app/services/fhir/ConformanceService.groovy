@@ -144,14 +144,19 @@ class ConformanceService {
     Bundle allSearchParams = resourceFromFile("resources/search-parameters.xml")
     allSearchParams.entry.each { BundleEntryComponent be ->
       SearchParameter sp = be.resource
-      String key = sp.base + '.' + sp.name
+      String key = sp.base + ':' + sp.name
       String xpath = sp.xpath
+      println "eval param ${key} ${xpath}"
+      
       if (xpath) {
         def types = sp.target.collect {t -> t.value}
         //println "Types for ${key}: ${types}"
         if (types) {
           xpathReferenceTypes.put(key, types);
-        }
+        } else {
+          println "but not ref types"
+
+         }
       }
       if (xpath && !spotFixes[key]) xpathFixes.put(key, xpath)
     }
@@ -171,6 +176,7 @@ class ConformanceService {
     }
 
     searchParamXpaths = xpathFixes.build()
+    println "Got som xpaths with ${searchParamXpaths['Condition:patient']}"
     searchParamReferenceTypes = xpathReferenceTypes.build()
   }
 }

@@ -9,7 +9,7 @@ import javax.xml.xpath.XPathConstants
 
 import org.hl7.fhir.instance.formats.XmlParser
 import org.hl7.fhir.instance.model.Resource
-import org.hl7.fhir.instance.model.Conformance.SearchParamType
+import org.hl7.fhir.instance.model.Conformance;
 import org.w3c.dom.Node
 
 
@@ -28,14 +28,14 @@ public abstract class SearchParamHandler {
   static UrlService urlService;
 
   String searchParamName;
-  SearchParamType fieldType;
+  def /*SearchParamType */ fieldType;
   String xpath;
   String orderByColumn;
   String resourceName;
   List<String> referenceTypes;
 
   public static SearchParamHandler create(String searchParamName,
-      SearchParamType fieldType,
+      /*SearchParamType */ fieldType,
       String resourceName,
       String xpath,
       List<String> referenceTypes) {

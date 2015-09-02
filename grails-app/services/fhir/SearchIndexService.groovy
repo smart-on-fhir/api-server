@@ -9,7 +9,7 @@ import org.hl7.fhir.instance.model.Conformance
 import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.instance.model.Conformance.ConformanceRestComponent
-import org.hl7.fhir.instance.model.Conformance.SearchParamType
+import org.hl7.fhir.instance.model.Enumerations.SearchParamType
 
 import fhir.AuthorizationService.Authorization
 import fhir.searchParam.DateSearchParamHandler
@@ -56,7 +56,7 @@ class SearchIndexService{
         // in individual profiles. This is only necessary to extract the xpath...
         // (Since all other properties of the searchParams are repeated in Conformance)
         String paramName = searchParam.name
-        String key = resourceName + '.' + paramName
+        String key = resourceName + ':' + paramName
 
         // Short-circuit FHIR's built-in xpath if defined. Handles:
         //  * missing xpaths
@@ -475,7 +475,7 @@ class SearchIndexService{
 
       def d = xmlService.fromResource(r)
       def includePathsAsXpath = includes.collect{ p->
-        '//' + p.split('\\.').collect { "f:"+it }.join('/')
+        '//' + conformanceService.searchParamXpaths[p]
       }
 
       return includePathsAsXpath.collectMany { xp ->

@@ -1,4 +1,5 @@
 package fhir
+import org.hl7.fhir.instance.model.CodeableConcept
 import org.hl7.fhir.instance.model.OperationOutcome
 
 class ErrorController {
@@ -15,7 +16,7 @@ class ErrorController {
     def o = new OperationOutcome()
     def i = o.addIssue()
       .setSeverity(OperationOutcome.IssueSeverity.ERROR)
-      .setDetails(extra)
+      .setDetails(new CodeableConcept().setText(extra))
     request.resourceToRender = o
   }
 

@@ -4,7 +4,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 import org.hl7.fhir.instance.model.Resource
-import org.hl7.fhir.instance.model.Conformance.SearchParamType
+//import org.hl7.fhir.instance.model.Conformance.SearchParamType
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.Interval

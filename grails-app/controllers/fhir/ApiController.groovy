@@ -16,7 +16,7 @@ import org.hl7.fhir.instance.model.Bundle.BundleTypeEnumFactory;
 import org.hl7.fhir.instance.model.DocumentReference
 import org.hl7.fhir.instance.model.Patient
 import org.hl7.fhir.instance.model.Resource
-import org.hl7.fhir.instance.model.Bundle.HttpVerb;
+import org.hl7.fhir.instance.model.Bundle.HTTPVerb;
 import org.hl7.fhir.instance.model.Bundle.BundleEntrySearchComponent;
 import org.hl7.fhir.instance.model.Bundle.SearchEntryMode;
 
@@ -205,23 +205,31 @@ class ApiController {
     log.debug("T $label: " + (new Date().getTime() - request.t0))
   }
 
-  public BundleEntryComponent toBundleEntry(dbRecord) {
+  public BundleEntryComponent toBundleEntry(dbRecord, context) {
       def id = (dbRecord.fhir_type+'/'+dbRecord.fhir_id);
-      def resource = dbRecord.content.decodeFhirJson()
+      
+      def resource = dbRecord.content  != "deleted" ? dbRecord.content.decodeFhirJson() : null
       BundleEntryComponent entry = new BundleEntryComponent()
-      if (resource == null) {
-        // TODO populate with version, timestamp, etc
-        entry.transaction.setMethod(HttpVerb.DELETE);
-        entry.transaction.setUrl("${resource.resourceType}/${resource.id}");
-      } else {
+      entry.fullUrl = urlService.resourceLink(dbRecord.fhir_type, dbRecord.fhir_id)
+      if (resource != null){
         entry.resource = resource
+      }
+      
+      if (context.request == true) {
+        if (entry.resource == null) {
+          // TODO populate with version, timestamp, etc
+          entry.request.setMethod(HTTPVerb.DELETE);
+        } else {
+          entry.request.setMethod(HTTPVerb.PUT);
+          entry.request.setUrl("${resource.resourceType}/${resource.id}");
+        }
       }
       entry
   }
  
-  public Collection<BundleEntryComponent> toEntryList(Map sqlQuery) {
+  public Collection<BundleEntryComponent> toEntryList(Map sqlQuery, Map context) {
     sqlService.rows(sqlQuery.content, sqlQuery.params).collect {
-      toBundleEntry(it)
+      toBundleEntry(it, context)
     }    
   }
 
@@ -234,14 +242,14 @@ class ApiController {
     def sqlQuery = query.clauses
 
     query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
-    def entries = toEntryList(sqlQuery)
+    def entries = toEntryList(sqlQuery, [request: false])
     entries.each {v -> v.search.mode = SearchEntryMode.MATCH }
     time("got entries ${entries.count {true}}")
 
     def includes = query.includesFor(entries)
     if (includes) {
       time("got includes ${includes.count}")
-      def includeEntries = toEntryList(includes)
+      def includeEntries = toEntryList(includes, [request: false])
       includeEntries.each {v -> v.search.mode = SearchEntryMode.INCLUDE}
       entries += includeEntries
     }
@@ -274,17 +282,19 @@ class ApiController {
         " offset ${paging._skip}"
 
     def entries = sqlService.rows(rawSqlQuery, clauses.params).collect {
-      def deleted = it.rest_operation == "DELETE"
-      toBundleEntry(it)
+      toBundleEntry(it, [ request: true ])
     }
+    
 
+    
     time("got entries")
     time("Fetched content of size ${entries.size()}")
 
     Bundle feed = bundleService.createFeed([
       entries: entries,
       paging: paging,
-      feedId: fullRequestURI
+      feedId: fullRequestURI,
+      type: BundleType.HISTORY
     ])
 
     time("Made feed")

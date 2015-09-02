@@ -12,7 +12,8 @@ import org.hl7.fhir.instance.model.Resource
 import org.hl7.fhir.instance.model.DateTimeType
 import org.hl7.fhir.instance.model.Bundle.BundleType;
 import org.hl7.fhir.instance.model.Bundle.BundleTypeEnumFactory;
-import org.hl7.fhir.instance.model.Bundle.HttpVerb;
+import org.hl7.fhir.instance.model.Bundle.HTTPVerb;
+import org.hl7.fhir.instance.model.Bundle
 import org.hl7.fhir.instance.model.Bundle.BundleEntrySearchComponent;
 import org.hl7.fhir.instance.model.Bundle.SearchEntryMode;
 
@@ -48,18 +49,18 @@ class BundleService{
     def paging = p.paging
 
     Bundle feed = new Bundle()
-    feed.type = BundleType.SEARCHSET;
 
     feed.total = paging.total
+    feed.type = p.type ?: BundleType.SEARCHSET
 
     feed.addLink().setRelation("self").setUrl(feedId)
     if (paging._skip + paging._count < paging.total) {
       def nextPageUrl = nextPageFor(feedId, paging)
       feed.addLink().setRelation("next").setUrl(nextPageUrl)
     }
-
+    
     feed.entry.addAll entries
-    return feed
+    feed
   }
 
   String nextPageFor(String url, PagingCommand paging) {
@@ -97,7 +98,7 @@ class BundleService{
       Class c = res.class
       String resourceType = res.resourceType.path
       
-      if (e.transaction.method == HttpVerb.POST) {
+      if (e.request.method == HTTPVerb.POST) {
         String oldid = e.resource.id
         e.resource.id = new ObjectId().toString()
         

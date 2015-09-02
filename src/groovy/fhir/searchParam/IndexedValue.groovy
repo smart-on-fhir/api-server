@@ -2,7 +2,7 @@ package fhir.searchParam
 
 import java.util.Map;
 
-import org.hl7.fhir.instance.model.Conformance.SearchParamType;
+//import org.hl7.fhir.instance.model.Conformance.SearchParamType;
 
 // Simple name-value tuple to represent indexed Search Parameters.
 // For example:
