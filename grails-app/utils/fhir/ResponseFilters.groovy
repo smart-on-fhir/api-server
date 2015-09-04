@@ -34,9 +34,9 @@ class ResponseFilters {
         }
 
         if (request.acceptableFormat == "json")
-          render(text: r.encodeAsFhirJson(), contentType:"application/json")
+          render(text: r.encodeAsFhirJson(), contentType:"application/json+fhir")
         else
-          render(text: r.encodeAsFhirXml(), contentType:"text/xml")
+          render(text: r.encodeAsFhirXml(), contentType:"application/xml+fhir")
 
         if (request?.t0)
           log.debug("rendered after: " + (new Date().getTime() - request.t0))
