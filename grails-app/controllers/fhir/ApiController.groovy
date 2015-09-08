@@ -95,20 +95,21 @@ class ApiController {
 		  outResponse.location = response.getHeader("Location")
 		  outResponse.setStatus("200 OK")
 	  } else if (e.request.method ==  HTTPVerb.GET){
-	  /*
-	  def queryString = new URL(conditional).getQuery()
+	  def queryString = new URL("http://some-host/"+e.request.url).getQuery()
 	  def searchParams = queryString ? WebUtils.fromQueryString(queryString) : [:]
-	  searchParams.resource = WebUtils.extractFilenameFromUrlPath(conditional)
-	  def sqlQuery = searchIndexService.searchParamsToSql(searchParams, request.authorization, new PagingCommand())
-	  def total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
-      */
-	  
-	  	log.debug("Match on ${e.request.url} ${request.forwardURI}")
-	  	UrlMappingInfo handler = grailsUrlMappingsHolder.match(e.request.url)
-	  	log.debug("Got params ${handler.parameters}")
+	  	UrlMappingInfo handler = grailsUrlMappingsHolder.match("/"+e.request.url)
+	  	handler.parameters.forEach { k, v ->
+	  	    searchParams[k] = v;
+	  	}
+	  	log.debug("augmented params ${handler.parameters}")
 		SearchCommand comm = new SearchCommand();
 		comm.searchIndexService = searchIndexService
-		doSearch(comm, handler.parameters, request)
+		doSearch(comm, searchParams, request)
+		  BundleEntryComponent outEntry = outputFeed.addEntry()
+		  BundleEntryResponseComponent outResponse = outEntry.getResponse()
+		  outEntry.setResource(request.resourceToRender)
+		  outResponse.location = response.getHeader("Location")
+		  outResponse.setStatus("200 OK")
 	  }
     }
 
@@ -264,7 +265,7 @@ class ApiController {
     }    
   }
 
-  def search(SearchCommand query, suppliedParams) {
+  def search(SearchCommand query) {
   	doSearch(query, params, request)
   }
   
@@ -298,7 +299,7 @@ class ApiController {
 	Bundle feed = bundleService.createFeed([
 	  entries: entries,
 	  paging: query.paging,
-	  feedId: fullRequestURI(suppliedRequest)
+	  feedId: getFullRequestURI(suppliedRequest)
 	])
 
 	time("Made feed")
