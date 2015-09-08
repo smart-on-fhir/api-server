@@ -94,9 +94,10 @@ class BundleService{
     f.entry.each { BundleEntryComponent e ->
 
       boolean needsAssignment = false
-      Resource res = e.resource
-      Class c = res.class
-      String resourceType = res.resourceType.path
+	  String resourceType;
+	  if (e.resource){
+		  resourceType = e.resource.resourceType.path
+	  }
       
       if (e.request.method == HTTPVerb.POST) {
         String oldid = e.resource.id

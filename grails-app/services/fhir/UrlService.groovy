@@ -71,7 +71,7 @@ class UrlService{
         ])
   }
 
-  String fullRequestUrl(request) {
-    return domain + request.forwardURI + '?' + (request.queryString ?: "")
+  String fullRequestUrl(r) {
+    return domain + r.forwardURI + '?' + (r.queryString ?: "")
   }
 }

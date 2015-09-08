@@ -1,5 +1,8 @@
 package fhir
 
+import org.codehaus.groovy.grails.web.mapping.UrlMapping
+import org.codehaus.groovy.grails.web.mapping.UrlMappingInfo
+import org.codehaus.groovy.grails.web.mapping.UrlMappingsHolder
 import org.codehaus.groovy.grails.web.util.WebUtils
 
 import java.util.regex.Pattern
@@ -10,6 +13,7 @@ import org.bson.types.ObjectId
 import org.hibernate.SessionFactory
 import org.hl7.fhir.instance.model.Bundle
 import org.hl7.fhir.instance.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.instance.model.Bundle.BundleEntryResponseComponent;
 import org.hl7.fhir.instance.model.Bundle.BundleType
 import org.hl7.fhir.instance.model.Binary
 import org.hl7.fhir.instance.model.Bundle.BundleTypeEnumFactory;
@@ -43,13 +47,14 @@ class ApiController {
   SessionFactory sessionFactory
   DataSource dataSource
 
-
+  UrlMappingsHolder grailsUrlMappingsHolder
+  
   private List getRequestedCompartments(){
     params.list('compartments').collect{it}
   }
 
-  def getFullRequestURI(){
-    urlService.fullRequestUrl(request)
+  def getFullRequestURI(r){
+    urlService.fullRequestUrl(r)
   }
 
   def welcome() {
@@ -62,26 +67,50 @@ class ApiController {
 
   @Transactional
   def transaction() {
-
+	  
+	Bundle outputFeed = new Bundle()
+	outputFeed.type = BundleType.TRANSACTIONRESPONSE
+	
     def body = request.getReader().text
-    Bundle feed = new Bundle()
-    feed.type = BundleType.TRANSACTIONRESPONSE
+	Bundle inputFeed;
     if (request.providingFormat == "json") {
-      feed = body.decodeFhirJson()
+      inputFeed = body.decodeFhirJson()
     } else {
-      feed = body.decodeFhirXml()
+      inputFeed = body.decodeFhirXml()
     }
 
-    bundleService.validateFeed(feed)
-    feed = bundleService.assignURIs(feed)
-
-    feed.entry.each { BundleEntryComponent e->
-      String r = searchIndexService.modelForClass(e.resource)
-      log.debug("Transacting on an entry with $r / $e.resource.id")
-      sqlService.updateResource(e.resource, r, e.resource.id, requestedCompartments, request.authorization)
+    bundleService.validateFeed(inputFeed)
+    inputFeed = bundleService.assignURIs(inputFeed)
+	System.out.println("going to process a tranaction")
+	inputFeed.entry.each { BundleEntryComponent e->
+	  if (e.request.method ==  HTTPVerb.PUT) {
+	      String r = searchIndexService.modelForClass(e.resource)
+	      log.debug("Transacting on an entry with $r / $e.resource.id")
+	      sqlService.updateResource(e.resource, r, e.resource.id, requestedCompartments, request.authorization)
+		  BundleEntryComponent outEntry = outputFeed.addEntry()
+		  BundleEntryResponseComponent outResponse = outEntry.getResponse()
+		  outEntry.setResource(e.resource)
+		  outResponse.location = response.getHeader("Location")
+		  outResponse.setStatus("200 OK")
+	  } else if (e.request.method ==  HTTPVerb.GET){
+	  /*
+	  def queryString = new URL(conditional).getQuery()
+	  def searchParams = queryString ? WebUtils.fromQueryString(queryString) : [:]
+	  searchParams.resource = WebUtils.extractFilenameFromUrlPath(conditional)
+	  def sqlQuery = searchIndexService.searchParamsToSql(searchParams, request.authorization, new PagingCommand())
+	  def total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
+      */
+	  
+	  	log.debug("Match on ${e.request.url} ${request.forwardURI}")
+	  	UrlMappingInfo handler = grailsUrlMappingsHolder.match(e.request.url)
+	  	log.debug("Got params ${handler.parameters}")
+		SearchCommand comm = new SearchCommand();
+		comm.searchIndexService = searchIndexService
+		doSearch(comm, handler.parameters, request)
+	  }
     }
 
-    request.resourceToRender =  feed
+    request.resourceToRender =  outputFeed
   }
 
   // BlueButton-specific "summary" API: returns the most recent C-CDA
@@ -233,35 +262,42 @@ class ApiController {
     }    
   }
 
-  def search(SearchCommand query) {
-    request.t0 = new Date().time
-    println "Binding some $params and some $request"
+  def search(SearchCommand query, suppliedParams) {
+  	doSearch(query, params, request)
+  }
+  
+  
+  def doSearch(SearchCommand query, suppliedParams, suppliedRequest) {
+	
+	suppliedRequest.t0 = new Date().time
+	println "Binding some $suppliedParams and some $suppliedRequest"
+	log.debug("and have supplied ${suppliedRequest.forwardURI}")
+	
+	time("precount")
+	query.bind(suppliedParams, suppliedRequest)
+	def sqlQuery = query.clauses
 
-    time("precount")
-    query.bind(params, request)
-    def sqlQuery = query.clauses
+	query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
+	def entries = toEntryList(sqlQuery, [request: false])
+	entries.each {v -> v.search.mode = SearchEntryMode.MATCH }
+	time("got entries ${entries.count {true}}")
 
-    query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
-    def entries = toEntryList(sqlQuery, [request: false])
-    entries.each {v -> v.search.mode = SearchEntryMode.MATCH }
-    time("got entries ${entries.count {true}}")
+	def includes = query.includesFor(entries)
+	if (includes) {
+	  time("got includes ${includes.count}")
+	  def includeEntries = toEntryList(includes, [request: false])
+	  includeEntries.each {v -> v.search.mode = SearchEntryMode.INCLUDE}
+	  entries += includeEntries
+	}
 
-    def includes = query.includesFor(entries)
-    if (includes) {
-      time("got includes ${includes.count}")
-      def includeEntries = toEntryList(includes, [request: false])
-      includeEntries.each {v -> v.search.mode = SearchEntryMode.INCLUDE}
-      entries += includeEntries
-    }
+	Bundle feed = bundleService.createFeed([
+	  entries: entries,
+	  paging: query.paging,
+	  feedId: fullRequestURI(suppliedRequest)
+	])
 
-    Bundle feed = bundleService.createFeed([
-      entries: entries,
-      paging: query.paging,
-      feedId: fullRequestURI
-    ])
-
-    time("Made feed")
-    request.resourceToRender = feed
+	time("Made feed")
+	suppliedRequest.resourceToRender = feed
   }
 
   def history(PagingCommand paging, HistoryCommand history) {
@@ -293,7 +329,7 @@ class ApiController {
     Bundle feed = bundleService.createFeed([
       entries: entries,
       paging: paging,
-      feedId: fullRequestURI,
+      feedId: fullRequestURI(request),
       type: BundleType.HISTORY
     ])
 

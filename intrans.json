@@ -1,0 +1,62 @@
+{
+  "resourceType": "Bundle",
+    "id": "bundle-transaction",
+    "meta": {
+      "lastUpdated": "2014-08-18T01:43:30Z"
+    },
+    "type": "transaction",
+    "entry": [
+    {
+      "fullUrl": "http://example.org/fhir/Patient/123",
+      "resource": {
+	"resourceType": "Patient",
+	"id": "123",
+	"_id": {
+	  "fhir_comments": [
+	    "   the id here and in the url have to match   "
+	  ]
+	},
+	"text": {
+	  "fhir_comments": [
+	    "   and no metadata on this resource, though it would be valid   "
+	  ],
+	  "status": "generated",
+	  "div": "<div>Some narrative</div>"
+	},
+	"active": true,
+	"name": [
+	{
+	  "use": "official",
+	  "family": [
+	    "Chalmers"
+	  ],
+	  "given": [
+	    "Peter",
+	  "James"
+	  ]
+	}
+	],
+	  "gender": "male",
+	  "birthDate": "1974-12-25"
+      },
+      "request": {
+	"fhir_comments": [
+	  "   transaction details   "
+	],
+	"method": "PUT",
+	"url": "Patient/123"
+      }
+    },
+    {
+      "request": {
+	"method": "GET",
+	"_method": {
+	  "fhir_comments": [
+	    "   GET from [base]/Patient?params - searching for a patient   "
+	  ]
+	},
+	"url": "/Patient?name=peter"
+      }
+    }
+  ]
+}

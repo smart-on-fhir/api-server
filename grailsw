@@ -335,6 +335,7 @@ startGrails() {
   if $useprofiler; then
       runProfiler
   else
+	echo "Running with $JAVA_OPTS  $STARTER_MAIN_CLASS  $CLASS"
   	if [ $# -eq 0 ] ; then         # no argument given
          exec "$JAVACMD" $JAVA_OPTS \
           -classpath "$STARTER_CLASSPATH" \
