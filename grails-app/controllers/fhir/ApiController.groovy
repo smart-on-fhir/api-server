@@ -54,6 +54,8 @@ class ApiController {
   }
 
   def getFullRequestURI(r){
+	 log.debug("and getfullreq ${r.forwardURI}")
+	  
     urlService.fullRequestUrl(r)
   }
 
@@ -290,6 +292,9 @@ class ApiController {
 	  entries += includeEntries
 	}
 
+	log.debug("so  make feed where ${suppliedRequest.forwardURI}")
+	log.debug("preview as ${getFullRequestURI(suppliedRequest)}")
+	
 	Bundle feed = bundleService.createFeed([
 	  entries: entries,
 	  paging: query.paging,
