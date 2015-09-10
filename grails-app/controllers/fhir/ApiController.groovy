@@ -54,8 +54,8 @@ class ApiController {
   }
 
   def getFullRequestURI(r){
-	 log.debug("and getfullreq ${r.forwardURI}")
-	  
+     log.debug("and getfullreq ${r.forwardURI}")
+      
     urlService.fullRequestUrl(r)
   }
 
@@ -69,12 +69,12 @@ class ApiController {
 
   @Transactional
   def transaction() {
-	  
-	Bundle outputFeed = new Bundle()
-	outputFeed.type = BundleType.TRANSACTIONRESPONSE
-	
+      
+    Bundle outputFeed = new Bundle()
+    outputFeed.type = BundleType.TRANSACTIONRESPONSE
+    
     def body = request.getReader().text
-	Bundle inputFeed;
+    Bundle inputFeed;
     if (request.providingFormat == "json") {
       inputFeed = body.decodeFhirJson()
     } else {
@@ -83,34 +83,45 @@ class ApiController {
 
     bundleService.validateFeed(inputFeed)
     inputFeed = bundleService.assignURIs(inputFeed)
-	System.out.println("going to process a tranaction")
-	inputFeed.entry.each { BundleEntryComponent e->
-	  if (e.request.method ==  HTTPVerb.PUT) {
-	      String r = searchIndexService.modelForClass(e.resource)
-	      log.debug("Transacting on an entry with $r / $e.resource.id")
-	      sqlService.updateResource(e.resource, r, e.resource.id, requestedCompartments, request.authorization)
-		  BundleEntryComponent outEntry = outputFeed.addEntry()
-		  BundleEntryResponseComponent outResponse = outEntry.getResponse()
-		  outEntry.setResource(e.resource)
-		  outResponse.location = response.getHeader("Location")
-		  outResponse.setStatus("200 OK")
-	  } else if (e.request.method ==  HTTPVerb.GET){
-	  def queryString = new URL("http://some-host/"+e.request.url).getQuery()
-	  def searchParams = queryString ? WebUtils.fromQueryString(queryString) : [:]
-	  	UrlMappingInfo handler = grailsUrlMappingsHolder.match("/"+e.request.url)
-	  	handler.parameters.forEach { k, v ->
-	  	    searchParams[k] = v;
-	  	}
-	  	log.debug("augmented params ${handler.parameters}")
-		SearchCommand comm = new SearchCommand();
-		comm.searchIndexService = searchIndexService
-		doSearch(comm, searchParams, request)
-		  BundleEntryComponent outEntry = outputFeed.addEntry()
-		  BundleEntryResponseComponent outResponse = outEntry.getResponse()
-		  outEntry.setResource(request.resourceToRender)
-		  outResponse.location = response.getHeader("Location")
-		  outResponse.setStatus("200 OK")
-	  }
+    System.out.println("going to process a tranaction")
+    inputFeed.entry.each { BundleEntryComponent e->
+      if (e.request.method ==  HTTPVerb.PUT) {
+          String r = searchIndexService.modelForClass(e.resource)
+          log.debug("Transacting on an entry with $r / $e.resource.id")
+          sqlService.updateResource(e.resource, r, e.resource.id, requestedCompartments, request.authorization)
+          BundleEntryComponent outEntry = outputFeed.addEntry()
+          BundleEntryResponseComponent outResponse = outEntry.getResponse()
+          outEntry.setResource(e.resource)
+          outResponse.location = response.getHeader("Location")
+          outResponse.setStatus("200 OK")
+      } else if (e.request.method ==  HTTPVerb.GET){
+        def queryString = new URL("http://some-host/"+e.request.url).getQuery()
+        def searchParams = queryString ? WebUtils.fromQueryString(queryString) : [:]
+        UrlMappingInfo handler = grailsUrlMappingsHolder.match("/"+e.request.url)
+        handler.parameters.forEach { k, v ->
+          searchParams[k] = v;
+        }
+        log.debug("Got action ${searchParams}")
+        if (searchParams.action["GET"] == "read") {
+          ResourceVersion h = sqlService.getLatestByFhirId(searchParams.resource, searchParams.id)
+          readService(h)
+          request.resourceToRender = h.content.toString().decodeFhirJson()
+
+        } else if (searchParams.action["GET"] == "vread") {
+          ResourceVersion h = sqlService.getFhirVersion(searchParams.resource, searchParams.id, Long.parseLong(searchParams.vid))
+          readService(h)
+          request.resourceToRender = h.content.toString().decodeFhirJson()
+        } else if (searchParams.action["GET"] == "search") {
+          SearchCommand comm = new SearchCommand();
+          comm.searchIndexService = searchIndexService
+          doSearch(comm, searchParams, request)
+        }
+        BundleEntryComponent outEntry = outputFeed.addEntry()
+        BundleEntryResponseComponent outResponse = outEntry.getResponse()
+        outEntry.setResource(request.resourceToRender)
+        outResponse.location = response.getHeader("Location")
+        outResponse.setStatus("200 OK")
+      }
     }
 
     request.resourceToRender =  outputFeed
@@ -218,7 +229,7 @@ class ApiController {
     if (h.rest_operation == 'DELETE'){
       throw new ResourceDeletedException("Resource ${h.fhirId} has been deleted. Try fetching its history.")
     }
-
+    log.debug("ReadService got ${h}")
     request.authorization.assertAccessAny(operation:'GET', compartments: h.compartments)
     request.resourceToRender = h
   }
@@ -266,44 +277,44 @@ class ApiController {
   }
 
   def search(SearchCommand query) {
-  	doSearch(query, params, request)
+    doSearch(query, params, request)
   }
   
   
   def doSearch(SearchCommand query, suppliedParams, suppliedRequest) {
-	
-	suppliedRequest.t0 = new Date().time
-	println "Binding some $suppliedParams and some $suppliedRequest"
-	log.debug("and have supplied ${suppliedRequest.forwardURI}")
-	
-	time("precount")
-	query.bind(suppliedParams, suppliedRequest)
-	def sqlQuery = query.clauses
+    
+    suppliedRequest.t0 = new Date().time
+    println "Binding some $suppliedParams and some $suppliedRequest"
+    log.debug("and have supplied ${suppliedRequest.forwardURI}")
+    
+    time("precount")
+    query.bind(suppliedParams, suppliedRequest)
+    def sqlQuery = query.clauses
 
-	query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
-	def entries = toEntryList(sqlQuery, [request: false])
-	entries.each {v -> v.search.mode = SearchEntryMode.MATCH }
-	time("got entries ${entries.count {true}}")
+    query.paging.total = sqlService.rows(sqlQuery.count, sqlQuery.params)[0].count
+    def entries = toEntryList(sqlQuery, [request: false])
+    entries.each {v -> v.search.mode = SearchEntryMode.MATCH }
+    time("got entries ${entries.count {true}}")
 
-	def includes = query.includesFor(entries)
-	if (includes) {
-	  time("got includes ${includes.count}")
-	  def includeEntries = toEntryList(includes, [request: false])
-	  includeEntries.each {v -> v.search.mode = SearchEntryMode.INCLUDE}
-	  entries += includeEntries
-	}
+    def includes = query.includesFor(entries)
+    if (includes) {
+      time("got includes ${includes.count}")
+      def includeEntries = toEntryList(includes, [request: false])
+      includeEntries.each {v -> v.search.mode = SearchEntryMode.INCLUDE}
+      entries += includeEntries
+    }
 
-	log.debug("so  make feed where ${suppliedRequest.forwardURI}")
-	log.debug("preview as ${getFullRequestURI(suppliedRequest)}")
-	
-	Bundle feed = bundleService.createFeed([
-	  entries: entries,
-	  paging: query.paging,
-	  feedId: getFullRequestURI(suppliedRequest)
-	])
+    log.debug("so  make feed where ${suppliedRequest.forwardURI}")
+    log.debug("preview as ${getFullRequestURI(suppliedRequest)}")
+    
+    Bundle feed = bundleService.createFeed([
+      entries: entries,
+      paging: query.paging,
+      feedId: getFullRequestURI(suppliedRequest)
+    ])
 
-	time("Made feed")
-	suppliedRequest.resourceToRender = feed
+    time("Made feed")
+    suppliedRequest.resourceToRender = feed
   }
 
   def history(PagingCommand paging, HistoryCommand history) {
