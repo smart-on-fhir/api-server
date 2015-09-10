@@ -40,18 +40,34 @@ public class ReferenceSearchParamHandler extends SearchParamHandler {
 
   def joinOn(SearchedValue v) {
     if (v.values == null) return []
-    v.values.split(",").collect {
-      List fields = []
-      if (it){
-        fields += [ name: 'reference_id', value: it]
-      }
-      if (v.modifier) {
-        fields += [
-          name: 'reference_type',
-          value: v.modifier
-        ]
-      }
-      return fields
+    v.values.split(",").collect { oneValue->
+		def value
+		def type
+		List parts = oneValue.tokenize("/")
+		if (parts.size() == 1){
+			value = parts[0]
+		}
+		else{
+			value = parts[1]
+			type = parts[0]
+		}
+	    List fields = []
+	    if (value){
+	      fields += [ name: 'reference_id', value: value]
+	    }
+		if (type) {
+			fields += [
+			  name: 'reference_type',
+			  value: type
+			]
+		 }
+		if (v.modifier) {
+			fields += [
+			  name: 'reference_type',
+			  value: v.modifier
+			]
+		  }
+	    return fields
     }
   }
 

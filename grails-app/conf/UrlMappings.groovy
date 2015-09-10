@@ -21,11 +21,6 @@ class UrlMappings {
       action = [GET: "conformance"]
     }
 
-    name summary: "/BlueButtonSummary" {
-      controller="Api"
-      action=[GET: "summary"]
-    }
-
     name resourceInstance: "/$resource/$id" {
       controller="Api"
       action=[GET: "read", PUT: "update", DELETE: "delete"]
@@ -39,10 +34,14 @@ class UrlMappings {
       action = [POST: "search"]
     }
 
-    name resourceClass: "/$resource"(controller: "Api") {
-      action = [GET: "search", POST: "create"]
-    }
-
+	name resourceClass: "/$resource"(controller: "Api") {
+		action = [GET: "search", POST: "create"]
+	  }
+	
+	name resourceClassInPatientCompartment: "/Patient/$patient/$resource"(controller: "Api") {
+		action = [GET: "search"]
+	  }
+  
     name summary: "/_history" {
       controller="Api"
       action=[GET: "history"]

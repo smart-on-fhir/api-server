@@ -85,6 +85,8 @@ class ApiController {
     inputFeed = bundleService.assignURIs(inputFeed)
     System.out.println("going to process a tranaction")
     inputFeed.entry.each { BundleEntryComponent e->
+
+		
       if (e.request.method ==  HTTPVerb.PUT) {
           String r = searchIndexService.modelForClass(e.resource)
           log.debug("Transacting on an entry with $r / $e.resource.id")
@@ -95,6 +97,10 @@ class ApiController {
           outResponse.location = response.getHeader("Location")
           outResponse.setStatus("200 OK")
       } else if (e.request.method ==  HTTPVerb.GET){
+	  	BundleEntryComponent outEntry = outputFeed.addEntry()
+		BundleEntryResponseComponent outResponse = outEntry.getResponse()
+		outResponse.setStatus("200 OK")
+		
         def queryString = new URL("http://some-host/"+e.request.url).getQuery()
         def searchParams = queryString ? WebUtils.fromQueryString(queryString) : [:]
         UrlMappingInfo handler = grailsUrlMappingsHolder.match("/"+e.request.url)
@@ -105,22 +111,24 @@ class ApiController {
         if (searchParams.action["GET"] == "read") {
           ResourceVersion h = sqlService.getLatestByFhirId(searchParams.resource, searchParams.id)
           readService(h)
-          request.resourceToRender = h.content.toString().decodeFhirJson()
-
+		  if (h)
+		  	request.resourceToRender = h.content.toString().decodeFhirJson()
+		  else
+		    outResponse.status = "404 Not Found"
         } else if (searchParams.action["GET"] == "vread") {
           ResourceVersion h = sqlService.getFhirVersion(searchParams.resource, searchParams.id, Long.parseLong(searchParams.vid))
           readService(h)
-          request.resourceToRender = h.content.toString().decodeFhirJson()
+		  if (h)
+		  	request.resourceToRender = h.content.toString().decodeFhirJson()
+		  else 
+		  	outResponse.status = "404 Not Found"
         } else if (searchParams.action["GET"] == "search") {
           SearchCommand comm = new SearchCommand();
           comm.searchIndexService = searchIndexService
           doSearch(comm, searchParams, request)
         }
-        BundleEntryComponent outEntry = outputFeed.addEntry()
-        BundleEntryResponseComponent outResponse = outEntry.getResponse()
         outEntry.setResource(request.resourceToRender)
         outResponse.location = response.getHeader("Location")
-        outResponse.setStatus("200 OK")
       }
     }
 
