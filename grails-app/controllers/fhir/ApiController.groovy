@@ -176,6 +176,25 @@ class ApiController {
     response.setStatus(204)
   }
 
+  def everything() {
+    def patientId = params.id.substring(0, params.id.lastIndexOf('$'))
+    def queryParams = [patient_id: patientId]
+    def content = """select content, rv.fhir_id, rv.fhir_type from resource_version rv, resource_compartment rc
+          where version_id = (select max(version_id) from resource_version mrv where rv.fhir_id = mrv.fhir_id and rv.fhir_type = mrv.fhir_type)
+            and rc.fhir_id = rv.fhir_id
+            and rc.fhir_type = rv.fhir_type
+            and rc.compartments IN (select compartments from resource_compartment where fhir_type = 'Patient' and fhir_id = :patient_id)"""
+    def sqlQuery = [content: content, params: queryParams]
+    def entries = toEntryList(sqlQuery, [request: false])
+    Bundle feed = bundleService.createFeed([
+      entries: entries,
+      paging: new PagingCommand(total: entries.size(), _count: entries.size(), _skip: 0),
+      feedId: fullRequestURI
+    ])
+
+    request.resourceToRender = feed
+  }
+
   private void readService(ResourceVersion h) {
 
     if (!h){
@@ -192,8 +211,12 @@ class ApiController {
   }
 
   def read() {
-    ResourceVersion h = sqlService.getLatestByFhirId(params.resource, params.id)
-    readService(h)
+    if (params.resource == "Patient" && params.id =~ /everything/) {
+      everything()
+    } else {
+      ResourceVersion h = sqlService.getLatestByFhirId(params.resource, params.id)
+      readService(h)
+    }
   }
 
   def vread() {
@@ -207,14 +230,14 @@ class ApiController {
 
   public BundleEntryComponent toBundleEntry(dbRecord, context) {
       def id = (dbRecord.fhir_type+'/'+dbRecord.fhir_id);
-      
+
       def resource = dbRecord.content  != "deleted" ? dbRecord.content.decodeFhirJson() : null
       BundleEntryComponent entry = new BundleEntryComponent()
       entry.fullUrl = urlService.resourceLink(dbRecord.fhir_type, dbRecord.fhir_id)
       if (resource != null){
         entry.resource = resource
       }
-      
+
       if (context.request == true) {
         if (entry.resource == null) {
           // TODO populate with version, timestamp, etc
@@ -226,11 +249,11 @@ class ApiController {
       }
       entry
   }
- 
+
   public Collection<BundleEntryComponent> toEntryList(Map sqlQuery, Map context) {
     sqlService.rows(sqlQuery.content, sqlQuery.params).collect {
       toBundleEntry(it, context)
-    }    
+    }
   }
 
   def search(SearchCommand query) {
@@ -284,9 +307,9 @@ class ApiController {
     def entries = sqlService.rows(rawSqlQuery, clauses.params).collect {
       toBundleEntry(it, [ request: true ])
     }
-    
 
-    
+
+
     time("got entries")
     time("Fetched content of size ${entries.size()}")
 
