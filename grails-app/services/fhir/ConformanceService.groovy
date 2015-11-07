@@ -105,9 +105,9 @@ class ConformanceService {
 	CodeableConcept newService = new CodeableConcept()
 	Coding newCoding = new Coding()
 	newCoding.setSystem("http://hl7.org/fhir/restful-security-service")
-	newCoding.setCode("OAuth2")
+	newCoding.setCode("SMART-on-FHIR")
 	newService.getCoding().add(newCoding)
-	newService.setText("OAuth version 2 (see oauth.net).")
+	newService.setText("OAuth2 using SMART-on-FHIR profile (see http://docs.smarthealthit.org)")
 	
 	ConformanceRestSecurityComponent newSecurity = new ConformanceRestSecurityComponent()
 	newSecurity.setDescription("SMART on FHIR uses OAuth2 for authorization")
