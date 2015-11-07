@@ -104,7 +104,7 @@ class ConformanceService {
 	
 	CodeableConcept newService = new CodeableConcept()
 	Coding newCoding = new Coding()
-	newCoding.setSystem("http://hl7.org/fhir/vs/restful-security-service")
+	newCoding.setSystem("http://hl7.org/fhir/restful-security-service")
 	newCoding.setCode("OAuth2")
 	newService.getCoding().add(newCoding)
 	newService.setText("OAuth version 2 (see oauth.net).")
