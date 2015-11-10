@@ -62,12 +62,12 @@ class UrlMappings {
       controller="LaunchContext"
       action=[POST: "create"]
     }
-    
+
     name getLaunchContext: "/_services/smart/Launch/$launch_id" {
       controller="LaunchContext"
       action=[GET: "read"]
     }
-    
+
     name getRecentPatients: "/_services/smart/RecentPatients" {
       controller="LaunchContext"
       action=[GET: "recentPatients"]
