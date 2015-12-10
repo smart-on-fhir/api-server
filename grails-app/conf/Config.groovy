@@ -11,6 +11,9 @@
 //    grails.config.locations << "file:" + System.properties["${appName}.config.location"]
 // }
 
+cors.headers = [
+    'Access-Control-Allow-Headers': 'origin, authorization, accept, content-type, x-requested-with, prefer'
+    ]
 cors.expose.headers = 'Content-Location,Location'
 cors.enabled = true
 
