@@ -51,7 +51,7 @@ $ ./grailsw run-app
 Key settings files are:
 
 #### grails-app/conf/Config.groovy
-* Turn authentication or off with `fhir.oauth.enabled`: `true | false`
+* Turn authentication on or off with `fhir.oauth.enabled`: `true | false`
 * Configure authentication with `fhir.oauth`
 
 #### grails-app/conf/DataSource.groovy
