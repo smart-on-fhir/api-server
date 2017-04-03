@@ -3,7 +3,7 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-
+DROP SEQUENCE IF EXISTS hibernate_sequence;
 CREATE SEQUENCE hibernate_sequence
     START WITH 1
     INCREMENT BY 1
@@ -16,6 +16,7 @@ SET default_tablespace = '';
 
 SET default_with_oids = false;
 
+DROP SEQUENCE IF EXISTS seq_launch_context CASCADE;
 CREATE SEQUENCE seq_launch_context
     START WITH 1
     INCREMENT BY 1
@@ -23,6 +24,7 @@ CREATE SEQUENCE seq_launch_context
     NO MAXVALUE
     CACHE 1;
 
+DROP SEQUENCE IF EXISTS seq_launch_context_params CASCADE;
 CREATE SEQUENCE seq_launch_context_params
     START WITH 1
     INCREMENT BY 1
@@ -30,7 +32,8 @@ CREATE SEQUENCE seq_launch_context_params
     NO MAXVALUE
     CACHE 1;
 
-CREATE TABLE launch_context (
+DROP TABLE IF EXISTS launch_context CASCADE;
+CREATE TABLE  launch_context (
     launch_id bigint DEFAULT nextval('seq_launch_context'::regclass) NOT NULL PRIMARY KEY,
     username character varying(255),
     created_by character varying(255),
@@ -38,6 +41,7 @@ CREATE TABLE launch_context (
     client_id character varying(255)
 );
 
+DROP TABLE IF EXISTS launch_context_params;
 CREATE TABLE launch_context_params (
     id bigint DEFAULT nextval('seq_launch_context_params'::regclass) NOT NULL PRIMARY KEY,
     launch_context bigint references launch_context(launch_id),  
@@ -45,6 +49,7 @@ CREATE TABLE launch_context_params (
     param_value character varying(255)
 );
 
+DROP TABLE IF EXISTS resource_compartment;
 CREATE TABLE resource_compartment (
     fhir_type character varying(255) NOT NULL,
     fhir_id character varying(255) NOT NULL,
@@ -52,7 +57,7 @@ CREATE TABLE resource_compartment (
 );
 
 
-
+DROP SEQUENCE IF EXISTS seq_resource_index_term CASCADE;
 CREATE SEQUENCE seq_resource_index_term
     START WITH 1
     INCREMENT BY 1
@@ -61,7 +66,7 @@ CREATE SEQUENCE seq_resource_index_term
     CACHE 1;
 
 
-
+DROP TABLE IF EXISTS resource_index_term;
 CREATE TABLE resource_index_term (
     id bigint DEFAULT nextval('seq_resource_index_term'::regclass) NOT NULL,
     fhir_id character varying(255) NOT NULL,
@@ -85,7 +90,7 @@ CREATE TABLE resource_index_term (
 );
 
 
-
+DROP TABLE IF EXISTS resource_version;
 CREATE TABLE resource_version (
     version_id bigint NOT NULL,
     content text NOT NULL,
@@ -96,6 +101,7 @@ CREATE TABLE resource_version (
 );
 
 
+DROP SEQUENCE IF EXISTS seq_resource_compartment;
 CREATE SEQUENCE seq_resource_compartment
     START WITH 1
     INCREMENT BY 1
@@ -103,6 +109,7 @@ CREATE SEQUENCE seq_resource_compartment
     NO MAXVALUE
     CACHE 1;
 
+DROP SEQUENCE IF EXISTS seq_resource_version;
 CREATE SEQUENCE seq_resource_version
     START WITH 1
     INCREMENT BY 1
