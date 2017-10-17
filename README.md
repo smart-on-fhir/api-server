@@ -1,3 +1,7 @@
+## This project is no longer maintained, but there is a list of other open source FHIR servers [here](http://wiki.hl7.org/index.php?title=Open_Source_FHIR_implementations).
+---
+
+
 SMART on FHIR
 =============
 
